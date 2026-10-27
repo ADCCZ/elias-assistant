@@ -34,8 +34,10 @@ Format: **context** – what we had to decide, **decision**, **why**.
 
 ## D6 – ktlint with the Android Studio code style (2026-10-27)
 - **Context:** A portfolio project needs consistent formatting. Adding a formatter later means reformatting everything.
-- **Decision:** ktlint via the `org.jlleitschuh.gradle.ktlint` plugin, `android_studio` code style, checked in CI.
-- **Why:** The IDE formatter and ktlint agree, so the check rarely fails for formatting the IDE produced.
+- **Decision:** ktlint via the `org.jlleitschuh.gradle.ktlint` plugin, `android_studio` code style with trailing commas
+  allowed, checked in CI. `./gradlew ktlintFormat` fixes most findings automatically.
+- **Why:** The IDE formatter and ktlint read the same `.editorconfig`, so they agree. Trailing commas follow the
+  Kotlin coding conventions and keep diffs small when a parameter is added.
 
 ## D7 – java.time without desugaring, time through an injected Clock (2026-10-27)
 - **Context:** The spec requires `java.time` with the `Europe/Prague` zone.
@@ -58,3 +60,8 @@ Format: **context** – what we had to decide, **decision**, **why**.
 - **Context:** Each milestone ends with testing on the phone before the next one starts.
 - **Decision:** Work happens on a branch such as `m0-foundation`. The pull request into `main` is merged after the phone test.
 - **Why:** The pull request is a natural review point. CI runs on it and the history shows the milestones clearly.
+
+## D11 – Open-source Gradle cache in CI (2026-10-27)
+- **Context:** `gradle/actions/setup-gradle` v6 uses a proprietary caching library by default.
+- **Decision:** `cache-provider: basic`, the MIT-licensed provider built on the standard GitHub Actions cache.
+- **Why:** Fully open source with no extra terms, and fast enough for a single-module project.
