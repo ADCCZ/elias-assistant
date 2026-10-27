@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Elias</string>
+    <string name="home_tagline">Hlas tichého vánku</string>
+    <string name="home_today">Dnes je %1$s</string>
+</resources>

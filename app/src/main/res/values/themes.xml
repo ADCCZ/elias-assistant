@@ -1,0 +1,4 @@
+<resources>
+    <!-- Window theme shown before Compose draws. Compose uses EliasTheme. -->
+    <style name="Theme.Elias" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

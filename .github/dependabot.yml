@@ -1,0 +1,28 @@
+# Proposes updates for Gradle dependencies (gradle/libs.versions.toml) and GitHub Actions.
+# Monthly and grouped, to keep the noise low.
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      # Kotlin, the Compose compiler plugin and KSP must move together.
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin*"
+          - "com.google.devtools.ksp*"
+      androidx:
+        patterns:
+          - "androidx.*"
+      testing:
+        patterns:
+          - "org.junit*"
+          - "io.mockk*"
+          - "org.jetbrains.kotlinx:kotlinx-coroutines-test"
+          - "app.cash.turbine*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

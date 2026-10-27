@@ -12,6 +12,9 @@ trim_trailing_whitespace = true
 # ktlint style close to Android Studio defaults, so IDE formatting and ktlint agree.
 ktlint_code_style = android_studio
 max_line_length = 120
+# Trailing commas, as the Kotlin coding conventions recommend: smaller diffs when a parameter is added.
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
 # Composable functions are named in PascalCase by convention.
 ktlint_function_naming_ignore_when_annotated_with = Composable
 
