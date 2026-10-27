@@ -104,3 +104,34 @@ Format: **context** – what we had to decide, **decision**, **why**.
 - **Context:** The user wants it obvious that the name is an acronym.
 - **Decision:** Screens and README write **E.L.I.A.S.**. Speech uses "Elias". Code identifiers stay `Elias`.
 - **Why:** Text-to-speech would spell the dotted form letter by letter. Kotlin naming conventions do not allow dots.
+
+## D18 – Claude API called directly with Ktor, not through the Java SDK (2026-10-27)
+- **Context:** The official `com.anthropic:anthropic-java` SDK works from Kotlin, but does not list Android support
+  and adds Jackson. We make one non-streaming request.
+- **Decision:** `POST /v1/messages` with the shared Ktor client, as the spec describes (user's choice).
+- **Why:** One HTTP stack and one error-handling path for all sources, tests with `MockEngine`, no extra library.
+  The pinned `anthropic-version` header keeps the API stable until we change it on purpose.
+
+## D19 – Consistent AI text without a temperature (2026-10-27)
+- **Context:** API version `2026-10-21` rejects `temperature`, `top_p` and `top_k` on every model.
+- **Decision:** `output_config.effort: "low"`, structured output (one string per section), a strict prompt,
+  and `BriefingValidator` (length, no lists, headings or markup). Anything else falls back to the template.
+- **Why:** Structure and validation give more reliable output than a low temperature ever did.
+
+## D20 – Spoken Czech is computed on the phone (2026-10-27)
+- **Context:** Czech numerals and dates change form with case and gender ("dvě události", "pětadvacet stupňů",
+  "v půl čtvrté"). Language models and text-to-speech both get these wrong now and then.
+- **Decision:** `domain/speech` turns numbers, times, dates and Bible references into words. The template uses them,
+  and the AI receives them ready-made and is told to copy them.
+- **Why:** The grammar is unit-tested once, and the AI only has to connect sentences.
+
+## D21 – Briefings are kept as sections (2026-10-27)
+- **Context:** Overnight messages (M5) must appear second in the morning briefing but must never be sent to the AI.
+- **Decision:** Both builders return `BriefingText` made of `BriefingSection`s in a fixed speaking order.
+- **Why:** The overnight messages section can be inserted locally after the AI answer without parsing free text.
+
+## D22 – The AI output check is looser than the spec's word counts (2026-10-27)
+- **Context:** The spec targets 120–180 words in the morning and 60–100 in the evening.
+- **Decision:** The validator accepts 100–210 and 50–125 words. The template aims at the spec's ranges.
+- **Why:** A slightly long AI text is better than throwing it away. Real limits on silence or length come from
+  the spec's intent (about a minute), not from an exact count.

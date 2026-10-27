@@ -13,8 +13,8 @@ what is still left to do and what is coming tomorrow. Then it goes quiet.
 | Milestone | Content | State |
 |---|---|---|
 | M0 – Foundation | Project, Compose, Hilt, CI, docs | Done |
-| M1 – Data sources | Calendar, weather, RSS, personal plan, sunset, Data screen | In review |
-| M2 – Briefing | Template builder, Claude API builder with fallback | Planned |
+| M1 – Data sources | Calendar, weather, RSS, personal plan, sunset, Data screen | Done |
+| M2 – Briefing | Spoken Czech, template builder, Claude API builder with fallback, preview screen | In review |
 | M3 – Voice | Text-to-speech in a foreground service, audio focus | Planned |
 | M4 – Scheduling | Exact alarms, prefetch and cache, sabbath rules, status screen | Planned |
 | M5 – Overnight messages | Notification listener (metadata only) | Planned |
@@ -38,6 +38,23 @@ source, each with its load status or the reason it failed:
 | Sun and sabbath | NOAA solar formulas, computed on the phone | Within a minute of the US Naval Observatory |
 
 Sources load in parallel. Each has its own time limit, and one failing source never hides the others.
+
+## Briefings (M2)
+
+The **Náhled textu** screen shows the morning and evening briefing as Elias would say them, who wrote them and
+how long they take to say.
+
+- **Spoken Czech on the phone.** Numbers, times, dates, temperatures and Bible references are turned into words
+  with correct Czech grammar before anything else happens: "ve čtvrt na jedenáct", "v úterý sedmadvacátého
+  října", "pětadvacet stupňů", "Marek, první kapitola".
+- **Template first.** `TemplateBriefingBuilder` writes both briefings from fixed sentences, follows the order
+  from the spec and keeps the morning under 180 words. It never invents anything: when a source is missing,
+  it says so in one short sentence.
+- **AI as an improvement.** `ClaudeBriefingBuilder` sends the same pre-spoken data to Claude Haiku 5.5
+  (`POST /v1/messages`, API version `2026-10-21`, effort `low`, structured output with one string per section).
+  The answer is checked for length and for anything not meant for listening. Any problem (no key, no credit,
+  timeout after 15 seconds, refusal, invalid output) falls back to the template, and the screen shows why.
+- **Cost:** about $0.0006 per briefing with Claude Haiku 5.5, well under a dollar a month for two briefings a day.
 
 ## Planned features
 
@@ -73,10 +90,12 @@ Min SDK 29 (Android 10), target SDK 37 (Android 17).
 ui      Compose screens + ViewModels (one StateFlow of UI state per screen)
  │
  ▼
-domain  pure Kotlin: models, plan rules, sun and sabbath, headline selection, the loader that combines sources
+domain  pure Kotlin: models, plan rules, sun and sabbath, headline selection, the loader that combines sources,
+        spoken Czech, briefing inputs, template builder, AI-or-template choice
  ▲
  │
-data    calendar provider, Open-Meteo, RSS, plan file (each returns a SourceResult: data or a failure reason)
+data    calendar provider, Open-Meteo, RSS, plan file (each returns a SourceResult: data or a failure reason),
+        Claude API client
 ```
 
 `ui` and `data` both depend on `domain`, never the other way round. A full diagram comes with M7.
@@ -94,7 +113,7 @@ point `JAVA_HOME` to a JDK 25, for example Android Studio's `jbr` folder.
    ANTHROPIC_API_KEY=sk-ant-...
    ```
 
-   Without a key the app still builds and runs. From M2 on it then uses the local template only.
+   Without a key (or without credit on the account) the app still builds and runs and uses the local template.
 3. Optional: put your own plan into `app/src/main/assets/plan.json` (git-ignored). The format is the same as
    [plan.example.json](app/src/main/assets/plan.example.json). Without it the app uses the fictional sample plan.
 4. Build and run:
@@ -117,14 +136,17 @@ point `JAVA_HOME` to a JDK 25, for example Android Studio's `jbr` folder.
 
 E.L.I.A.S. is built to keep personal data on the phone. This section grows with each milestone.
 
-**What leaves the phone (M1):**
+**What leaves the phone:**
 
 - A weather request to Open-Meteo with the fixed coordinates of Pilsen. Nothing about you.
 - Requests for the RSS feeds of ČT24, iROZHLAS and Root.cz. Like any web request, they reveal your IP address.
+- **Only if an API key is set:** the briefing data goes to the Claude API (Anthropic): the date, the weather
+  summary, titles, times and places of today's and tomorrow's calendar events, today's part of the personal plan,
+  the chosen headlines and upcoming deadlines. The key is sent only as the `x-api-key` header and never logged.
 
 **What stays on the phone:**
 
-- Calendar events are read on the device and never sent anywhere. The app never writes to the calendar.
+- Calendar events are read on the device. Without an API key they never leave it. The app never writes to the calendar.
 - The personal plan is part of the app and is only read locally.
 - Android cloud backup and device-to-device transfer are disabled for this app.
 
@@ -132,8 +154,8 @@ E.L.I.A.S. is built to keep personal data on the phone. This section grows with 
 
 - **Overnight messages (M5):** only the app, the sender or conversation name and the time are stored, never the
   message content. Records are deleted after 48 hours. This data is **never sent to the AI**.
-- **AI (M2):** if an API key is set, the structured briefing data (weather, events, plan, headlines) is sent to
-  the Claude API. Overnight messages are added afterwards, locally.
+- **Overnight messages and the AI:** the briefing is kept as separate sections, so the overnight messages will be
+  inserted locally after the AI answer. Names of people from notifications never reach Anthropic.
 
 **No personal data in this repository:** the real personal plan is git-ignored. The repository ships fictional
 sample data only.

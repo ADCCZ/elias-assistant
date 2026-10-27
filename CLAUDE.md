@@ -49,6 +49,11 @@ io/github/adccz/elias/
 - **Android-only code stays thin.** For example `ContentResolverCalendarRepository` only copies cursor rows;
   the date logic lives in `CalendarInstanceMapper`, which is unit-tested.
 - **Navigation 3:** screen keys are `@Serializable` objects implementing `NavKey` in `ui/navigation`.
+- **Briefings:** `BriefingInputs` turns the overview into spoken-Czech facts (`domain/speech`), `TemplateBriefingBuilder`
+  and `ClaudeBriefingBuilder` write `BriefingText` sections, `BriefingService` picks AI or template.
+- **Claude API:** `POST /v1/messages` via Ktor, header `anthropic-version: 2026-10-21`. Never send `temperature`,
+  `top_p` or `top_k` (400 on that version). Prompts are Czech and live in `data/ai/ClaudePrompts.kt`.
+  Never log or display the API key; `ClaudeConfig.toString()` hides it.
 - **MVVM + unidirectional data flow:** a ViewModel exposes one `StateFlow<XxxUiState>`, the screen
   sends events up. Composables stay stateless where possible (state hoisting).
 - **DI:** Hilt. Constructor injection everywhere; modules only for interfaces and third-party types.
@@ -81,6 +86,8 @@ io/github/adccz/elias/
 - Network clients are tested with Ktor `MockEngine` via `createHttpClient(engine, ..., maxRetries = 0)`.
   ViewModel tests register `MainDispatcherExtension`. Test fixtures (RSS, JSON) are fictional.
 - Never call real services from committed tests. A one-off manual check is fine, but delete it afterwards.
+- Code with a real-time timeout around a `MockEngine` call (like `ClaudeBriefingBuilder`) is tested with
+  `runBlocking`: in `runTest` virtual time the timeout would fire instantly.
 - CI (GitHub Actions) runs build, unit tests, lint and ktlint on every push.
 
 ## Commands
