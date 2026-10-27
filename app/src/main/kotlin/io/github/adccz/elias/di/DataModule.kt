@@ -4,9 +4,11 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import io.github.adccz.elias.data.calendar.ContentResolverCalendarRepository
 import io.github.adccz.elias.data.news.RssNewsRepository
 import io.github.adccz.elias.data.plan.AssetPlanRepository
 import io.github.adccz.elias.data.weather.OpenMeteoWeatherRepository
+import io.github.adccz.elias.domain.calendar.CalendarRepository
 import io.github.adccz.elias.domain.news.NewsRepository
 import io.github.adccz.elias.domain.plan.PlanRepository
 import io.github.adccz.elias.domain.weather.WeatherRepository
@@ -23,4 +25,7 @@ abstract class DataModule {
 
     @Binds
     abstract fun bindNewsRepository(impl: RssNewsRepository): NewsRepository
+
+    @Binds
+    abstract fun bindCalendarRepository(impl: ContentResolverCalendarRepository): CalendarRepository
 }

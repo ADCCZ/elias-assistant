@@ -3,6 +3,8 @@
 
     <!-- Weather and news headlines. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Today's events from the calendars synced to the phone. Read only, never written. -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
 
     <!--
         Backup is off on purpose: personal data must not leave the phone (docs/DECISIONS.md, D9).
