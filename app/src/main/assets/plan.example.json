@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "name": "Ukázkový plán: zimní semestr",
+  "validFrom": "2026-10-05",
+  "validTo": "2027-01-31",
+  "phases": [
+    { "name": "Rozjezd semestru", "from": "2026-10-05", "to": "2026-11-29" },
+    { "name": "Projekty a zápočty", "from": "2026-11-30", "to": "2026-12-20" },
+    { "name": "Zkouškové", "from": "2026-12-21", "to": "2027-01-31" }
+  ],
+  "dailyMinimum": ["Vstát do sedmi", "Jeden hlavní úkol", "Půl hodiny pohybu"],
+  "rules": ["Telefon mimo ložnici", "Učit se v blocích po padesáti minutách", "Spát do půl dvanácté"],
+  "weeklyThemes": [
+    { "weekStart": "2026-10-19", "title": "Trpělivost", "task": "Nechat druhé dokončit myšlenku, než odpovím" },
+    { "weekStart": "2026-10-26", "title": "Vděčnost", "task": "Každý večer zapsat tři dobré věci ze dne" },
+    { "weekStart": "2026-11-02", "title": "Pořádek", "task": "Večer uklidit stůl na další den" },
+    { "weekStart": "2026-11-09", "title": "Pozornost", "task": "Při rozhovoru odložit telefon" },
+    { "weekStart": "2026-11-16", "title": "Odvaha", "task": "Zeptat se na přednášce na jednu věc, které nerozumím" },
+    { "weekStart": "2026-11-23", "title": "Štědrost", "task": "Pomoct spolužákovi s úkolem" }
+  ],
+  "morningReadings": [
+    { "date": "2026-10-26", "text": "Př 1" },
+    { "date": "2026-10-27", "text": "Př 2" },
+    { "date": "2026-10-28", "text": "Př 3" },
+    { "date": "2026-10-29", "text": "Př 4" },
+    { "date": "2026-10-30", "text": "Př 5" },
+    { "date": "2026-10-31", "text": "Př 6" },
+    { "date": "2026-11-01", "text": "Př 7" }
+  ],
+  "saturdayStudies": [
+    { "date": "2026-10-31", "text": "Ž 23" },
+    { "date": "2026-11-07", "text": "Ž 121" }
+  ],
+  "recurring": [
+    { "title": "Angličtina dvacet minut", "days": ["MONDAY", "WEDNESDAY", "FRIDAY"] },
+    { "title": "Běh", "days": ["TUESDAY", "THURSDAY"], "note": "Aspoň pět kilometrů" },
+    { "title": "Plán na další týden", "days": ["SUNDAY"] }
+  ],
+  "oneTime": [
+    { "date": "2026-11-14", "text": "Vrátit knihy do knihovny" }
+  ],
+  "deadlines": [
+    { "date": "2026-10-28", "subject": "Databáze", "title": "Odevzdat první úkol", "mandatory": true },
+    { "date": "2026-11-11", "subject": "Statistika", "title": "Průběžný test", "mandatory": true },
+    { "date": "2026-12-15", "subject": "Databáze", "title": "Obhajoba semestrální práce", "mandatory": true },
+    { "date": "2026-11-30", "title": "Revize plánu" }
+  ]
+}
