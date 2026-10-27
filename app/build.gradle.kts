@@ -1,9 +1,22 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
+
+// local.properties is git-ignored. Besides sdk.dir it holds our secrets, such as ANTHROPIC_API_KEY.
+// Reading it through `providers` keeps the build compatible with Gradle's configuration cache.
+val localProperties = Properties().apply {
+    providers.fileContents(rootProject.layout.projectDirectory.file("local.properties"))
+        .asText.orNull
+        ?.let { load(it.reader()) }
+}
+
+/** Turns a value into a Java string literal for a BuildConfig field. */
+fun String.asJavaStringLiteral(): String = "\"" + replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
 android {
     namespace = "io.github.adccz.elias"
@@ -15,6 +28,10 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
+
+        // Empty when the key is missing, so the app (and CI) still builds. Elias then uses its template.
+        val anthropicApiKey = localProperties.getProperty("ANTHROPIC_API_KEY", "")
+        buildConfigField("String", "ANTHROPIC_API_KEY", anthropicApiKey.asJavaStringLiteral())
     }
 
     buildTypes {
@@ -30,6 +47,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
