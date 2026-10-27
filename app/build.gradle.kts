@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.ktlint)
 }
 
 // local.properties is git-ignored. Besides sdk.dir it holds our secrets, such as ANTHROPIC_API_KEY.
@@ -66,4 +67,20 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
+
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+}
+
+// Local unit tests run on the JUnit Platform (JUnit 6), see docs/DECISIONS.md, D5.
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
+
+ktlint {
+    version.set(libs.versions.ktlint)
 }

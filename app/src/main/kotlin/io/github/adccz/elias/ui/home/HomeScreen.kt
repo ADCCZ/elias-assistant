@@ -33,10 +33,7 @@ fun HomeRoute(viewModel: HomeViewModel = hiltViewModel()) {
 
 /** Stateless home screen: it only draws [uiState]. */
 @Composable
-fun HomeScreen(
-    uiState: HomeUiState,
-    modifier: Modifier = Modifier,
-) {
+fun HomeScreen(uiState: HomeUiState, modifier: Modifier = Modifier) {
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         Column(
             modifier = Modifier
