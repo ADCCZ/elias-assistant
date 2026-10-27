@@ -9,6 +9,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import io.github.adccz.elias.ui.data.DataRoute
 import io.github.adccz.elias.ui.home.HomeRoute
+import io.github.adccz.elias.ui.preview.PreviewRoute
 import kotlinx.serialization.Serializable
 
 // Screens are identified by keys. They are @Serializable so the back stack survives process death.
@@ -18,6 +19,9 @@ data object HomeKey : NavKey
 
 @Serializable
 data object DataKey : NavKey
+
+@Serializable
+data object PreviewKey : NavKey
 
 /**
  * The app's navigation with Navigation 3. The back stack is a plain list we own:
@@ -36,8 +40,14 @@ fun EliasNavigation() {
             rememberViewModelStoreNavEntryDecorator(),
         ),
         entryProvider = entryProvider {
-            entry<HomeKey> { HomeRoute(onOpenData = { backStack.add(DataKey) }) }
+            entry<HomeKey> {
+                HomeRoute(
+                    onOpenData = { backStack.add(DataKey) },
+                    onOpenPreview = { backStack.add(PreviewKey) },
+                )
+            }
             entry<DataKey> { DataRoute(onBack = { backStack.removeLastOrNull() }) }
+            entry<PreviewKey> { PreviewRoute(onBack = { backStack.removeLastOrNull() }) }
         },
     )
 }
