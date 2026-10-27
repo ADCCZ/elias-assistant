@@ -36,24 +36,23 @@ internal fun DaySection(overview: TodayOverview) {
         Text(stringResource(R.string.day_sun, sun.sunrise.timeOrDash(), sun.sunset.timeOrDash()))
         val sabbath = overview.sabbath
         if (overview.loadedAt in sabbath) {
-            Text(
-                stringResource(
-                    R.string.day_sabbath_now,
-                    sabbath.end.format(CzechFormat.dayAndDate),
-                    sabbath.end.format(CzechFormat.time),
-                ),
-            )
+            Text(stringResource(R.string.day_sabbath_now), fontWeight = FontWeight.Medium)
         } else {
             Text(
                 stringResource(
-                    R.string.day_sabbath_next,
+                    R.string.day_sabbath_start,
                     sabbath.start.format(CzechFormat.dayAndDate),
                     sabbath.start.format(CzechFormat.time),
-                    sabbath.end.format(CzechFormat.dayAndDate),
-                    sabbath.end.format(CzechFormat.time),
                 ),
             )
         }
+        Text(
+            stringResource(
+                R.string.day_sabbath_end,
+                sabbath.end.format(CzechFormat.dayAndDate),
+                sabbath.end.format(CzechFormat.time),
+            ),
+        )
     }
 }
 
