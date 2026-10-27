@@ -1,5 +1,67 @@
 <resources>
-    <string name="app_name">Elias</string>
+    <!-- Written with dots so it is clear the name is an acronym. Spoken as "Elias". -->
+    <string name="app_name">E.L.I.A.S.</string>
     <string name="home_tagline">Hlas tichého vánku</string>
     <string name="home_today">Dnes je %1$s</string>
+    <string name="home_open_data">Co E.L.I.A.S. dnes ví</string>
+
+    <string name="action_back">Zpět</string>
+    <string name="action_refresh">Obnovit</string>
+
+    <!-- Data screen -->
+    <string name="data_title">Co E.L.I.A.S. dnes ví</string>
+    <string name="data_loaded_for">%1$s, načteno v %2$s</string>
+
+    <string name="section_day">Den</string>
+    <string name="day_sun">Východ slunce %1$s, západ %2$s</string>
+    <string name="day_sabbath_now">Sabat právě probíhá</string>
+    <string name="day_sabbath_start">Začátek sabatu: %1$s v %2$s</string>
+    <string name="day_sabbath_end">Konec sabatu: %1$s v %2$s</string>
+    <string name="value_missing">–</string>
+
+    <string name="section_calendar">Kalendář</string>
+    <string name="calendar_empty">Dnes nic v kalendáři</string>
+    <string name="calendar_all_day">celý den</string>
+    <string name="calendar_time_range">%1$s–%2$s</string>
+    <string name="calendar_untitled">(bez názvu)</string>
+    <string name="calendar_permission_explanation">E.L.I.A.S. potřebuje číst kalendář, aby věděl, co tě dnes čeká. Do kalendáře nikdy nezapisuje.</string>
+    <string name="calendar_grant">Povolit přístup ke kalendáři</string>
+    <string name="calendar_open_settings">Otevřít nastavení aplikace</string>
+
+    <string name="section_weather">Počasí v Plzni</string>
+    <string name="weather_temperatures">Ráno %1$s, odpoledne %2$s</string>
+    <string name="weather_dry">Bez srážek</string>
+    <string name="weather_precipitation">%1$s od %2$s, %3$s mm</string>
+    <string name="weather_probability">Pravděpodobnost srážek až %1$d %%</string>
+    <string name="weather_wind">Vítr až %1$d km/h, nárazy až %2$d km/h</string>
+    <string name="weather_attribution">Data o počasí: Open-Meteo.com</string>
+
+    <string name="section_plan">Plán</string>
+    <string name="plan_sample_note">Ukázkový plán, protože v aplikaci chybí osobní plan.json.</string>
+    <string name="plan_not_valid">Plán dnes neplatí (platí %1$s až %2$s).</string>
+    <string name="plan_phase">Fáze: %1$s</string>
+    <string name="plan_minimum">Minimum dne: %1$s</string>
+    <string name="plan_theme">Téma týdne: %1$s. %2$s</string>
+    <string name="plan_reading">Ranní čtení: %1$s</string>
+    <string name="plan_study">Sobotní studium: %1$s</string>
+    <string name="plan_items">Dnes: %1$s</string>
+    <string name="plan_deadline_today">Termín dnes: %1$s</string>
+    <string name="plan_deadline_tomorrow">Termín zítra: %1$s</string>
+    <string name="plan_rules">Pravidla: %1$s</string>
+    <string name="plan_mandatory">povinné</string>
+
+    <string name="section_news">Titulky</string>
+    <string name="news_empty">Žádné titulky za posledních 24 hodin</string>
+    <string name="news_source_and_time">%1$s · %2$s</string>
+
+    <!-- Source status -->
+    <string name="status_loaded">✓ Načteno v %1$s</string>
+    <string name="status_failed">✗ %1$s</string>
+    <string name="status_feed">%1$s: %2$s</string>
+    <string name="failure_no_permission">Chybí oprávnění</string>
+    <string name="failure_network">Bez připojení k internetu</string>
+    <string name="failure_timeout">Zdroj neodpověděl včas</string>
+    <string name="failure_server_error">Chyba serveru</string>
+    <string name="failure_invalid_data">Data nejdou přečíst</string>
+    <string name="failure_unknown">Neznámá chyba</string>
 </resources>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fictional feed shaped like ČT24: CDATA titles, GMT dates, guid, atom and media namespaces. -->
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <atom:link href="https://example.org/rss" rel="self" type="application/rss+xml"/>
+    <title>Testovací zprávy</title>
+    <link>https://example.org</link>
+    <item>
+      <title><![CDATA[Město otevřelo novou   knihovnu]]></title>
+      <link>https://example.org/clanek/knihovna</link>
+      <guid isPermaLink="true">https://example.org/clanek/knihovna</guid>
+      <pubDate>Tue, 27 Oct 2026 12:11:48 GMT</pubDate>
+      <description><![CDATA[<p>Popis, který Elias nečte.</p>]]></description>
+      <media:content url="https://example.org/obrazek.jpg"/>
+    </item>
+    <item>
+      <title><![CDATA[Vědci & studenti popsali nový druh brouka]]></title>
+      <link>https://example.org/clanek/brouk</link>
+      <guid isPermaLink="true">https://example.org/clanek/brouk</guid>
+      <pubDate>Tue, 3 Nov 2026 09:05:00 GMT</pubDate>
+    </item>
+    <item>
+      <description>Položka bez titulku se přeskočí.</description>
+    </item>
+  </channel>
+</rss>

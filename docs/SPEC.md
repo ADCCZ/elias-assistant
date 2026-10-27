@@ -187,3 +187,4 @@ Ke každému milníku: testy, aktualizace README a shrnutí pro mě.
 
 - **2026-10-27:** Repo je veřejné. Osobní plán byl přesunut ze specifikace do `docs/private/plan-2026-podzim.md` (mimo git). Ve specifikaci zůstala jen jeho struktura.
 - **2026-10-27:** Kořenový balíček a applicationId: `io.github.adccz.elias`.
+- **2026-10-27:** Jméno se na obrazovce a v README píše **E.L.I.A.S.**, aby bylo jasné, že jde o zkratku. Nahlas se vyslovuje „Elias“ (hlasová syntéza by tečkovanou podobu hláskovala). V kódu zůstává `Elias`.

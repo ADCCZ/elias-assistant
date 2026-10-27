@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
-import io.github.adccz.elias.ui.home.HomeRoute
+import io.github.adccz.elias.ui.navigation.EliasNavigation
 import io.github.adccz.elias.ui.theme.EliasTheme
 
 /** The only activity. Everything on screen is drawn by Compose. */
@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             EliasTheme {
-                HomeRoute()
+                EliasNavigation()
             }
         }
     }
