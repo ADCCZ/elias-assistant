@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 class TimeModuleTest {
     @Test
     fun `app clock runs in the Europe Prague zone`() {
-        val clock = TimeModule.provideClock()
+        val clock = TimeModule.provideClock(TimeModule.provideZoneId())
 
         assertEquals(ZoneId.of("Europe/Prague"), clock.zone)
     }
