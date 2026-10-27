@@ -73,3 +73,34 @@ Format: **context** – what we had to decide, **decision**, **why**.
   (for example Android Studio's `jbr` folder).
 - **Why:** The IDE, the terminal and CI build with the same Java, so "works in Studio, fails in CI" surprises
   are less likely. The app's bytecode target stays Java 17.
+
+## D13 – Own RSS parser on the javax.xml SAX parser (2026-10-27)
+- **Context:** We only need title, link, guid and date from three RSS 2.0 feeds. Android's `XmlPullParser`
+  is not available in plain JVM unit tests.
+- **Decision:** A small parser on `javax.xml.parsers.SAXParser`, with external entities blocked (XXE).
+- **Why:** The same code runs on the phone and in tests, without an extra library or Robolectric.
+  It also handles real-world quirks: CDATA, missing guid, numeric offsets and wrong day names.
+
+## D14 – Data cache waits for M4 (2026-10-27)
+- **Context:** The spec wants every source to fall back to its last cached value.
+- **Decision:** No cache in M1. Each source reports a clear failure instead. The Room cache comes in M4
+  together with the prefetch 30 minutes before the morning briefing.
+- **Why:** The cache only pays off with scheduled prefetching. Building it now would make M1 twice as big.
+
+## D15 – The personal plan is an app asset (2026-10-27)
+- **Context:** The plan must be replaceable, but it is also private.
+- **Decision:** `app/src/main/assets/plan.json` (git-ignored), falling back to the fictional `plan.example.json`.
+  Changing the plan means rebuilding the app for now.
+- **Why:** Simple and works offline. Importing a plan file on the phone can come with the settings in M7.
+
+## D16 – Repeated stories detected by shared word stems (2026-10-27)
+- **Context:** ČT24 and iROZHLAS often report the same story with different titles, so the briefing would repeat it.
+- **Decision:** Two titles are one story when they share at least three significant words (four or more letters,
+  compared by their first five letters) that make up at least 60 % of the shorter title.
+- **Why:** A cheap heuristic that works for Czech word endings without a language library. Tests pin the
+  behaviour on both a matching and a non-matching pair.
+
+## D17 – Displayed name E.L.I.A.S., spoken "Elias" (2026-10-27)
+- **Context:** The user wants it obvious that the name is an acronym.
+- **Decision:** Screens and README write **E.L.I.A.S.**. Speech uses "Elias". Code identifiers stay `Elias`.
+- **Why:** Text-to-speech would spell the dotted form letter by letter. Kotlin naming conventions do not allow dots.

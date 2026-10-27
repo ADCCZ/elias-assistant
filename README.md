@@ -1,10 +1,10 @@
-# Elias
+# E.L.I.A.S.
 
 [![CI](https://github.com/ADCCZ/elias-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/ADCCZ/elias-assistant/actions/workflows/ci.yml)
 
-**Elias** is a personal voice assistant for Android that speaks Czech. Every morning it tells you, in about
-a minute, what happened overnight and what the day holds. In the evening it tells you what is still left
-to do and what is coming tomorrow. Then it goes quiet.
+**E.L.I.A.S.** (spoken "Elias") is a personal voice assistant for Android that speaks Czech. Every morning it
+tells you, in about a minute, what happened overnight and what the day holds. In the evening it tells you
+what is still left to do and what is coming tomorrow. Then it goes quiet.
 
 > Work in progress. Built step by step as a portfolio project, one milestone at a time.
 
@@ -12,17 +12,32 @@ to do and what is coming tomorrow. Then it goes quiet.
 
 | Milestone | Content | State |
 |---|---|---|
-| M0 – Foundation | Project, Compose, Hilt, CI, docs | In progress |
-| M1 – Data sources | Calendar, weather, RSS, personal plan, sunset | Planned |
+| M0 – Foundation | Project, Compose, Hilt, CI, docs | Done |
+| M1 – Data sources | Calendar, weather, RSS, personal plan, sunset, Data screen | In review |
 | M2 – Briefing | Template builder, Claude API builder with fallback | Planned |
 | M3 – Voice | Text-to-speech in a foreground service, audio focus | Planned |
-| M4 – Scheduling | Exact alarms, prefetch, sabbath rules, status screen | Planned |
+| M4 – Scheduling | Exact alarms, prefetch and cache, sabbath rules, status screen | Planned |
 | M5 – Overnight messages | Notification listener (metadata only) | Planned |
 | M6 – Alarm clock | Alarm that always rings, then Elias speaks | Planned |
 | M7 – Polish | Settings, widget, demo mode, run log, screenshots | Planned |
 
 The full specification is in [docs/SPEC.md](docs/SPEC.md) (Czech). Design decisions are recorded in
 [docs/DECISIONS.md](docs/DECISIONS.md).
+
+## What it knows today (M1)
+
+The **Data** screen ("Co E.L.I.A.S. dnes ví") shows everything the briefing will be built from, one card per
+source, each with its load status or the reason it failed:
+
+| Source | How | Notes |
+|---|---|---|
+| Calendar | `CalendarContract.Instances`, read only | Repeating events expanded; all-day events handled in UTC |
+| Weather | [Open-Meteo](https://open-meteo.com) forecast for Pilsen | Unix timestamps, so DST days are correct |
+| News | RSS: ČT24, iROZHLAS, Root.cz | Last 24 hours, duplicates and repeated stories removed |
+| Personal plan | `plan.json` in the app's assets | Phases, weekly themes, readings, recurring items, deadlines |
+| Sun and sabbath | NOAA solar formulas, computed on the phone | Within a minute of the US Naval Observatory |
+
+Sources load in parallel. Each has its own time limit, and one failing source never hides the others.
 
 ## Planned features
 
@@ -39,15 +54,15 @@ The full specification is in [docs/SPEC.md](docs/SPEC.md) (Czech). Design decisi
 
 | Area | Choice |
 |---|---|
-| Language and UI | Kotlin, Jetpack Compose, Material 3 |
+| Language and UI | Kotlin, Jetpack Compose, Material 3, Navigation 3 |
 | Architecture | MVVM, layers `data` / `domain` / `ui` |
 | Dependency injection | Hilt (KSP) |
-| Networking | Ktor client + kotlinx.serialization (from M1) |
-| Storage | Room and DataStore (from M1) |
+| Networking | Ktor client (OkHttp engine) + kotlinx.serialization |
+| Storage | Room and DataStore (from M4) |
 | Scheduling | AlarmManager `setAlarmClock()`, WorkManager (from M4) |
 | Voice | Android `TextToSpeech`, `cs-CZ` (from M3) |
 | Time | `java.time`, zone `Europe/Prague`, injected `Clock` |
-| Tests | JUnit 6, MockK, kotlinx-coroutines-test, Turbine |
+| Tests | JUnit 6, MockK, kotlinx-coroutines-test, Turbine, Ktor MockEngine |
 | Code style and CI | ktlint, Android lint, GitHub Actions, Dependabot |
 
 Min SDK 29 (Android 10), target SDK 37 (Android 17).
@@ -58,10 +73,10 @@ Min SDK 29 (Android 10), target SDK 37 (Android 17).
 ui      Compose screens + ViewModels (one StateFlow of UI state per screen)
  │
  ▼
-domain  pure Kotlin: models, briefing builders, use cases (no Android imports)
+domain  pure Kotlin: models, plan rules, sun and sabbath, headline selection, the loader that combines sources
  ▲
  │
-data    data sources, repositories, Room, DataStore
+data    calendar provider, Open-Meteo, RSS, plan file (each returns a SourceResult: data or a failure reason)
 ```
 
 `ui` and `data` both depend on `domain`, never the other way round. A full diagram comes with M7.
@@ -69,7 +84,8 @@ data    data sources, repositories, Room, DataStore
 ## Getting started
 
 **Requirements:** Android Studio (current stable version) with the Android SDK, and an Android phone or emulator
-with Android 10 or newer.
+with Android 10 or newer. The Gradle daemon runs on Java 25, which Android Studio bundles. From a terminal,
+point `JAVA_HOME` to a JDK 25, for example Android Studio's `jbr` folder.
 
 1. Clone the repository and open it in Android Studio.
 2. Optional: add your Anthropic API key to `local.properties` in the project root (the file is git-ignored):
@@ -79,7 +95,9 @@ with Android 10 or newer.
    ```
 
    Without a key the app still builds and runs. From M2 on it then uses the local template only.
-3. Build and run:
+3. Optional: put your own plan into `app/src/main/assets/plan.json` (git-ignored). The format is the same as
+   [plan.example.json](app/src/main/assets/plan.example.json). Without it the app uses the fictional sample plan.
+4. Build and run:
 
    ```bash
    ./gradlew assembleDebug        # build the APK
@@ -92,36 +110,58 @@ with Android 10 or newer.
 
 > [!WARNING]
 > **Never share an APK built with your API key.** The key is compiled into the app and anyone with the APK can
-> extract it. Set a monthly spend limit for the key in the [Anthropic Console](https://console.anthropic.com/).
+> extract it. The same goes for your personal plan. Set a monthly spend limit for the key in the
+> [Anthropic Console](https://console.anthropic.com/).
 
 ## Privacy
 
-Elias is built to keep personal data on the phone. This section will describe exactly what is stored and what
-leaves the device, and it grows with each milestone. The design rules are:
+E.L.I.A.S. is built to keep personal data on the phone. This section grows with each milestone.
 
-- **Overnight messages:** only the app, the sender or conversation name and the time are stored, never the
+**What leaves the phone (M1):**
+
+- A weather request to Open-Meteo with the fixed coordinates of Pilsen. Nothing about you.
+- Requests for the RSS feeds of ČT24, iROZHLAS and Root.cz. Like any web request, they reveal your IP address.
+
+**What stays on the phone:**
+
+- Calendar events are read on the device and never sent anywhere. The app never writes to the calendar.
+- The personal plan is part of the app and is only read locally.
+- Android cloud backup and device-to-device transfer are disabled for this app.
+
+**Rules for later milestones:**
+
+- **Overnight messages (M5):** only the app, the sender or conversation name and the time are stored, never the
   message content. Records are deleted after 48 hours. This data is **never sent to the AI**.
-- **What leaves the phone:** requests for weather (Open-Meteo, fixed coordinates of Pilsen) and news (RSS),
-  and, if an API key is set, the structured briefing data sent to the Claude API.
-- **No backups:** Android cloud backup and device-to-device transfer are disabled for this app.
-- **No personal data in this repository:** the real personal plan is git-ignored. The repository ships
-  fictional sample data only.
+- **AI (M2):** if an API key is set, the structured briefing data (weather, events, plan, headlines) is sent to
+  the Claude API. Overnight messages are added afterwards, locally.
+
+**No personal data in this repository:** the real personal plan is git-ignored. The repository ships fictional
+sample data only.
+
+## Data sources and credits
+
+- Weather data by [Open-Meteo.com](https://open-meteo.com), licensed under CC BY 4.0.
+- Headlines from the public RSS feeds of [ČT24](https://ct24.ceskatelevize.cz), [iROZHLAS](https://www.irozhlas.cz)
+  and [Root.cz](https://www.root.cz). Only titles are shown, with their source.
+- Sunrise and sunset follow the [NOAA Solar Calculator](https://gml.noaa.gov/grad/solcalc/) formulas.
 
 ## About the name
 
-**Elias** stands for *Everyday Life Intelligent Assistant & Scheduler*. The name also points to the prophet
-Elijah (Elias). In 1 Kings 19:11–12, God did not speak to him in the great wind, the earthquake or the fire,
-but in "a still small voice", the sound of a gentle breeze.
+**E.L.I.A.S.** stands for *Everyday Life Intelligent Assistant & Scheduler* (in Czech, *Elektronický Lehký
+Inteligentní Asistent Studenta*). The name also points to the prophet Elijah (Elias). In 1 Kings 19:11–12, God
+did not speak to him in the great wind, the earthquake or the fire, but in "a still small voice", the sound of
+a gentle breeze.
 
-Elias is meant to be like that. It does not shout, does not interrupt and does not fill the day with noise.
+E.L.I.A.S. is meant to be like that. It does not shout, does not interrupt and does not fill the day with noise.
 In the morning and in the evening it quietly says what really matters. This shapes the design: short briefings,
 no unnecessary notifications, and silence on the sabbath.
 
 ## Česky
 
-Elias je osobní hlasový asistent pro Android. Ráno a večer česky a stručně řekne, co je důležité: počasí, kalendář,
-plán dne, titulky ze světa a termíny. Jméno odkazuje na proroka Eliáše a „hlas tichého vánku“ (1 Kr 19,12),
-takže Elias mluví málo a jen když to má smysl. Podrobná specifikace je v [docs/SPEC.md](docs/SPEC.md).
+E.L.I.A.S. (čti „Elias“) je osobní hlasový asistent pro Android. Ráno a večer česky a stručně řekne, co je
+důležité: počasí, kalendář, plán dne, titulky ze světa a termíny. Jméno odkazuje na proroka Eliáše a „hlas
+tichého vánku“ (1 Kr 19,12), takže Elias mluví málo a jen když to má smysl. Podrobná specifikace je
+v [docs/SPEC.md](docs/SPEC.md).
 
 ## License
 

@@ -1,6 +1,7 @@
-# CLAUDE.md – Elias (elias-assistant)
+# CLAUDE.md – E.L.I.A.S. (elias-assistant)
 
 Personal Czech voice assistant for Android. Speaks a short morning and evening briefing.
+The name is **written E.L.I.A.S.** on screens and in docs, **spoken "Elias"**, and `Elias` in code identifiers.
 **Source of truth for scope and rules: [docs/SPEC.md](docs/SPEC.md).** Read it before starting any milestone.
 
 ## How we work
@@ -41,7 +42,13 @@ io/github/adccz/elias/
 ```
 
 - **Dependency rule:** `ui → domain ← data`. `domain` must not import `android.*` or `androidx.*`,
-  so it stays unit-testable on the plain JVM.
+  so it stays unit-testable on the plain JVM. Allowed in `domain`: the JDK, kotlinx.coroutines and
+  `javax.inject` annotations (JSR-330, not Android).
+- **Sources return `SourceResult`** (data or a `FailureReason`), they never throw expected errors.
+  Network code goes through `loadSafely`. `TodayOverviewLoader` runs all sources in parallel, each with a time limit.
+- **Android-only code stays thin.** For example `ContentResolverCalendarRepository` only copies cursor rows;
+  the date logic lives in `CalendarInstanceMapper`, which is unit-tested.
+- **Navigation 3:** screen keys are `@Serializable` objects implementing `NavKey` in `ui/navigation`.
 - **MVVM + unidirectional data flow:** a ViewModel exposes one `StateFlow<XxxUiState>`, the screen
   sends events up. Composables stay stateless where possible (state hoisting).
 - **DI:** Hilt. Constructor injection everywhere; modules only for interfaces and third-party types.
@@ -71,6 +78,9 @@ io/github/adccz/elias/
 - Test name style: `` `returns cached weather when network fails`() ``.
 - Every parser, date/time calculation and briefing builder gets unit tests. Prefer fakes over mocks for
   our own interfaces.
+- Network clients are tested with Ktor `MockEngine` via `createHttpClient(engine, ..., maxRetries = 0)`.
+  ViewModel tests register `MainDispatcherExtension`. Test fixtures (RSS, JSON) are fictional.
+- Never call real services from committed tests. A one-off manual check is fine, but delete it afterwards.
 - CI (GitHub Actions) runs build, unit tests, lint and ktlint on every push.
 
 ## Commands
