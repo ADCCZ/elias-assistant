@@ -65,3 +65,11 @@ Format: **context** – what we had to decide, **decision**, **why**.
 - **Context:** `gradle/actions/setup-gradle` v6 uses a proprietary caching library by default.
 - **Decision:** `cache-provider: basic`, the MIT-licensed provider built on the standard GitHub Actions cache.
 - **Why:** Fully open source with no extra terms, and fast enough for a single-module project.
+
+## D12 – Gradle daemon runs on JDK 25 everywhere (2026-10-27)
+- **Context:** Android Studio bundles JDK 25 and generated `gradle/gradle-daemon-jvm.properties` asking for Java 25.
+  CI and the command line used JDK 21.
+- **Decision:** Keep the file in git and use Java 25 in CI. On the command line, point `JAVA_HOME` to a JDK 25
+  (for example Android Studio's `jbr` folder).
+- **Why:** The IDE, the terminal and CI build with the same Java, so "works in Studio, fails in CI" surprises
+  are less likely. The app's bytecode target stays Java 17.

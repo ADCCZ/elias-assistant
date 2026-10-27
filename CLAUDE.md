@@ -75,7 +75,9 @@ io/github/adccz/elias/
 
 ## Commands
 
-Windows: use `.\gradlew.bat` instead of `./gradlew`.
+Windows: use `.\gradlew.bat` instead of `./gradlew`. The Gradle daemon needs Java 25
+(`gradle/gradle-daemon-jvm.properties`). On this machine use Android Studio's JDK:
+`JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"` (Git Bash).
 
 ```bash
 ./gradlew assembleDebug          # build the debug APK
