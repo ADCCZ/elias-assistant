@@ -2,6 +2,7 @@ package io.github.adccz.elias.domain.news
 
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 
 class HeadlineSelectionTest {
@@ -47,6 +48,31 @@ class HeadlineSelectionTest {
         )
 
         assertEquals(listOf("iROZHLAS"), selected.map { it.source })
+    }
+
+    @Test
+    fun `recognizes one story told with different titles`() {
+        val selected = selectHeadlines(
+            listOf(
+                headline("Ministr odvolá ředitele z čela rady fondu kinematografie", source = "ČT24", hoursAgo = 1),
+                headline(
+                    "Ministerstvo odvolá ředitele z rady fondu kinematografie. Ten se to dozvěděl z médií",
+                    source = "iROZHLAS",
+                    hoursAgo = 2,
+                ),
+                headline("Vláda schválila novelu stavebního zákona", source = "iROZHLAS", hoursAgo = 3),
+            ),
+            now,
+        )
+
+        assertEquals(listOf("ČT24", "iROZHLAS"), selected.map { it.source })
+        assertEquals("Vláda schválila novelu stavebního zákona", selected.last().title)
+    }
+
+    @Test
+    fun `different stories with a few common words stay apart`() {
+        assertFalse(isSameStory("Vláda schválila rozpočet na příští rok", "Vláda schválila novelu stavebního zákona"))
+        assertFalse(isSameStory("Praha otevřela nový most přes Vltavu", "V Praze se otevřela nová knihovna"))
     }
 
     @Test
