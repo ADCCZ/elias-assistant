@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fictional feed shaped like iROZHLAS: no guid, numeric time zone offset. -->
+<rss version="2.0">
+  <channel>
+    <title>Testovací rozhlas</title>
+    <link>https://example.net</link>
+    <item>
+      <title>Silnice mezi dvěma vesnicemi bude do pátku uzavřená</title>
+      <link>https://example.net/zpravy/silnice</link>
+      <pubDate>Tue, 27 Oct 2026 13:03:00 +0100</pubDate>
+    </item>
+    <item>
+      <title>Den v týdnu nesedí</title>
+      <link>https://example.net/zpravy/den</link>
+      <pubDate>Mon, 27 Oct 2026 14:00:00 +0100</pubDate>
+    </item>
+    <item>
+      <title>Položka s rozbitým datem</title>
+      <link>https://example.net/zpravy/datum</link>
+      <pubDate>včera večer</pubDate>
+    </item>
+  </channel>
+</rss>
