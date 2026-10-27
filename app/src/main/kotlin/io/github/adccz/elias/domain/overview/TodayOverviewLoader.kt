@@ -45,6 +45,8 @@ class TodayOverviewLoader @Inject constructor(
         val today = now.toLocalDate()
 
         val calendarResult = async { guarded { calendar.eventsOn(today) } }
+        // The evening briefing talks about tomorrow.
+        val tomorrowCalendarResult = async { guarded { calendar.eventsOn(today.plusDays(1)) } }
         val weatherResult = async {
             when (val result = guarded { weather.forecast() }) {
                 is SourceResult.Failure -> result
@@ -75,6 +77,7 @@ class TodayOverviewLoader @Inject constructor(
             sunTimes = sun.sunTimes(today),
             sabbath = sabbath.currentOrNext(now),
             calendar = calendarResult.await(),
+            tomorrowCalendar = tomorrowCalendarResult.await(),
             weather = weatherResult.await(),
             plan = planResult.await(),
             newsFeeds = newsFeeds,

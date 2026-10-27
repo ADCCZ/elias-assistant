@@ -41,6 +41,7 @@ internal object DataPreviewData {
                 ),
                 loadedAt,
             ),
+            tomorrowCalendar = SourceResult.Success(emptyList(), loadedAt),
             weather = SourceResult.Success(
                 DayWeather(
                     date = day,

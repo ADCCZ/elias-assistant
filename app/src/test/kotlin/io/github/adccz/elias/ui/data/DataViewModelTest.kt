@@ -38,10 +38,11 @@ class DataViewModelTest {
 
     /** A calendar whose permission can be granted in the middle of a test, like in system settings. */
     private class SwitchableCalendar(var permissionGranted: Boolean) : CalendarRepository {
+        /** How many times today's events were asked for (each load also asks for tomorrow). */
         var calls = 0
 
         override suspend fun eventsOn(date: LocalDate): SourceResult<List<CalendarEvent>> {
-            calls++
+            if (date == LocalDate.of(2026, 10, 27)) calls++
             return if (permissionGranted) {
                 SourceResult.Success(emptyList(), Instant.EPOCH)
             } else {

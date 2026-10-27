@@ -40,6 +40,21 @@ class PlanParserTest {
     }
 
     @Test
+    fun `reads the optional reflection question of a weekly theme`() {
+        val plan = parser.parse(
+            planJson(
+                """, "weeklyThemes": [
+                    { "weekStart": "2026-10-19", "title": "A", "task": "B", "reflectionQuestion": "Jak to šlo?" },
+                    { "weekStart": "2026-10-26", "title": "C", "task": "D" }
+                ]""",
+            ),
+        )
+
+        assertEquals("Jak to šlo?", plan.weeklyThemes[0].reflectionQuestion)
+        assertEquals(null, plan.weeklyThemes[1].reflectionQuestion)
+    }
+
+    @Test
     fun `rejects an invalid date and names the field`() {
         val error = assertThrows<InvalidPlanException> {
             parser.parse(planJson(""", "deadlines": [{ "date": "2026-13-01", "title": "X" }]"""))
