@@ -1,0 +1,27 @@
+# Gradle and build output
+.gradle/
+build/
+.kotlin/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+captures/
+.cxx/
+.externalNativeBuild/
+
+# Local machine config and secrets (API key lives in local.properties)
+local.properties
+*.jks
+*.keystore
+
+# Private personal data - never commit
+docs/private/
+app/src/main/assets/plan.json
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# OS files
+.DS_Store
+Thumbs.db
