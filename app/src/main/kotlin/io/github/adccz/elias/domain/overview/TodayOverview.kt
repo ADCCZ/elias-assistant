@@ -8,6 +8,7 @@ import io.github.adccz.elias.domain.plan.DayPlan
 import io.github.adccz.elias.domain.sun.SabbathWindow
 import io.github.adccz.elias.domain.sun.SunTimes
 import io.github.adccz.elias.domain.weather.DayWeather
+import java.time.LocalDate
 import java.time.ZonedDateTime
 
 /** Everything Elias knows about today. Each source has its own result, so one failure never hides the rest. */
@@ -23,5 +24,11 @@ data class TodayOverview(
     val headlines: List<Headline>,
 )
 
-/** Today's part of the plan, with the plan's name and whether it is the fictional sample. */
-data class TodayPlan(val planName: String, val isSample: Boolean, val day: DayPlan)
+/** Today's part of the plan, with the plan's name, its validity and whether it is the fictional sample. */
+data class TodayPlan(
+    val planName: String,
+    val validFrom: LocalDate,
+    val validTo: LocalDate,
+    val isSample: Boolean,
+    val day: DayPlan,
+)

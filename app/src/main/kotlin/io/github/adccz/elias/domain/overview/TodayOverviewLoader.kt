@@ -56,7 +56,13 @@ class TodayOverviewLoader @Inject constructor(
         }
         val planResult = async {
             guarded { plans.loadPlan() }.map { loaded ->
-                TodayPlan(loaded.plan.name, loaded.isSample, loaded.plan.dayPlan(today))
+                TodayPlan(
+                    planName = loaded.plan.name,
+                    validFrom = loaded.plan.validFrom,
+                    validTo = loaded.plan.validTo,
+                    isSample = loaded.isSample,
+                    day = loaded.plan.dayPlan(today),
+                )
             }
         }
         val newsResults = DefaultNewsFeeds.all.map { feed -> async { feed to guarded { news.headlines(feed) } } }
