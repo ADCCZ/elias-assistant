@@ -29,13 +29,15 @@ data class BriefingSection(val kind: SectionKind, val text: String)
  * be inserted locally after the greeting, even when the rest was written by the AI.
  */
 data class BriefingText(val kind: BriefingKind, val sections: List<BriefingSection>) {
-    /** The text to speak: non-empty sections in speaking order, separated by a pause (empty line). */
-    val text: String
+    /** The sections Elias says, in speaking order, trimmed and without empty ones. Each one is spoken as one clip. */
+    val spokenSections: List<BriefingSection>
         get() = sections
             .sortedBy { it.kind.ordinal }
-            .map { it.text.trim() }
-            .filter { it.isNotEmpty() }
-            .joinToString("\n\n")
+            .map { it.copy(text = it.text.trim()) }
+            .filter { it.text.isNotEmpty() }
+
+    /** The text to speak: the spoken sections separated by a pause (empty line). */
+    val text: String get() = spokenSections.joinToString("\n\n") { it.text }
 
     val wordCount: Int get() = CzechNumbers.wordCount(text)
 }
