@@ -1,20 +1,33 @@
 package io.github.adccz.elias.ui.home
 
+import android.Manifest
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -23,8 +36,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.adccz.elias.R
+import io.github.adccz.elias.core.android.canPostNotifications
 import io.github.adccz.elias.domain.briefing.BriefingKind
 import io.github.adccz.elias.domain.voice.SpeakResult
 import io.github.adccz.elias.domain.voice.VoiceStatus
@@ -35,28 +50,69 @@ import io.github.adccz.elias.ui.voice.SpeechUiState
 import io.github.adccz.elias.ui.voice.openVoiceFix
 import java.time.LocalDate
 
-/** Connects the screen to its ViewModel and to Android (voice settings). Kept apart so [HomeScreen] is easy to preview. */
+/**
+ * Connects the screen to its ViewModel and to Android (voice settings, the notification permission).
+ * Kept apart so [HomeScreen] is easy to preview.
+ */
 @Composable
 fun HomeRoute(onOpenData: () -> Unit, onOpenPreview: () -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    var notificationsAllowed by remember { mutableStateOf(context.canPostNotifications()) }
+    var askedForNotifications by rememberSaveable { mutableStateOf(false) }
+    var notificationCardDismissed by rememberSaveable { mutableStateOf(false) }
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        askedForNotifications = true
+        notificationsAllowed = context.canPostNotifications()
+    }
+    // Coming back from the settings: the user may have switched notifications on.
+    LifecycleResumeEffect(Unit) {
+        notificationsAllowed = context.canPostNotifications()
+        onPauseOrDispose { }
+    }
+    val canAsk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !askedForNotifications
     HomeScreen(
         uiState = uiState,
+        notificationCard = when {
+            notificationsAllowed || notificationCardDismissed -> NotificationCard.HIDDEN
+
+            // Android asks once or twice. After a refusal, the switch is in the app's notification settings.
+            canAsk -> NotificationCard.ASK
+
+            else -> NotificationCard.SETTINGS
+        },
         onPlay = viewModel::play,
         onStop = viewModel::stop,
         onFixVoice = { status -> context.openVoiceFix(status) },
+        onAllowNotifications = {
+            if (canAsk) {
+                notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                context.startActivity(
+                    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                        .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName),
+                )
+            }
+        },
+        onDismissNotifications = { notificationCardDismissed = true },
         onOpenData = onOpenData,
         onOpenPreview = onOpenPreview,
     )
 }
 
+/** The card that asks for the notification permission, needed only for the Friday sabbath reminder. */
+enum class NotificationCard { HIDDEN, ASK, SETTINGS }
+
 /** Stateless home screen: it only draws [uiState] and reports clicks. */
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
+    notificationCard: NotificationCard,
     onPlay: (BriefingKind) -> Unit,
     onStop: () -> Unit,
     onFixVoice: (VoiceStatus) -> Unit,
+    onAllowNotifications: () -> Unit,
+    onDismissNotifications: () -> Unit,
     onOpenData: () -> Unit,
     onOpenPreview: () -> Unit,
     modifier: Modifier = Modifier,
@@ -105,6 +161,29 @@ fun HomeScreen(
             FilledTonalButton(onClick = onOpenPreview) {
                 Text(stringResource(R.string.home_open_preview))
             }
+            NotificationPermissionCard(notificationCard, onAllowNotifications, onDismissNotifications)
+        }
+    }
+}
+
+/** Asks for notifications with the reason, never with a dialog on its own (quiet by design, D26). */
+@Composable
+private fun NotificationPermissionCard(card: NotificationCard, onAllow: () -> Unit, onDismiss: () -> Unit) {
+    if (card == NotificationCard.HIDDEN) return
+    Spacer(modifier = Modifier.height(32.dp))
+    OutlinedCard {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(stringResource(R.string.home_notifications_text), style = MaterialTheme.typography.bodyMedium)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.home_notifications_later)) }
+                TextButton(onClick = onAllow) {
+                    val label = when (card) {
+                        NotificationCard.SETTINGS -> R.string.home_notifications_settings
+                        else -> R.string.home_notifications_allow
+                    }
+                    Text(stringResource(label))
+                }
+            }
         }
     }
 }
@@ -137,9 +216,12 @@ private fun HomeScreenPreview() {
                 today = LocalDate.of(2026, 10, 27),
                 speech = SpeechUiState.Speaking(BriefingKind.MORNING, isPaused = false),
             ),
+            notificationCard = NotificationCard.ASK,
             onPlay = {},
             onStop = {},
             onFixVoice = {},
+            onAllowNotifications = {},
+            onDismissNotifications = {},
             onOpenData = {},
             onOpenPreview = {},
         )

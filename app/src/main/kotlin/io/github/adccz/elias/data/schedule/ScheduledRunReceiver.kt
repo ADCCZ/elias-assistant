@@ -5,8 +5,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.ContextCompat
+import io.github.adccz.elias.data.notifications.SabbathReminderNotifier
 import io.github.adccz.elias.data.voice.PlaybackService
 import io.github.adccz.elias.domain.briefing.BriefingKind
+import io.github.adccz.elias.domain.schedule.ScheduleCalculator
 import io.github.adccz.elias.domain.schedule.ScheduleKeeper
 import io.github.adccz.elias.domain.schedule.ScheduledRun
 import io.github.adccz.elias.domain.schedule.ScheduledTask
@@ -16,7 +18,8 @@ import java.time.Instant
 import kotlinx.coroutines.launch
 
 /**
- * Runs a scheduled task when its alarm fires, then plans the next alarms. Not exported: only the app's own
+ * Runs a scheduled task when its alarm fires, then plans the next alarms. Saturday's evening briefing needs no flag:
+ * the briefing itself sees that the sabbath has just ended. Not exported: only the app's own
  * alarms reach it.
  */
 class ScheduledRunReceiver : BroadcastReceiver() {
@@ -27,8 +30,14 @@ class ScheduledRunReceiver : BroadcastReceiver() {
         if (ScheduleKeeper.isStillDue(task, plannedAt, dependencies.clock().instant())) {
             when (task) {
                 ScheduledTask.EVENING_BRIEFING -> startEveningBriefing(context)
+
                 ScheduledTask.PREFETCH -> PrefetchWorker.enqueue(context)
-                ScheduledTask.SABBATH_REMINDER -> Unit
+
+                ScheduledTask.SABBATH_REMINDER ->
+                    SabbathReminderNotifier.show(
+                        context,
+                        plannedAt.plus(ScheduleCalculator.REMINDER_LEAD).atZone(dependencies.zone()),
+                    )
             }
         }
         // The next alarms. goAsync() keeps the receiver alive until they are set.
@@ -53,7 +62,6 @@ class ScheduledRunReceiver : BroadcastReceiver() {
 
     companion object {
         private const val EXTRA_PLANNED_AT = "io.github.adccz.elias.PLANNED_AT"
-        private const val EXTRA_AFTER_SABBATH = "io.github.adccz.elias.AFTER_SABBATH"
 
         /** One action per task: AlarmManager keeps one alarm per distinct intent, so each task has its own. */
         private fun actionOf(task: ScheduledTask) = "io.github.adccz.elias.RUN_${task.name}"
@@ -65,8 +73,7 @@ class ScheduledRunReceiver : BroadcastReceiver() {
             context,
             run.task.ordinal,
             intent(context, run.task)
-                .putExtra(EXTRA_PLANNED_AT, run.at.toInstant().toEpochMilli())
-                .putExtra(EXTRA_AFTER_SABBATH, run.afterSabbath),
+                .putExtra(EXTRA_PLANNED_AT, run.at.toInstant().toEpochMilli()),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
 

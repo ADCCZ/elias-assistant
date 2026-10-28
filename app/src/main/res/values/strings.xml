@@ -7,6 +7,10 @@
     <string name="home_open_preview">Náhled textu</string>
     <string name="home_play_morning">Přehrát ranní souhrn</string>
     <string name="home_play_evening">Přehrát večerní souhrn</string>
+    <string name="home_notifications_text">Povol upozornění, ať ti E.L.I.A.S. v pátek hodinu před západem slunce připomene sabat. Nic jiného neposílá.</string>
+    <string name="home_notifications_allow">Povolit</string>
+    <string name="home_notifications_settings">Otevřít nastavení</string>
+    <string name="home_notifications_later">Teď ne</string>
 
     <!-- Speaking -->
     <string name="speech_play">Přehrát</string>
@@ -72,6 +76,10 @@
     <!-- Scheduling -->
     <string name="channel_prefetch">Příprava dat na ráno</string>
     <string name="prefetch_notification">Stahuji počasí a titulky na ráno</string>
+    <string name="channel_sabbath">Připomínka sabatu</string>
+    <string name="sabbath_reminder_title">Za hodinu začíná sabat</string>
+    <!-- %1$s: sunset, "16:47". Read, not spoken, so a list is fine. -->
+    <string name="sabbath_reminder_text">Západ slunce v %1$s.\n• Úklid\n• Starosti napsat na papír\n• Nedokončené věci do úkolů na neděli\n• Modlitba\n• Při západu vypnout telefon\n• Žalm 92</string>
 
     <string name="action_back">Zpět</string>
     <string name="action_refresh">Obnovit</string>

@@ -8,6 +8,7 @@ import dagger.hilt.components.SingletonComponent
 import io.github.adccz.elias.core.coroutines.ApplicationScope
 import io.github.adccz.elias.domain.schedule.ScheduleKeeper
 import java.time.Clock
+import java.time.ZoneId
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -20,6 +21,8 @@ interface ScheduleEntryPoint {
     fun scheduleKeeper(): ScheduleKeeper
 
     fun clock(): Clock
+
+    fun zone(): ZoneId
 
     @ApplicationScope
     fun applicationScope(): CoroutineScope

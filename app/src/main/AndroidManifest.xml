@@ -20,6 +20,8 @@
     <uses-permission
         android:name="android.permission.SCHEDULE_EXACT_ALARM"
         android:maxSdkVersion="32" />
+    <!-- The Friday sabbath reminder (Android 13+ asks the user; the media notification does not need it). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Plans the alarms again after the phone restarts (Android forgets them). -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
