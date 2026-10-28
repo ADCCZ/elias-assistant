@@ -99,13 +99,13 @@ class AndroidTextToSpeech @Inject constructor(
         val progress = ClipProgress()
         tts.setOnUtteranceProgressListener(progress)
 
-        files.deleteClips()
+        val folder = files.newBriefingFolder()
         val clips = mutableListOf<SpeechClip>()
         for ((index, section) in sections.withIndex()) {
-            val file = files.clip(index)
+            val file = files.clip(folder, index)
             val failure = synthesizeClip(tts, progress, section, file, utteranceId = "clip-$index")
             if (failure != null) {
-                files.deleteClips()
+                folder.deleteRecursively()
                 return SynthesisResult.Failure(failure)
             }
             clips += SpeechClip(section.kind, file.path)

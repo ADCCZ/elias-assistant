@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -29,7 +30,7 @@ import javax.inject.Inject
  * Bluetooth devices and the system media controls.
  *
  * The service starts when the app plays a briefing. It ends when the briefing is over, after Stop, or when another
- * app takes the sound for good, and the spoken clips are deleted then.
+ * app takes the sound for good, and the briefing's clips are deleted then.
  */
 @OptIn(UnstableApi::class)
 @AndroidEntryPoint
@@ -40,6 +41,9 @@ class PlaybackService : MediaSessionService() {
 
     private var session: MediaSession? = null
 
+    /** The files of the playlist being played, so exactly this briefing's clips are deleted at the end. */
+    private var playlistPaths: List<String> = emptyList()
+
     override fun onCreate() {
         super.onCreate()
         setMediaNotificationProvider(
@@ -48,6 +52,8 @@ class PlaybackService : MediaSessionService() {
                 .build()
                 .apply { setSmallIcon(R.drawable.ic_notification) },
         )
+        // No notification without a briefing: after Stop or the end, nothing stays behind.
+        setShowNotificationForIdlePlayer(SHOW_NOTIFICATION_FOR_IDLE_PLAYER_NEVER)
         val exoPlayer = ExoPlayer.Builder(this)
             // false: ExoPlayer leaves audio focus alone, FocusAwarePlayer handles it.
             .setAudioAttributes(PlaybackStream.MEDIA.media3Attributes(), false)
@@ -61,6 +67,9 @@ class PlaybackService : MediaSessionService() {
                 override fun onPlaybackStateChanged(playbackState: Int) {
                     if (playbackState == Player.STATE_ENDED) stopSpeaking()
                 }
+
+                // A clip that cannot be played ends the briefing instead of leaving a stuck notification.
+                override fun onPlayerError(error: PlaybackException) = stopSpeaking()
             },
         )
         val player = FocusAwarePlayer(exoPlayer, this, clock, onFocusLostForGood = ::stopSpeaking)
@@ -79,7 +88,7 @@ class PlaybackService : MediaSessionService() {
             release()
         }
         session = null
-        files.deleteClips()
+        files.deleteBriefingsOf(playlistPaths)
         super.onDestroy()
     }
 
@@ -171,6 +180,7 @@ class PlaybackService : MediaSessionService() {
             startPositionMs: Long,
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
             player.setStream(PlaybackCommands.streamOf(mediaItems))
+            playlistPaths = mediaItems.mapNotNull { it.localConfiguration?.uri?.path }
             return super.onSetMediaItems(mediaSession, controller, mediaItems, startIndex, startPositionMs)
         }
     }
