@@ -11,8 +11,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.adccz.elias.data.cache.SourceCache
 import io.github.adccz.elias.data.db.EliasDatabase
+import io.github.adccz.elias.data.db.RoomRunLog
 import io.github.adccz.elias.data.db.RoomSourceCache
+import io.github.adccz.elias.data.db.RunDao
 import io.github.adccz.elias.data.db.SourceCacheDao
+import io.github.adccz.elias.domain.log.RunLog
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 
@@ -22,6 +25,9 @@ import kotlinx.coroutines.Dispatchers
 abstract class DatabaseModule {
     @Binds
     abstract fun bindSourceCache(impl: RoomSourceCache): SourceCache
+
+    @Binds
+    abstract fun bindRunLog(impl: RoomRunLog): RunLog
 
     companion object {
         @Provides
@@ -35,5 +41,8 @@ abstract class DatabaseModule {
 
         @Provides
         fun provideSourceCacheDao(database: EliasDatabase): SourceCacheDao = database.sourceCacheDao()
+
+        @Provides
+        fun provideRunDao(database: EliasDatabase): RunDao = database.runDao()
     }
 }
