@@ -16,6 +16,9 @@ object NotificationChannels {
     /** The Friday reminder an hour before the sabbath. */
     const val SABBATH = "sabbath"
 
+    /** The full-screen notification that lights up the screen for the scheduled evening briefing. */
+    const val EVENING = "evening"
+
     fun create(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(
@@ -31,6 +34,14 @@ object NotificationChannels {
                 context.getString(R.string.channel_sabbath),
                 NotificationManager.IMPORTANCE_DEFAULT,
             ),
+        )
+        // High importance: Android shows full-screen notifications only from such a channel.
+        manager.createNotificationChannel(
+            NotificationChannel(
+                EVENING,
+                context.getString(R.string.channel_evening),
+                NotificationManager.IMPORTANCE_HIGH,
+            ).apply { setSound(null, null) },
         )
     }
 }

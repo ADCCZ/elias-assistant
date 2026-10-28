@@ -4,16 +4,11 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import androidx.core.content.ContextCompat
 import io.github.adccz.elias.data.notifications.SabbathReminderNotifier
-import io.github.adccz.elias.data.voice.PlaybackService
-import io.github.adccz.elias.domain.briefing.BriefingKind
 import io.github.adccz.elias.domain.schedule.ScheduleCalculator
 import io.github.adccz.elias.domain.schedule.ScheduleKeeper
 import io.github.adccz.elias.domain.schedule.ScheduledRun
 import io.github.adccz.elias.domain.schedule.ScheduledTask
-import io.github.adccz.elias.domain.voice.BriefingRequest
-import io.github.adccz.elias.domain.voice.PlaybackTrigger
 import java.time.Instant
 import kotlinx.coroutines.launch
 
@@ -29,7 +24,7 @@ class ScheduledRunReceiver : BroadcastReceiver() {
         val plannedAt = Instant.ofEpochMilli(intent.getLongExtra(EXTRA_PLANNED_AT, 0))
         if (ScheduleKeeper.isStillDue(task, plannedAt, dependencies.clock().instant())) {
             when (task) {
-                ScheduledTask.EVENING_BRIEFING -> startEveningBriefing(context)
+                ScheduledTask.EVENING_BRIEFING -> EveningBriefingStarter.start(context)
 
                 ScheduledTask.PREFETCH -> PrefetchWorker.enqueue(context)
 
@@ -49,15 +44,6 @@ class ScheduledRunReceiver : BroadcastReceiver() {
                 pending.finish()
             }
         }
-    }
-
-    /**
-     * An alarm clock alarm may start a foreground service from the background. The briefing plays on the alarm
-     * stream, which Android 17 allows without "while in use" access because the app has the exact alarm permission.
-     */
-    private fun startEveningBriefing(context: Context) {
-        val request = BriefingRequest.FromToday(BriefingKind.EVENING, PlaybackTrigger.SCHEDULE)
-        ContextCompat.startForegroundService(context, PlaybackService.speakIntent(context, request))
     }
 
     companion object {

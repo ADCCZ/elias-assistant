@@ -38,7 +38,13 @@ class StatusViewModelTest {
 
     private val clock = Clock.fixed(Instant.parse("2026-10-28T19:00:00Z"), PRAGUE_ZONE)
     private var system =
-        SystemStatus(calendar = true, notifications = false, exactAlarms = true, batteryUnrestricted = false)
+        SystemStatus(
+            calendar = true,
+            notifications = false,
+            exactAlarms = true,
+            batteryUnrestricted = false,
+            fullScreen = true,
+        )
     private val voiceChecker = FakeVoiceChecker()
     private val runLog = FakeRunLog()
     private val schedules = object : ScheduleRepository {

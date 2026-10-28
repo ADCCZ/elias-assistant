@@ -9,6 +9,7 @@ import android.os.PowerManager
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.adccz.elias.core.android.canPostNotifications
+import io.github.adccz.elias.data.schedule.EveningBriefingStarter
 import io.github.adccz.elias.domain.status.SystemChecks
 import io.github.adccz.elias.domain.status.SystemStatus
 import javax.inject.Inject
@@ -24,5 +25,6 @@ class AndroidSystemChecks @Inject constructor(@ApplicationContext private val co
             context.getSystemService(AlarmManager::class.java).canScheduleExactAlarms(),
         batteryUnrestricted = context.getSystemService(PowerManager::class.java)
             .isIgnoringBatteryOptimizations(context.packageName),
+        fullScreen = EveningBriefingStarter.canShowFullScreen(context),
     )
 }

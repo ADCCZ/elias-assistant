@@ -77,6 +77,10 @@
     <string name="channel_prefetch">Příprava dat na ráno</string>
     <string name="prefetch_notification">Stahuji počasí a titulky na ráno</string>
     <string name="channel_sabbath">Připomínka sabatu</string>
+    <string name="channel_evening">Večerní souhrn</string>
+    <string name="scheduled_notification_text">E.L.I.A.S. čte večerní souhrn.</string>
+    <!-- Hides the evening briefing screen; Elias goes on speaking. -->
+    <string name="scheduled_close">Zavřít</string>
     <string name="sabbath_reminder_title">Za hodinu začíná sabat</string>
     <!-- %1$s: sunset, "16:47". Read, not spoken, so a list is fine. -->
     <string name="sabbath_reminder_text">Západ slunce v %1$s.\n• Úklid\n• Starosti napsat na papír\n• Nedokončené věci do úkolů na neděli\n• Modlitba\n• Při západu vypnout telefon\n• Žalm 92</string>
@@ -120,6 +124,9 @@
     <string name="status_exact_alarms">Přesné budíky</string>
     <string name="status_exact_alarms_ok">Povolené, večerní souhrn přijde přesně.</string>
     <string name="status_exact_alarms_bad">Zakázané, večerní souhrn může přijít pozdě.</string>
+    <string name="status_fullscreen">Obrazovka při večerním souhrnu</string>
+    <string name="status_fullscreen_ok">Smí rozsvítit obrazovku, když začne večerní souhrn.</string>
+    <string name="status_fullscreen_bad">Nesmí rozsvítit obrazovku, večerní souhrn zazní jen jako zvuk.</string>
     <string name="status_battery">Optimalizace baterie</string>
     <string name="status_battery_ok">E.L.I.A.S. je výjimka, telefon ho v noci neuspí.</string>
     <string name="status_battery_bad">Telefon může E.L.I.A.S. v noci uspat a stažení dat se zpozdí.</string>
@@ -139,7 +146,7 @@
     <string name="status_outcome_playback">přehrávání selhalo</string>
     <string name="status_written_by_ai">Napsala AI.</string>
     <string name="status_written_by_template">Napsala šablona.</string>
-    <string name="status_sources">Zdroje: %1$d načteno, %2$d z mezipaměti, %3$d selhalo.</string>
+    <string name="status_sources">Zdroje (načteno / z mezipaměti / selhalo): %1$d / %2$d / %3$d</string>
     <string name="status_samsung_guide">Samsung a běh na pozadí (dontkillmyapp.com)</string>
 
     <string name="action_back">Zpět</string>

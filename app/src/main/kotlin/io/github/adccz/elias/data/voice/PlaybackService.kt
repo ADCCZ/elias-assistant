@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -30,11 +31,13 @@ import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.adccz.elias.R
 import io.github.adccz.elias.core.coroutines.IoDispatcher
+import io.github.adccz.elias.data.schedule.EveningBriefingStarter
 import io.github.adccz.elias.domain.briefing.BriefingKind
 import io.github.adccz.elias.domain.voice.BriefingPlaylist
 import io.github.adccz.elias.domain.voice.BriefingRequest
 import io.github.adccz.elias.domain.voice.BriefingRunner
 import io.github.adccz.elias.domain.voice.PlaybackStream
+import io.github.adccz.elias.domain.voice.PlaybackTrigger
 import io.github.adccz.elias.domain.voice.PlaylistEntry
 import io.github.adccz.elias.domain.voice.SpeakResult
 import io.github.adccz.elias.domain.voice.SpeechState
@@ -189,6 +192,10 @@ class PlaybackService : MediaSessionService() {
 
     /** Starts preparing [request], replacing whatever was being prepared or spoken. */
     private fun speak(request: BriefingRequest) {
+        // The full-screen notification of a scheduled evening briefing has done its job.
+        if (request.trigger == PlaybackTrigger.SCHEDULE) {
+            NotificationManagerCompat.from(this).cancel(EveningBriefingStarter.NOTIFICATION_ID)
+        }
         preparation?.cancel()
         phase = Phase.Preparing(request.kind)
         status.set(SpeechState.Preparing(request.kind))

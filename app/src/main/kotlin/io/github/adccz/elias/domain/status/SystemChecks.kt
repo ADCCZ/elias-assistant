@@ -10,6 +10,8 @@ data class SystemStatus(
     val exactAlarms: Boolean,
     /** No battery optimization for Elias, so the phone does not put the prefetch to sleep. */
     val batteryUnrestricted: Boolean,
+    /** Full-screen notifications, so the evening briefing can light up the screen and speak. */
+    val fullScreen: Boolean,
 )
 
 /** Reads the [SystemStatus]. Implemented with Android's permission and power APIs. */

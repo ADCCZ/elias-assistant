@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -100,14 +101,29 @@ fun StatusRoute(onBack: () -> Unit, viewModel: StatusViewModel = hiltViewModel()
                     context.startActivity(
                         Intent(
                             Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
-                            Uri.parse("package:${context.packageName}"),
+                            "package:${context.packageName}".toUri(),
                         ),
                     )
                 }
 
                 Fix.BATTERY -> context.requestBatteryExemption()
 
-                Fix.SAMSUNG_GUIDE -> context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(SAMSUNG_GUIDE_URL)))
+                // Android 14 and newer let the user allow full-screen notifications per app.
+                Fix.FULL_SCREEN -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    context.startActivity(
+                        Intent(
+                            Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,
+                            "package:${context.packageName}".toUri(),
+                        ),
+                    )
+                } else {
+                    context.startActivity(
+                        Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                            .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName),
+                    )
+                }
+
+                Fix.SAMSUNG_GUIDE -> context.startActivity(Intent(Intent.ACTION_VIEW, SAMSUNG_GUIDE_URL.toUri()))
             }
         },
         onFixVoice = { status -> context.openVoiceFix(status) },
@@ -115,7 +131,7 @@ fun StatusRoute(onBack: () -> Unit, viewModel: StatusViewModel = hiltViewModel()
 }
 
 /** What the user can fix from the status screen. */
-enum class Fix { CALENDAR, NOTIFICATIONS, EXACT_ALARMS, BATTERY, SAMSUNG_GUIDE }
+enum class Fix { CALENDAR, NOTIFICATIONS, EXACT_ALARMS, BATTERY, FULL_SCREEN, SAMSUNG_GUIDE }
 
 /** How Samsung phones stop apps in the background, and what to switch off (spec: dontkillmyapp.com for the phone). */
 private const val SAMSUNG_GUIDE_URL = "https://dontkillmyapp.com/samsung"
@@ -189,6 +205,16 @@ fun StatusScreen(
                     ) {
                         onFix(Fix.BATTERY)
                     }
+                }
+            }
+            uiState.system?.let { system ->
+                item {
+                    CheckRow(
+                        R.string.status_fullscreen,
+                        system.fullScreen,
+                        R.string.status_fullscreen_ok,
+                        R.string.status_fullscreen_bad,
+                    ) { onFix(Fix.FULL_SCREEN) }
                 }
             }
             item { VoiceStatusCard(status = uiState.voice, onFix = onFixVoice) }
@@ -321,5 +347,5 @@ private fun Context.openAppSettings() =
  */
 @SuppressLint("BatteryLife")
 private fun Context.requestBatteryExemption() = startActivity(
-    Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName")),
+    Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, "package:$packageName".toUri()),
 )

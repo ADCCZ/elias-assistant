@@ -29,6 +29,11 @@
     <uses-permission
         android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"
         tools:ignore="BatteryLife" />
+    <!--
+        Lights up the screen for the scheduled evening briefing, as alarm clocks do (D33). Android 14 and newer let
+        the user switch it off; the status screen then offers the fix.
+    -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <!-- Plans the alarms again after the phone restarts (Android forgets them). -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
@@ -60,6 +65,24 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            The scheduled evening briefing over the lock screen, like an alarm clock. Opened only by the app's own
+            full-screen notification, so it is not exported and stays out of the recent apps.
+        -->
+        <activity
+            android:name=".ui.scheduled.ScheduledBriefingActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:showWhenLocked="true"
+            android:taskAffinity=""
+            android:turnScreenOn="true">
+            <intent-filter>
+                <action android:name="io.github.adccz.elias.SHOW_SCHEDULED_BRIEFING" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
