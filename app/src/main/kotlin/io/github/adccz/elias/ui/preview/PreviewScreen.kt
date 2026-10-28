@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,10 +20,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,12 +34,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.adccz.elias.R
 import io.github.adccz.elias.domain.briefing.AiBriefingResult
@@ -47,22 +52,51 @@ import io.github.adccz.elias.domain.briefing.BriefingSection
 import io.github.adccz.elias.domain.briefing.BriefingSource
 import io.github.adccz.elias.domain.briefing.BriefingText
 import io.github.adccz.elias.domain.briefing.SectionKind
+import io.github.adccz.elias.domain.voice.SpeechRate
+import io.github.adccz.elias.domain.voice.TtsEngine
+import io.github.adccz.elias.domain.voice.VoiceStatus
+import io.github.adccz.elias.ui.common.CzechFormat
 import io.github.adccz.elias.ui.theme.EliasTheme
-import kotlin.math.roundToInt
+import io.github.adccz.elias.ui.voice.SpeechStatusText
+import io.github.adccz.elias.ui.voice.SpeechUiState
+import io.github.adccz.elias.ui.voice.VoiceStatusCard
+import io.github.adccz.elias.ui.voice.openVoiceFix
 
 @Composable
 fun PreviewRoute(onBack: () -> Unit, viewModel: PreviewViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    // Coming back from the voice settings: check the Czech voice again.
+    LifecycleResumeEffect(viewModel) {
+        viewModel.onScreenResumed()
+        onPauseOrDispose { }
+    }
     PreviewScreen(
         uiState = uiState,
         onBack = onBack,
         onSelect = viewModel::select,
         onUseAiChange = viewModel::setUseAi,
         onRegenerate = viewModel::generate,
+        voiceActions = VoiceActions(
+            onPlay = viewModel::play,
+            onStop = viewModel::stop,
+            onSpeechRateChange = viewModel::onSpeechRateChange,
+            onSpeechRateChangeFinished = viewModel::onSpeechRateChangeFinished,
+            onFixVoice = { status -> context.openVoiceFix(status) },
+        ),
     )
 }
 
-/** Shows the morning or evening text, who wrote it and why, and how long it takes to say. */
+/** What the voice part of the screen reports. Grouped so the screen's parameter list stays readable. */
+class VoiceActions(
+    val onPlay: () -> Unit,
+    val onStop: () -> Unit,
+    val onSpeechRateChange: (Float) -> Unit,
+    val onSpeechRateChangeFinished: () -> Unit,
+    val onFixVoice: (VoiceStatus) -> Unit,
+)
+
+/** Shows the morning or evening text, who wrote it and why, and how long it takes to say. Elias can read it out. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PreviewScreen(
@@ -71,6 +105,7 @@ fun PreviewScreen(
     onSelect: (BriefingKind) -> Unit,
     onUseAiChange: (Boolean) -> Unit,
     onRegenerate: () -> Unit,
+    voiceActions: VoiceActions,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -109,6 +144,7 @@ fun PreviewScreen(
                 Switch(checked = uiState.useAi, onCheckedChange = onUseAiChange, enabled = !uiState.isLoading)
             }
             if (uiState.isLoading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            PlayRow(uiState, voiceActions)
 
             val result = uiState.current
             if (result == null) {
@@ -116,10 +152,46 @@ fun PreviewScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                BriefingCard(result)
+                BriefingCard(result, uiState.speechRate)
             }
+            VoiceSettings(uiState.speechRate, uiState.voice, voiceActions)
         }
     }
+}
+
+/** Přehrát, or Zastavit while Elias prepares or speaks, next to what Elias is doing. */
+@Composable
+private fun PlayRow(uiState: PreviewUiState, actions: VoiceActions) {
+    val speech = uiState.speech
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (speech is SpeechUiState.Preparing || speech is SpeechUiState.Speaking) {
+            OutlinedButton(onClick = actions.onStop) {
+                Text(stringResource(R.string.speech_stop))
+            }
+        } else {
+            Button(onClick = actions.onPlay, enabled = uiState.current != null && !uiState.isLoading) {
+                Text(stringResource(R.string.speech_play))
+            }
+        }
+        SpeechStatusText(speech, modifier = Modifier.weight(1f))
+    }
+}
+
+/** The speech rate (saved when the slider is let go) and the result of the Czech voice check. */
+@Composable
+private fun VoiceSettings(rate: SpeechRate, voice: VoiceStatus?, actions: VoiceActions) {
+    Text(
+        text = stringResource(R.string.speech_rate, CzechFormat.oneDecimal(rate.multiplier.toDouble())),
+        style = MaterialTheme.typography.titleSmall,
+    )
+    Slider(
+        value = rate.multiplier,
+        onValueChange = actions.onSpeechRateChange,
+        onValueChangeFinished = actions.onSpeechRateChangeFinished,
+        valueRange = SpeechRate.SLOWEST.multiplier..SpeechRate.FASTEST.multiplier,
+        steps = SpeechRate.STEPS_BETWEEN,
+    )
+    VoiceStatusCard(status = voice, onFix = actions.onFixVoice)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -143,7 +215,7 @@ private fun KindSelector(selected: BriefingKind, onSelect: (BriefingKind) -> Uni
 }
 
 @Composable
-private fun BriefingCard(result: BriefingResult) {
+private fun BriefingCard(result: BriefingResult, rate: SpeechRate) {
     val words = result.briefing.wordCount
     Text(
         text = sourceText(result),
@@ -163,7 +235,7 @@ private fun BriefingCard(result: BriefingResult) {
         text = stringResource(
             R.string.preview_stats,
             pluralStringResource(R.plurals.preview_words, words, words),
-            speakingSeconds(words),
+            rate.secondsToSay(words),
         ),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -187,11 +259,6 @@ private fun sourceText(result: BriefingResult): String {
         stringResource(R.string.preview_source_template, stringResource(reason.messageRes()))
     }
 }
-
-/** Czech text-to-speech says about 150 words a minute at normal speed. */
-private fun speakingSeconds(words: Int): Int = (words / WORDS_PER_MINUTE * 60).roundToInt()
-
-private const val WORDS_PER_MINUTE = 150.0
 
 @StringRes
 private fun AiFailureReason.messageRes(): Int = when (this) {
@@ -234,11 +301,14 @@ private fun PreviewScreenPreview() {
                     AiBriefingResult.Failure(AiFailureReason.NO_CREDIT, "HTTP 400 invalid_request_error"),
                     usage = null,
                 ),
+                speechRate = SpeechRate.of(1.1f),
+                voice = VoiceStatus.NoCzech(TtsEngine("com.example.tts", "Převod textu na řeč")),
             ),
             onBack = {},
             onSelect = {},
             onUseAiChange = {},
             onRegenerate = {},
+            voiceActions = VoiceActions({}, {}, {}, {}, {}),
         )
     }
 }

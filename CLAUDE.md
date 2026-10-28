@@ -51,6 +51,12 @@ io/github/adccz/elias/
 - **Navigation 3:** screen keys are `@Serializable` objects implementing `NavKey` in `ui/navigation`.
 - **Briefings:** `BriefingInputs` turns the overview into spoken-Czech facts (`domain/speech`), `TemplateBriefingBuilder`
   and `ClaudeBriefingBuilder` write `BriefingText` sections, `BriefingService` picks AI or template.
+- **Voice:** `BriefingSpeaker` speaks a briefing: `AndroidTextToSpeech` writes one WAV clip per section with an
+  offline Czech voice only, `MediaControllerVoicePlayer` sends the playlist to `PlaybackService` (Media3
+  `MediaSessionService`, ExoPlayer). Audio focus is our own (`AudioFocusPolicy`), never ExoPlayer's
+  (`handleAudioFocus = false`), so music returns afterwards and `USAGE_ALARM` works. User-started playback uses
+  `PlaybackStream.MEDIA`, scheduled playback (M4) must use `PlaybackStream.ALARM` (Android 17 background audio rules).
+  Media3 APIs marked `@UnstableApi` need `@OptIn(UnstableApi::class)` (androidx.annotation), or lint fails.
 - **Claude API:** `POST /v1/messages` via Ktor, header `anthropic-version: 2026-10-21`. Never send `temperature`,
   `top_p` or `top_k` (400 on that version). Prompts are Czech and live in `data/ai/ClaudePrompts.kt`.
   Never log or display the API key; `ClaudeConfig.toString()` hides it.
@@ -85,6 +91,9 @@ io/github/adccz/elias/
   our own interfaces.
 - Network clients are tested with Ktor `MockEngine` via `createHttpClient(engine, ..., maxRetries = 0)`.
   ViewModel tests register `MainDispatcherExtension`. Test fixtures (RSS, JSON) are fictional.
+- Voice tests use the shared fakes in `testing/FakeVoice.kt` and `TestLoaders.failing(clock)`. DataStore is tested
+  for real on a file in a JUnit `@TempDir`. The Android-only voice classes (TTS, service, controller) stay thin
+  and are checked on a device.
 - Never call real services from committed tests. A one-off manual check is fine, but delete it afterwards.
 - Code with a real-time timeout around a `MockEngine` call (like `ClaudeBriefingBuilder`) is tested with
   `runBlocking`: in `runTest` virtual time the timeout would fire instantly.

@@ -10,25 +10,21 @@ import io.github.adccz.elias.domain.briefing.BriefingSource
 import io.github.adccz.elias.domain.briefing.EveningInput
 import io.github.adccz.elias.domain.briefing.MorningInput
 import io.github.adccz.elias.domain.briefing.TemplateBriefingBuilder
-import io.github.adccz.elias.domain.calendar.CalendarEvent
-import io.github.adccz.elias.domain.calendar.CalendarRepository
-import io.github.adccz.elias.domain.model.FailureReason
-import io.github.adccz.elias.domain.model.GeoLocation
-import io.github.adccz.elias.domain.model.SourceResult
-import io.github.adccz.elias.domain.news.Headline
-import io.github.adccz.elias.domain.news.NewsFeed
-import io.github.adccz.elias.domain.news.NewsRepository
-import io.github.adccz.elias.domain.overview.TodayOverviewLoader
-import io.github.adccz.elias.domain.plan.LoadedPlan
-import io.github.adccz.elias.domain.plan.PlanRepository
-import io.github.adccz.elias.domain.sun.SabbathCalculator
-import io.github.adccz.elias.domain.sun.SunCalculator
-import io.github.adccz.elias.domain.weather.WeatherForecast
-import io.github.adccz.elias.domain.weather.WeatherRepository
+import io.github.adccz.elias.domain.voice.BriefingSpeaker
+import io.github.adccz.elias.domain.voice.SpeechRate
+import io.github.adccz.elias.domain.voice.VoiceStatus
+import io.github.adccz.elias.testing.FakeSpeechSynthesizer
+import io.github.adccz.elias.testing.FakeVoiceChecker
+import io.github.adccz.elias.testing.FakeVoicePlayer
+import io.github.adccz.elias.testing.FakeVoiceSettings
 import io.github.adccz.elias.testing.MainDispatcherExtension
+import io.github.adccz.elias.testing.TestLoaders
+import io.github.adccz.elias.testing.testEngine
+import io.github.adccz.elias.ui.voice.SpeechController
+import io.github.adccz.elias.ui.voice.SpeechUiState
 import java.time.Clock
 import java.time.Instant
-import java.time.LocalDate
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -36,6 +32,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class PreviewViewModelTest {
     @JvmField
     @RegisterExtension
@@ -44,30 +41,7 @@ class PreviewViewModelTest {
     private val clock = Clock.fixed(Instant.parse("2026-10-27T06:00:00Z"), PRAGUE_ZONE)
 
     /** Every data source fails: the test is about the screen logic, not the data. */
-    private val loader: TodayOverviewLoader = run {
-        val sun = SunCalculator(GeoLocation.PILSEN, PRAGUE_ZONE)
-        TodayOverviewLoader(
-            calendar = object : CalendarRepository {
-                override suspend fun eventsOn(date: LocalDate): SourceResult<List<CalendarEvent>> =
-                    SourceResult.Failure(FailureReason.NO_PERMISSION)
-            },
-            weather = object : WeatherRepository {
-                override suspend fun forecast(): SourceResult<WeatherForecast> =
-                    SourceResult.Failure(FailureReason.NETWORK)
-            },
-            plans = object : PlanRepository {
-                override suspend fun loadPlan(): SourceResult<LoadedPlan> =
-                    SourceResult.Failure(FailureReason.INVALID_DATA)
-            },
-            news = object : NewsRepository {
-                override suspend fun headlines(feed: NewsFeed): SourceResult<List<Headline>> =
-                    SourceResult.Failure(FailureReason.NETWORK)
-            },
-            sun = sun,
-            sabbath = SabbathCalculator(sun),
-            clock = clock,
-        )
-    }
+    private val loader = TestLoaders.failing(clock)
 
     private class NoCreditAi : AiBriefingBuilder {
         var calls = 0
@@ -83,10 +57,23 @@ class PreviewViewModelTest {
         }
     }
 
+    private val synthesizer = FakeSpeechSynthesizer()
+    private val player = FakeVoicePlayer()
+    private val settings = FakeVoiceSettings()
+    private val checker = FakeVoiceChecker()
+
+    private fun viewModel(ai: AiBriefingBuilder = NoCreditAi()) = PreviewViewModel(
+        loader = loader,
+        briefings = BriefingService(TemplateBriefingBuilder(), ai),
+        speech = SpeechController(BriefingSpeaker(synthesizer, player, settings), player),
+        voiceChecker = checker,
+        voiceSettings = settings,
+    )
+
     @Test
     fun `writes both briefings and explains why the template was used`() = runTest {
         val ai = NoCreditAi()
-        val viewModel = PreviewViewModel(loader, BriefingService(TemplateBriefingBuilder(), ai))
+        val viewModel = viewModel(ai)
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -99,7 +86,7 @@ class PreviewViewModelTest {
     @Test
     fun `switching AI off writes from the template without asking the AI`() = runTest {
         val ai = NoCreditAi()
-        val viewModel = PreviewViewModel(loader, BriefingService(TemplateBriefingBuilder(), ai))
+        val viewModel = viewModel(ai)
         advanceUntilIdle()
 
         viewModel.setUseAi(false)
@@ -111,11 +98,87 @@ class PreviewViewModelTest {
 
     @Test
     fun `the selected tab decides which briefing is shown`() = runTest {
-        val viewModel = PreviewViewModel(loader, BriefingService(TemplateBriefingBuilder(), NoCreditAi()))
+        val viewModel = viewModel()
         advanceUntilIdle()
 
         viewModel.select(BriefingKind.EVENING)
 
         assertEquals(BriefingKind.EVENING, viewModel.uiState.value.current?.briefing?.kind)
+    }
+
+    @Test
+    fun `plays exactly the briefing on the screen`() = runTest {
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        viewModel.select(BriefingKind.EVENING)
+
+        viewModel.play()
+        advanceUntilIdle()
+
+        val shown = viewModel.uiState.value.evening!!.briefing.spokenSections
+        assertEquals(shown, synthesizer.requests.single().first)
+        assertEquals(SpeechUiState.Speaking(BriefingKind.EVENING, isPaused = false), viewModel.uiState.value.speech)
+    }
+
+    @Test
+    fun `stop ends speaking`() = runTest {
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        viewModel.play()
+        advanceUntilIdle()
+
+        viewModel.stop()
+        advanceUntilIdle()
+
+        assertEquals(SpeechUiState.Idle, viewModel.uiState.value.speech)
+    }
+
+    @Test
+    fun `the speech rate is saved when the slider is let go`() = runTest {
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        viewModel.onSpeechRateChange(1.27f)
+        assertEquals(SpeechRate.NORMAL, settings.speechRate.value) // not saved while dragging
+        viewModel.onSpeechRateChangeFinished()
+        advanceUntilIdle()
+
+        assertEquals(SpeechRate.of(1.3f), settings.speechRate.value)
+        assertEquals(SpeechRate.of(1.3f), viewModel.uiState.value.speechRate)
+    }
+
+    @Test
+    fun `shows the stored speech rate`() = runTest {
+        settings.speechRate.value = SpeechRate.SLOWEST
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        assertEquals(SpeechRate.SLOWEST, viewModel.uiState.value.speechRate)
+    }
+
+    @Test
+    fun `checks the Czech voice and again after a fix in the settings`() = runTest {
+        checker.status = VoiceStatus.NotDownloaded(testEngine)
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        assertEquals(VoiceStatus.NotDownloaded(testEngine), viewModel.uiState.value.voice)
+
+        checker.status = VoiceStatus.Ready(testEngine, "cs-local")
+        viewModel.onScreenResumed()
+        advanceUntilIdle()
+
+        assertEquals(VoiceStatus.Ready(testEngine, "cs-local"), viewModel.uiState.value.voice)
+        assertEquals(2, checker.checks)
+    }
+
+    @Test
+    fun `a ready voice is not checked again on every return to the screen`() = runTest {
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        viewModel.onScreenResumed()
+        advanceUntilIdle()
+
+        assertEquals(1, checker.checks)
     }
 }
