@@ -35,6 +35,13 @@
     <string name="ai_failure_invalid_output">text od AI neprošel kontrolou</string>
     <string name="ai_failure_unknown">neznámá chyba</string>
 
+    <!-- Playback notification -->
+    <string name="playback_channel_name">Přehrávání souhrnu</string>
+    <string name="playback_title_morning">Ranní souhrn</string>
+    <string name="playback_title_evening">Večerní souhrn</string>
+    <string name="playback_replay">Znovu</string>
+    <string name="playback_stop">Stop</string>
+
     <string name="action_back">Zpět</string>
     <string name="action_refresh">Obnovit</string>
 

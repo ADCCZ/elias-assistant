@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Weather and news headlines. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Today's events from the calendars synced to the phone. Read only, never written. -->
     <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <!-- Elias speaks from a foreground service, so the sound goes on with the screen off (Android 17 requires it). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <!-- Keeps the processor awake while Elias speaks with the screen off. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!-- Since Android 11 an app sees only the apps it declares. Without this, TextToSpeech finds no engine. -->
     <queries>
@@ -36,6 +42,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+            Plays the spoken briefing (Media3 MediaSessionService). It is exported so the system media controls,
+            the lock screen and Bluetooth devices can connect. Other apps only get read access (PlaybackService).
+        -->
+        <service
+            android:name=".data.voice.PlaybackService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback"
+            tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>
