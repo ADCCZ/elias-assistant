@@ -5,6 +5,32 @@
     <string name="home_today">Dnes je %1$s</string>
     <string name="home_open_data">Co E.L.I.A.S. dnes ví</string>
     <string name="home_open_preview">Náhled textu</string>
+    <string name="home_play_morning">Přehrát ranní souhrn</string>
+    <string name="home_play_evening">Přehrát večerní souhrn</string>
+
+    <!-- Speaking -->
+    <string name="speech_play">Přehrát</string>
+    <string name="speech_stop">Zastavit</string>
+    <string name="speech_preparing_morning">Připravuji ranní souhrn…</string>
+    <string name="speech_preparing_evening">Připravuji večerní souhrn…</string>
+    <string name="speech_speaking_morning">E.L.I.A.S. čte ranní souhrn.</string>
+    <string name="speech_speaking_evening">E.L.I.A.S. čte večerní souhrn.</string>
+    <string name="speech_paused">Pozastaveno. Pokračovat můžeš v oznámení.</string>
+    <string name="speech_failed_nothing">Souhrn je prázdný, není co číst.</string>
+    <string name="speech_failed_voice">Nemluvím. %1$s</string>
+    <string name="speech_failed_synthesis">Převod textu na řeč selhal. Zkus to znovu.</string>
+    <string name="speech_failed_playback">Přehrávání se nepodařilo spustit.</string>
+    <string name="speech_rate">Rychlost řeči: %1$s×</string>
+
+    <!-- Czech voice check -->
+    <string name="voice_title">Český hlas</string>
+    <string name="voice_checking">Kontroluji český hlas…</string>
+    <string name="voice_ready">Připraveno offline: %1$s, hlas %2$s.</string>
+    <string name="voice_engine_unavailable">Převod textu na řeč se nepodařilo spustit. Zkontroluj v nastavení, že je v telefonu nějaký nainstalovaný.</string>
+    <string name="voice_no_czech">%1$s neumí česky. V nastavení převodu textu na řeč vyber jako preferovaný modul Google.</string>
+    <string name="voice_not_downloaded">Český hlas pro %1$s není stažený. Stáhni ho, aby fungoval bez internetu.</string>
+    <string name="voice_online_only">%1$s má český hlas jen přes internet. E.L.I.A.S. mluví jen offline, aby text souhrnu neopustil telefon. Stáhni offline hlas.</string>
+    <string name="voice_fix">Opravit</string>
 
     <!-- Preview screen -->
     <string name="preview_title">Náhled textu</string>
