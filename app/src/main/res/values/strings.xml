@@ -127,7 +127,7 @@
     <string name="plan_mandatory">povinné</string>
 
     <string name="section_news">Titulky</string>
-    <string name="news_empty">Žádné titulky za posledních 24 hodin</string>
+    <string name="news_empty">Žádné nové titulky od posledního souhrnu</string>
     <string name="news_source_and_time">%1$s · %2$s</string>
 
     <!-- Source status -->

@@ -26,6 +26,22 @@ fun selectHeadlines(
         .sortedWith(newestFirst)
 }
 
+/** The shortest look back: a briefing played again soon after still has its headlines. */
+val MIN_HEADLINE_WINDOW: Duration = Duration.ofHours(6)
+
+/** The longest look back: older news is not news any more. */
+val MAX_HEADLINE_WINDOW: Duration = Duration.ofHours(24)
+
+/**
+ * How far back the headlines go (spec: "only headlines since the last briefing"): since [lastBriefingAt], the start
+ * of the last briefing that played, but at least [MIN_HEADLINE_WINDOW] and at most [MAX_HEADLINE_WINDOW].
+ */
+fun headlineWindow(lastBriefingAt: Instant?, now: Instant): Duration {
+    if (lastBriefingAt == null || lastBriefingAt.isAfter(now)) return MAX_HEADLINE_WINDOW
+    val sinceLast = Duration.between(lastBriefingAt, now)
+    return sinceLast.coerceIn(MIN_HEADLINE_WINDOW, MAX_HEADLINE_WINDOW)
+}
+
 /**
  * Picks [count] headlines for the spoken briefing. Sources take turns in [sourceOrder], each giving its
  * newest headline first, so one busy feed cannot fill the whole briefing. Expects newest-first input,

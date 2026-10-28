@@ -1,5 +1,6 @@
 package io.github.adccz.elias.domain.news
 
+import java.time.Duration
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -96,5 +97,22 @@ class HeadlineSelectionTest {
 
         assertEquals(3, selected.count { it.source == "ČT24" })
         assertEquals(1, selected.count { it.source == "Root.cz" })
+    }
+
+    @Test
+    fun `the window starts at the last briefing`() {
+        assertEquals(Duration.ofHours(9), headlineWindow(now.minus(Duration.ofHours(9)), now))
+    }
+
+    @Test
+    fun `the window is at least six hours, so a replay still has news`() {
+        assertEquals(Duration.ofHours(6), headlineWindow(now.minusSeconds(60), now))
+    }
+
+    @Test
+    fun `the window is at most a day, also before the first briefing`() {
+        assertEquals(Duration.ofHours(24), headlineWindow(now.minus(Duration.ofDays(3)), now))
+        assertEquals(Duration.ofHours(24), headlineWindow(null, now))
+        assertEquals(Duration.ofHours(24), headlineWindow(now.plusSeconds(60), now))
     }
 }
