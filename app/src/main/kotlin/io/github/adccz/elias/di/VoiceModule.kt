@@ -5,6 +5,7 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.github.adccz.elias.data.voice.AndroidTextToSpeech
+import io.github.adccz.elias.domain.voice.SpeechSynthesizer
 import io.github.adccz.elias.domain.voice.VoiceChecker
 
 /** Voice: text-to-speech and playback. */
@@ -13,4 +14,7 @@ import io.github.adccz.elias.domain.voice.VoiceChecker
 abstract class VoiceModule {
     @Binds
     abstract fun bindVoiceChecker(impl: AndroidTextToSpeech): VoiceChecker
+
+    @Binds
+    abstract fun bindSpeechSynthesizer(impl: AndroidTextToSpeech): SpeechSynthesizer
 }
