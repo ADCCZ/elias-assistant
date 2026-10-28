@@ -4,7 +4,9 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import io.github.adccz.elias.data.schedule.AndroidAlarmScheduler
 import io.github.adccz.elias.data.settings.DataStoreScheduleRepository
+import io.github.adccz.elias.domain.schedule.AlarmScheduler
 import io.github.adccz.elias.domain.schedule.ScheduleRepository
 
 /** Scheduling: when Elias works on its own. */
@@ -13,4 +15,7 @@ import io.github.adccz.elias.domain.schedule.ScheduleRepository
 abstract class ScheduleModule {
     @Binds
     abstract fun bindScheduleRepository(impl: DataStoreScheduleRepository): ScheduleRepository
+
+    @Binds
+    abstract fun bindAlarmScheduler(impl: AndroidAlarmScheduler): AlarmScheduler
 }

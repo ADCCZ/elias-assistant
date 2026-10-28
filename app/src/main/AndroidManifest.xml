@@ -11,6 +11,17 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <!-- Keeps the processor awake while Elias speaks with the screen off. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!--
+        Exact alarms for the evening briefing, the prefetch and the sabbath reminder (D29). USE_EXACT_ALARM is granted
+        at install and cannot be taken away. Google Play allows it only for alarm and calendar apps; Elias is not on
+        Google Play and has an alarm clock from M6. Android 12 and 12L know only SCHEDULE_EXACT_ALARM.
+    -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission
+        android:name="android.permission.SCHEDULE_EXACT_ALARM"
+        android:maxSdkVersion="32" />
+    <!-- Plans the alarms again after the phone restarts (Android forgets them). -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- Since Android 11 an app sees only the apps it declares. Without this, TextToSpeech finds no engine. -->
     <queries>
@@ -56,6 +67,23 @@
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
+
+        <!-- The app's own alarms (ScheduledRunReceiver). Not exported: nothing else may trigger a briefing. -->
+        <receiver
+            android:name=".data.schedule.ScheduledRunReceiver"
+            android:exported="false" />
+
+        <!-- System events after which the alarms are planned again. The system reaches unexported receivers too. -->
+        <receiver
+            android:name=".data.schedule.RescheduleReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
         <!-- WorkManager starts on demand with Hilt's worker factory (EliasApp), not with its default initializer. -->
         <provider

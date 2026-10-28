@@ -3,6 +3,7 @@ package io.github.adccz.elias.domain.overview
 import io.github.adccz.elias.domain.calendar.CalendarRepository
 import io.github.adccz.elias.domain.model.FailureReason
 import io.github.adccz.elias.domain.model.SourceResult
+import io.github.adccz.elias.domain.model.loadGuarded
 import io.github.adccz.elias.domain.news.DefaultNewsFeeds
 import io.github.adccz.elias.domain.news.Headline
 import io.github.adccz.elias.domain.news.NewsRepository
@@ -18,18 +19,15 @@ import java.time.ZonedDateTime
 import javax.inject.Inject
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Loads all sources at the same time and puts the results together.
  *
- * Every source runs in its own [guarded] block: it gets a time limit, and an unexpected exception
- * becomes a failure of that source only. Without this, one crashing source would cancel the others,
- * because coroutines started in one scope fail together.
+ * Every source runs guarded ([loadGuarded]): it gets a time limit, and an unexpected exception
+ * becomes a failure of that source only.
  */
 class TodayOverviewLoader @Inject constructor(
     private val calendar: CalendarRepository,
@@ -85,14 +83,8 @@ class TodayOverviewLoader @Inject constructor(
         )
     }
 
-    private suspend fun <T> guarded(block: suspend () -> SourceResult<T>): SourceResult<T> = try {
-        withTimeoutOrNull(SOURCE_TIMEOUT) { block() }
-            ?: SourceResult.Failure(FailureReason.TIMEOUT, "No answer within $SOURCE_TIMEOUT")
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        SourceResult.Failure(FailureReason.UNKNOWN, e.toString())
-    }
+    private suspend fun <T> guarded(block: suspend () -> SourceResult<T>): SourceResult<T> =
+        loadGuarded(SOURCE_TIMEOUT, block)
 
     private inline fun <T, R> SourceResult<T>.map(transform: (T) -> R): SourceResult<R> = when (this) {
         is SourceResult.Success -> SourceResult.Success(transform(data), loadedAt, fromCache)

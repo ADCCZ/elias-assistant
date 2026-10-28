@@ -69,6 +69,10 @@
     <string name="playback_stop">Stop</string>
     <string name="playback_preparing">Připravuji…</string>
 
+    <!-- Scheduling -->
+    <string name="channel_prefetch">Příprava dat na ráno</string>
+    <string name="prefetch_notification">Stahuji počasí a titulky na ráno</string>
+
     <string name="action_back">Zpět</string>
     <string name="action_refresh">Obnovit</string>
 
