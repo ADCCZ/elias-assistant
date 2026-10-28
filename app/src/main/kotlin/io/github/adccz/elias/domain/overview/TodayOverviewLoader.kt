@@ -52,7 +52,7 @@ class TodayOverviewLoader @Inject constructor(
                 is SourceResult.Failure -> result
 
                 is SourceResult.Success -> result.data.dayWeather(today)
-                    ?.let { SourceResult.Success(it, result.loadedAt) }
+                    ?.let { SourceResult.Success(it, result.loadedAt, result.fromCache) }
                     ?: SourceResult.Failure(FailureReason.INVALID_DATA, "The forecast has no hours for $today")
             }
         }
@@ -95,7 +95,7 @@ class TodayOverviewLoader @Inject constructor(
     }
 
     private inline fun <T, R> SourceResult<T>.map(transform: (T) -> R): SourceResult<R> = when (this) {
-        is SourceResult.Success -> SourceResult.Success(transform(data), loadedAt)
+        is SourceResult.Success -> SourceResult.Success(transform(data), loadedAt, fromCache)
         is SourceResult.Failure -> this
     }
 

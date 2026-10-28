@@ -120,6 +120,8 @@
     <!-- Source status -->
     <string name="status_loaded">✓ Načteno v %1$s</string>
     <string name="status_failed">✗ %1$s</string>
+    <!-- The source did not answer, the last data that worked is used: "středa 28. 10.", "6:30". -->
+    <string name="status_cached">↺ Nenačteno, používám data z %1$s v %2$s</string>
     <string name="status_feed">%1$s: %2$s</string>
     <string name="failure_no_permission">Chybí oprávnění</string>
     <string name="failure_network">Bez připojení k internetu</string>

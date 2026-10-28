@@ -53,12 +53,11 @@ class ScheduleCalculator @Inject constructor(private val sun: SunCalculator, pri
     fun nextRuns(schedule: WeeklySchedule, now: ZonedDateTime): List<ScheduledRun> =
         ScheduledTask.entries.mapNotNull { next(it, schedule, now) }.sortedBy { it.at.toInstant() }
 
-    private fun candidate(task: ScheduledTask, schedule: WeeklySchedule, date: LocalDate): ScheduledRun? =
-        when (task) {
-            ScheduledTask.PREFETCH -> prefetchFor(date, schedule)
-            ScheduledTask.EVENING_BRIEFING -> eveningOn(date, schedule)
-            ScheduledTask.SABBATH_REMINDER -> reminderOn(date)
-        }
+    private fun candidate(task: ScheduledTask, schedule: WeeklySchedule, date: LocalDate): ScheduledRun? = when (task) {
+        ScheduledTask.PREFETCH -> prefetchFor(date, schedule)
+        ScheduledTask.EVENING_BRIEFING -> eveningOn(date, schedule)
+        ScheduledTask.SABBATH_REMINDER -> reminderOn(date)
+    }
 
     private fun prefetchFor(morningDate: LocalDate, schedule: WeeklySchedule): ScheduledRun? {
         // No morning briefing on the sabbath, so there is nothing to prepare.

@@ -101,7 +101,11 @@ class ScheduleCalculatorTest {
     @Test
     fun `in summer Saturday's evening briefing waits for the late sunset`() {
         // Sunset in Pilsen is after nine in the evening in late June.
-        val run = calculator.next(EVENING_BRIEFING, schedule.withEvening(DayOfWeek.SATURDAY, LocalTime.of(20, 0)), at("2027-06-26T12:00"))
+        val run = calculator.next(
+            EVENING_BRIEFING,
+            schedule.withEvening(DayOfWeek.SATURDAY, LocalTime.of(20, 0)),
+            at("2027-06-26T12:00"),
+        )
 
         assertEquals(sunset("2027-06-26"), run?.at)
         assertTrue(run!!.at.toLocalTime().isAfter(LocalTime.of(21, 0)))

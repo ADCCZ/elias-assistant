@@ -9,6 +9,9 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
+/** How the app reads JSON from providers. Providers add new fields over time, and those must not break parsing. */
+val ProviderJson: Json = Json { ignoreUnknownKeys = true }
+
 /**
  * Creates the one HTTP client the app uses.
  *
@@ -29,8 +32,7 @@ fun createHttpClient(engine: HttpClientEngine, userAgent: String, maxRetries: In
             requestTimeoutMillis = 10_000
         }
         install(ContentNegotiation) {
-            // Providers add new fields over time. They must not break parsing.
-            json(Json { ignoreUnknownKeys = true })
+            json(ProviderJson)
         }
         install(UserAgent) {
             agent = userAgent

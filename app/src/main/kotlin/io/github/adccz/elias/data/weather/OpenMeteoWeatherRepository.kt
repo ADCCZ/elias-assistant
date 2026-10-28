@@ -1,7 +1,9 @@
 package io.github.adccz.elias.data.weather
 
+import io.github.adccz.elias.data.cache.SourceCache
+import io.github.adccz.elias.data.cache.loadWithCache
 import io.github.adccz.elias.data.network.InvalidResponseException
-import io.github.adccz.elias.data.network.loadSafely
+import io.github.adccz.elias.data.network.ProviderJson
 import io.github.adccz.elias.domain.model.GeoLocation
 import io.github.adccz.elias.domain.model.SourceResult
 import io.github.adccz.elias.domain.weather.HourlyWeather
@@ -18,31 +20,44 @@ import java.time.ZoneId
 import javax.inject.Inject
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 
 /**
  * Hourly forecast from Open-Meteo (https://open-meteo.com), free for non-commercial use without a key.
  * Data license CC BY 4.0, so the app shows "Open-Meteo.com" wherever it displays the weather.
+ *
+ * The last forecast that worked is kept in [cache]: it covers two days, so a forecast prefetched in the morning
+ * or the evening before still describes today when the network is down.
  */
 class OpenMeteoWeatherRepository @Inject constructor(
     private val client: HttpClient,
     private val location: GeoLocation,
     private val zone: ZoneId,
     private val clock: Clock,
+    private val cache: SourceCache,
 ) : WeatherRepository {
-    override suspend fun forecast(): SourceResult<WeatherForecast> = loadSafely(clock) {
-        val response = client.get(FORECAST_URL) {
-            parameter("latitude", location.latitude)
-            parameter("longitude", location.longitude)
-            parameter("hourly", HOURLY_VARIABLES)
-            parameter("timezone", zone.id)
-            // Unix time instead of local time strings: Open-Meteo's local times ignore DST changes
-            // inside the forecast range. java.time converts the instants correctly.
-            parameter("timeformat", "unixtime")
-            parameter("forecast_days", FORECAST_DAYS)
-            parameter("wind_speed_unit", "kmh")
-        }.body<OpenMeteoResponse>()
-        response.hourly.toForecast(zone)
-    }
+    override suspend fun forecast(): SourceResult<WeatherForecast> = loadWithCache(
+        cache = cache,
+        key = "weather:${location.latitude},${location.longitude}",
+        clock = clock,
+        fetch = ::download,
+        parse = ::parse,
+    )
+
+    private suspend fun download(): ByteArray = client.get(FORECAST_URL) {
+        parameter("latitude", location.latitude)
+        parameter("longitude", location.longitude)
+        parameter("hourly", HOURLY_VARIABLES)
+        parameter("timezone", zone.id)
+        // Unix time instead of local time strings: Open-Meteo's local times ignore DST changes
+        // inside the forecast range. java.time converts the instants correctly.
+        parameter("timeformat", "unixtime")
+        parameter("forecast_days", FORECAST_DAYS)
+        parameter("wind_speed_unit", "kmh")
+    }.body<ByteArray>()
+
+    private fun parse(payload: ByteArray): WeatherForecast =
+        ProviderJson.decodeFromString<OpenMeteoResponse>(payload.decodeToString()).hourly.toForecast(zone)
 
     private companion object {
         const val FORECAST_URL = "https://api.open-meteo.com/v1/forecast"

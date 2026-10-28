@@ -8,6 +8,7 @@ import io.github.adccz.elias.domain.model.SourceResult
 import io.github.adccz.elias.domain.weather.WeatherCondition
 import io.github.adccz.elias.domain.weather.WeatherForecast
 import io.github.adccz.elias.domain.weather.dayWeather
+import io.github.adccz.elias.testing.InMemorySourceCache
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
 import io.ktor.client.engine.mock.respond
@@ -25,6 +26,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class OpenMeteoWeatherRepositoryTest {
@@ -33,11 +35,14 @@ class OpenMeteoWeatherRepositoryTest {
     /** A fictional forecast for 25 October 2026, the 25-hour day when summer time ends, and the day after. */
     private val dstFixture = javaClass.getResource("/open-meteo/forecast-dst-day.json")!!.readText()
 
+    private val cache = InMemorySourceCache()
+
     private fun repository(engine: MockEngine) = OpenMeteoWeatherRepository(
         client = createHttpClient(engine, userAgent = "test", maxRetries = 0),
         location = GeoLocation.PILSEN,
         zone = PRAGUE_ZONE,
         clock = clock,
+        cache = cache,
     )
 
     private fun MockRequestHandleScope.respondJson(body: String) =
@@ -129,5 +134,17 @@ class OpenMeteoWeatherRepositoryTest {
         val result = repository(MockEngine { throw IOException("offline") }).forecast()
 
         assertEquals(FailureReason.NETWORK, (result as SourceResult.Failure).reason)
+    }
+
+    @Test
+    fun `returns cached weather when network fails`() = runTest {
+        repository(MockEngine { respondJson(dstFixture) }).forecast()
+
+        val result = repository(MockEngine { throw IOException("offline") }).forecast()
+
+        val cached = assertInstanceOf(SourceResult.Success::class.java, result)
+        assertTrue(cached.fromCache)
+        assertEquals(clock.instant(), cached.loadedAt)
+        assertEquals(loadFixture(), cached.data)
     }
 }
