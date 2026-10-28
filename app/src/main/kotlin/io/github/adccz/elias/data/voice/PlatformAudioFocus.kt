@@ -44,7 +44,13 @@ class PlatformAudioFocus(context: Context, private val onChange: (FocusChange) -
             .setOnAudioFocusChangeListener(listener, handler)
             .build()
         lastRequest = request
-        return audioManager.requestAudioFocus(request) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        return try {
+            audioManager.requestAudioFocus(request) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        } catch (e: IllegalStateException) {
+            // Android 17 refuses background audio this way when hardening is set to "throw" (a test mode).
+            // A refusal must never crash the playback service: it is treated like any other refused request.
+            false
+        }
     }
 
     /** Gives the focus back, so other apps play at full volume again. Safe to call when nothing is held. */
