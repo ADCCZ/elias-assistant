@@ -22,6 +22,13 @@
         android:maxSdkVersion="32" />
     <!-- The Friday sabbath reminder (Android 13+ asks the user; the media notification does not need it). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!--
+        Lets the status screen ask to leave Elias out of battery optimization, so the prefetch is not put to sleep at
+        night. Google Play limits this to some kinds of apps; Elias is not on Google Play.
+    -->
+    <uses-permission
+        android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"
+        tools:ignore="BatteryLife" />
     <!-- Plans the alarms again after the phone restarts (Android forgets them). -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 

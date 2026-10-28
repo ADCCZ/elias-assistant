@@ -81,6 +81,67 @@
     <!-- %1$s: sunset, "16:47". Read, not spoken, so a list is fine. -->
     <string name="sabbath_reminder_text">Západ slunce v %1$s.\n• Úklid\n• Starosti napsat na papír\n• Nedokončené věci do úkolů na neděli\n• Modlitba\n• Při západu vypnout telefon\n• Žalm 92</string>
 
+    <!-- Home: more screens -->
+    <string name="home_open_schedule">Časy</string>
+    <string name="home_open_status">Stav</string>
+
+    <!-- Schedule screen -->
+    <string name="schedule_title">Časy</string>
+    <string name="schedule_intro">Každý den má svůj ranní a večerní čas. Ráno se 30 minut předem stáhne počasí a titulky, ať je souhrn hned připravený. Večer E.L.I.A.S. přečte souhrn sám. Klepnutím čas změníš nebo vypneš.</string>
+    <string name="schedule_next">Naplánováno</string>
+    <string name="schedule_nothing">Nic není naplánováno.</string>
+    <string name="schedule_task_prefetch">Stažení dat</string>
+    <string name="schedule_task_evening">Večerní souhrn</string>
+    <string name="schedule_task_reminder">Připomínka sabatu</string>
+    <!-- "Večerní souhrn: čtvrtek 29. 10. v 22:00" -->
+    <string name="schedule_run_at">%1$s: %2$s v %3$s</string>
+    <string name="schedule_morning">Ráno %1$s</string>
+    <string name="schedule_evening">Večer %1$s</string>
+    <string name="schedule_off">vypnuto</string>
+    <string name="schedule_friday_evening">Večer: sabat</string>
+    <string name="schedule_sabbath_note">Sabat: v pátek večer se souhrn nespouští a v sobotu ráno se nestahují data. V sobotu večer zazní souhrn nejdřív po západu slunce a začne slovy „sabat skončil“.</string>
+    <string name="schedule_dialog_morning">Ráno, %1$s</string>
+    <string name="schedule_dialog_evening">Večer, %1$s</string>
+    <string name="schedule_switch_off">Vypnout</string>
+    <string name="action_save">Uložit</string>
+    <string name="action_cancel">Zrušit</string>
+
+    <!-- Status screen -->
+    <string name="status_title">Stav</string>
+    <string name="status_intro">Co E.L.I.A.S. potřebuje, aby pracoval i sám. U toho, co chybí, je Opravit.</string>
+    <string name="status_ok">✓ %1$s</string>
+    <string name="status_problem">✗ %1$s</string>
+    <string name="status_calendar">Kalendář</string>
+    <string name="status_calendar_ok">Smí číst kalendář.</string>
+    <string name="status_calendar_bad">Nesmí číst kalendář, souhrn nezná tvoje události.</string>
+    <string name="status_notifications">Upozornění</string>
+    <string name="status_notifications_ok">Povolená, páteční připomínka sabatu se ukáže.</string>
+    <string name="status_notifications_bad">Vypnutá, páteční připomínka sabatu se neukáže.</string>
+    <string name="status_exact_alarms">Přesné budíky</string>
+    <string name="status_exact_alarms_ok">Povolené, večerní souhrn přijde přesně.</string>
+    <string name="status_exact_alarms_bad">Zakázané, večerní souhrn může přijít pozdě.</string>
+    <string name="status_battery">Optimalizace baterie</string>
+    <string name="status_battery_ok">E.L.I.A.S. je výjimka, telefon ho v noci neuspí.</string>
+    <string name="status_battery_bad">Telefon může E.L.I.A.S. v noci uspat a stažení dat se zpozdí.</string>
+    <string name="status_last_run">Poslední běh</string>
+    <string name="status_no_run">Zatím nic neproběhlo.</string>
+    <string name="status_run_morning">Ranní souhrn</string>
+    <string name="status_run_evening">Večerní souhrn</string>
+    <string name="status_run_scheduled">naplánovaný</string>
+    <string name="status_run_manual">spuštěný ručně</string>
+    <!-- "Večerní souhrn (naplánovaný), čtvrtek 29. 10. v 22:00: zazněl." -->
+    <string name="status_run_summary">%1$s (%2$s), %3$s v %4$s: %5$s.</string>
+    <string name="status_outcome_played">zazněl</string>
+    <string name="status_outcome_prefetched">data stažena</string>
+    <string name="status_outcome_nothing">nebylo co říct</string>
+    <string name="status_outcome_voice">chyběl český hlas</string>
+    <string name="status_outcome_synthesis">převod na řeč selhal</string>
+    <string name="status_outcome_playback">přehrávání selhalo</string>
+    <string name="status_written_by_ai">Napsala AI.</string>
+    <string name="status_written_by_template">Napsala šablona.</string>
+    <string name="status_sources">Zdroje: %1$d načteno, %2$d z mezipaměti, %3$d selhalo.</string>
+    <string name="status_samsung_guide">Samsung a běh na pozadí (dontkillmyapp.com)</string>
+
     <string name="action_back">Zpět</string>
     <string name="action_refresh">Obnovit</string>
 

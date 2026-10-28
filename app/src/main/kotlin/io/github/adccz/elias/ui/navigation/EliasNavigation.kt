@@ -10,6 +10,8 @@ import androidx.navigation3.ui.NavDisplay
 import io.github.adccz.elias.ui.data.DataRoute
 import io.github.adccz.elias.ui.home.HomeRoute
 import io.github.adccz.elias.ui.preview.PreviewRoute
+import io.github.adccz.elias.ui.schedule.ScheduleRoute
+import io.github.adccz.elias.ui.status.StatusRoute
 import kotlinx.serialization.Serializable
 
 // Screens are identified by keys. They are @Serializable so the back stack survives process death.
@@ -22,6 +24,12 @@ data object DataKey : NavKey
 
 @Serializable
 data object PreviewKey : NavKey
+
+@Serializable
+data object ScheduleKey : NavKey
+
+@Serializable
+data object StatusKey : NavKey
 
 /**
  * The app's navigation with Navigation 3. The back stack is a plain list we own:
@@ -44,10 +52,14 @@ fun EliasNavigation() {
                 HomeRoute(
                     onOpenData = { backStack.add(DataKey) },
                     onOpenPreview = { backStack.add(PreviewKey) },
+                    onOpenSchedule = { backStack.add(ScheduleKey) },
+                    onOpenStatus = { backStack.add(StatusKey) },
                 )
             }
             entry<DataKey> { DataRoute(onBack = { backStack.removeLastOrNull() }) }
             entry<PreviewKey> { PreviewRoute(onBack = { backStack.removeLastOrNull() }) }
+            entry<ScheduleKey> { ScheduleRoute(onBack = { backStack.removeLastOrNull() }) }
+            entry<StatusKey> { StatusRoute(onBack = { backStack.removeLastOrNull() }) }
         },
     )
 }

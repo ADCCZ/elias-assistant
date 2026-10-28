@@ -55,7 +55,13 @@ import java.time.LocalDate
  * Kept apart so [HomeScreen] is easy to preview.
  */
 @Composable
-fun HomeRoute(onOpenData: () -> Unit, onOpenPreview: () -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
+fun HomeRoute(
+    onOpenData: () -> Unit,
+    onOpenPreview: () -> Unit,
+    onOpenSchedule: () -> Unit,
+    onOpenStatus: () -> Unit,
+    viewModel: HomeViewModel = hiltViewModel(),
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var notificationsAllowed by remember { mutableStateOf(context.canPostNotifications()) }
@@ -97,6 +103,8 @@ fun HomeRoute(onOpenData: () -> Unit, onOpenPreview: () -> Unit, viewModel: Home
         onDismissNotifications = { notificationCardDismissed = true },
         onOpenData = onOpenData,
         onOpenPreview = onOpenPreview,
+        onOpenSchedule = onOpenSchedule,
+        onOpenStatus = onOpenStatus,
     )
 }
 
@@ -115,6 +123,8 @@ fun HomeScreen(
     onDismissNotifications: () -> Unit,
     onOpenData: () -> Unit,
     onOpenPreview: () -> Unit,
+    onOpenSchedule: () -> Unit,
+    onOpenStatus: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val speech = uiState.speech
@@ -160,6 +170,15 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(12.dp))
             FilledTonalButton(onClick = onOpenPreview) {
                 Text(stringResource(R.string.home_open_preview))
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                FilledTonalButton(onClick = onOpenSchedule) {
+                    Text(stringResource(R.string.home_open_schedule))
+                }
+                FilledTonalButton(onClick = onOpenStatus) {
+                    Text(stringResource(R.string.home_open_status))
+                }
             }
             NotificationPermissionCard(notificationCard, onAllowNotifications, onDismissNotifications)
         }
@@ -224,6 +243,8 @@ private fun HomeScreenPreview() {
             onDismissNotifications = {},
             onOpenData = {},
             onOpenPreview = {},
+            onOpenSchedule = {},
+            onOpenStatus = {},
         )
     }
 }
