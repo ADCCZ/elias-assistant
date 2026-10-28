@@ -135,3 +135,43 @@ Format: **context** – what we had to decide, **decision**, **why**.
 - **Decision:** The validator accepts 100–210 and 50–125 words. The template aims at the spec's ranges.
 - **Why:** A slightly long AI text is better than throwing it away. Real limits on silence or length come from
   the spec's intent (about a minute), not from an exact count.
+
+## D23 – Speech goes into files, a Media3 service plays them (2026-10-28)
+- **Context:** `TextToSpeech.speak()` plays in the engine's own process: no exact pause and resume, no media
+  notification, no control over audio focus. Android 17 also lets sound go on in the background only from a
+  foreground service started by the user (or on the alarm stream).
+- **Decision:** Each section is spoken into a WAV file (`synthesizeToFile`) in `cache/voice/`. A Media3
+  `MediaSessionService` (`mediaPlayback`) with ExoPlayer plays the files as a playlist with short silent clips
+  in between. The app connects with a `MediaController` only while a briefing plays. The voice code, including the
+  service, lives in `data/voice`.
+- **Why:** Pause, resume, "Znovu" and the notification work on whole sections, and Media3 handles the foreground
+  service and the system media controls, as Google recommends for Android 17. M4 can reuse it on the alarm stream.
+
+## D24 – Elias handles audio focus itself (2026-10-28)
+- **Context:** ExoPlayer handles audio focus only for `USAGE_MEDIA` and `USAGE_GAME` and then asks for permanent
+  focus (checked in the Media3 1.11.1 sources): a music app would stop and not come back. With `USAGE_ALARM` it
+  throws an `IllegalArgumentException`.
+- **Decision:** ExoPlayer gets `handleAudioFocus = false`. `AudioFocusPolicy` (pure, unit-tested) with a thin
+  `PlatformAudioFocus` requests `AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK` and pauses instead of being ducked. A call pauses
+  Elias and it resumes within 10 minutes, a permanent loss stops it, and focus is given back on pause and at the end.
+- **Why:** Music gets quieter and comes back, as the spec asks ("ztlumit hudbu, při hovoru pauza"), on the media and
+  the alarm stream alike. After 10 minutes Media3 leaves the foreground and Android 17 would silence a resume anyway.
+
+## D25 – Offline Czech voices only (2026-10-28)
+- **Context:** Some engines offer Czech only as a network voice, which sends the text to a server.
+- **Decision:** `VoiceStatusEvaluator` picks an installed offline Czech voice (the one chosen in the phone settings
+  first, then the best quality). Without one, Elias does not speak and explains what to fix.
+- **Why:** The briefing holds calendar events and the personal plan, and from M5 the names of people who wrote
+  overnight. They must not leave the phone through text-to-speech.
+
+## D26 – No notification permission request in M3 (2026-10-28)
+- **Context:** Android 13 and newer ask for `POST_NOTIFICATIONS`, but notifications of a media session are exempt.
+- **Decision:** M3 does not ask. The request comes in M4 with the first ordinary notifications (sabbath reminder).
+- **Why:** Quiet by design: no dialog the user does not need yet.
+
+## D27 – Settings in Preferences DataStore (2026-10-28)
+- **Context:** The speech rate is the first setting. More follow in M7.
+- **Decision:** One Preferences DataStore file (`settings`), one instance from Hilt, wrapped in repositories such as
+  `DataStoreVoiceSettingsRepository`. Values are normalized when read (`SpeechRate.of`).
+- **Why:** The recommended replacement for SharedPreferences: asynchronous, observable as a Flow and testable on
+  the JVM with a temporary file. Room is kept for the data cache and logs (M4).

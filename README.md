@@ -14,8 +14,8 @@ what is still left to do and what is coming tomorrow. Then it goes quiet.
 |---|---|---|
 | M0 – Foundation | Project, Compose, Hilt, CI, docs | Done |
 | M1 – Data sources | Calendar, weather, RSS, personal plan, sunset, Data screen | Done |
-| M2 – Briefing | Spoken Czech, template builder, Claude API builder with fallback, preview screen | In review |
-| M3 – Voice | Text-to-speech in a foreground service, audio focus | Planned |
+| M2 – Briefing | Spoken Czech, template builder, Claude API builder with fallback, preview screen | Done |
+| M3 – Voice | Offline Czech speech, playback service with notification controls, audio focus, speech rate | In review |
 | M4 – Scheduling | Exact alarms, prefetch and cache, sabbath rules, status screen | Planned |
 | M5 – Overnight messages | Notification listener (metadata only) | Planned |
 | M6 – Alarm clock | Alarm that always rings, then Elias speaks | Planned |
@@ -56,6 +56,31 @@ how long they take to say.
   timeout after 15 seconds, refusal, invalid output) falls back to the template, and the screen shows why.
 - **Cost:** about $0.0006 per briefing with Claude Haiku 5.5, well under a dollar a month for two briefings a day.
 
+## Voice (M3)
+
+E.L.I.A.S. reads the briefing aloud: from the home screen (**Přehrát ranní souhrn**, **Přehrát večerní souhrn**,
+written fresh from today's data) or from **Náhled textu** (**Přehrát** reads exactly the text on the screen).
+
+- **Offline Czech voice only.** The phone's text-to-speech engine (Google or Samsung) speaks with a `cs-CZ` voice
+  that works without network. A voice that needs the network is never used, because the engine would send the whole
+  briefing to a server. The voice check on **Náhled textu** says what is missing, and **Opravit** opens the right
+  settings: the voice download, or the text-to-speech settings to choose another engine.
+- **Section by section.** Each section of the briefing is spoken into its own audio file (`synthesizeToFile`)
+  at the chosen speech rate, and the files play as a playlist with a short pause in between.
+- **A real playback service.** A Media3 `MediaSessionService` of type `mediaPlayback` with ExoPlayer plays the
+  playlist, so it goes on with the screen off and shows a notification with **Znovu** (repeat the current section),
+  **Pause** and **Stop**. The lock screen, Bluetooth buttons and the system media controls work too. The service
+  ends with the briefing. Android 17 allows background sound only like this.
+- **Shares the sound politely.** While Elias speaks, music gets quieter and comes back afterwards. A phone call
+  pauses Elias and it continues when the call ends. Unplugging headphones pauses it. If another app takes the sound
+  for good (you start music), Elias stops. ExoPlayer's own audio focus handling would stop music for good, so
+  E.L.I.A.S. requests transient focus itself (`AudioFocusPolicy`, unit-tested).
+- **Speech rate** from 0.7× to 1.5× on **Náhled textu**, stored with DataStore. The estimated duration follows it.
+- **No notification permission needed:** media notifications are exempt from Android 13's notification permission.
+
+Scheduled briefings (M4) will play on the alarm stream, the only one Android 17 lets an app play from the background
+without a tap.
+
 ## Planned features
 
 - **Morning briefing:** weather in Pilsen, today's calendar events, the daily plan, two or three world headlines
@@ -75,9 +100,9 @@ how long they take to say.
 | Architecture | MVVM, layers `data` / `domain` / `ui` |
 | Dependency injection | Hilt (KSP) |
 | Networking | Ktor client (OkHttp engine) + kotlinx.serialization |
-| Storage | Room and DataStore (from M4) |
+| Storage | DataStore (settings, from M3), Room (from M4) |
 | Scheduling | AlarmManager `setAlarmClock()`, WorkManager (from M4) |
-| Voice | Android `TextToSpeech`, `cs-CZ` (from M3) |
+| Voice | Android `TextToSpeech` (`cs-CZ`, offline voice), Media3 ExoPlayer and `MediaSessionService` |
 | Time | `java.time`, zone `Europe/Prague`, injected `Clock` |
 | Tests | JUnit 6, MockK, kotlinx-coroutines-test, Turbine, Ktor MockEngine |
 | Code style and CI | ktlint, Android lint, GitHub Actions, Dependabot |
@@ -91,11 +116,11 @@ ui      Compose screens + ViewModels (one StateFlow of UI state per screen)
  │
  ▼
 domain  pure Kotlin: models, plan rules, sun and sabbath, headline selection, the loader that combines sources,
-        spoken Czech, briefing inputs, template builder, AI-or-template choice
+        spoken Czech, briefing inputs, template builder, AI-or-template choice, voice check and playlist
  ▲
  │
 data    calendar provider, Open-Meteo, RSS, plan file (each returns a SourceResult: data or a failure reason),
-        Claude API client
+        Claude API client, text-to-speech, playback service with audio focus, settings in DataStore
 ```
 
 `ui` and `data` both depend on `domain`, never the other way round. A full diagram comes with M7.
@@ -148,6 +173,10 @@ E.L.I.A.S. is built to keep personal data on the phone. This section grows with 
 
 - Calendar events are read on the device. Without an API key they never leave it. The app never writes to the calendar.
 - The personal plan is part of the app and is only read locally.
+- Speech is made on the phone with an offline voice. Elias never uses a voice that needs the network, so the
+  briefing text does not go to a text-to-speech server.
+- The spoken audio files are in the app's cache (`cache/voice/`) while a briefing plays. They are deleted when
+  playback ends, at the latest before the next briefing. The speech rate is stored in the app's private storage.
 - Android cloud backup and device-to-device transfer are disabled for this app.
 
 **Rules for later milestones:**
@@ -182,7 +211,8 @@ no unnecessary notifications, and silence on the sabbath.
 
 E.L.I.A.S. (čti „Elias“) je osobní hlasový asistent pro Android. Ráno a večer česky a stručně řekne, co je
 důležité: počasí, kalendář, plán dne, titulky ze světa a termíny. Jméno odkazuje na proroka Eliáše a „hlas
-tichého vánku“ (1 Kr 19,12), takže Elias mluví málo a jen když to má smysl. Podrobná specifikace je
+tichého vánku“ (1 Kr 19,12), takže Elias mluví málo a jen když to má smysl. Souhrn čte nahlas offline českým
+hlasem, při hovoru se zastaví a ovládá se z oznámení (Znovu, Pauza, Stop). Podrobná specifikace je
 v [docs/SPEC.md](docs/SPEC.md).
 
 ## License
