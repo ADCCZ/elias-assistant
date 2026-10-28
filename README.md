@@ -81,6 +81,11 @@ written fresh from today's data) or from **Náhled textu** (**Přehrát** reads 
 Scheduled briefings (M4) will play on the alarm stream, the only one Android 17 lets an app play from the background
 without a tap.
 
+**Known limitation (Android 17):** the voice clips are prepared before the playback service starts. If you leave the
+app while it says **Připravuji…** (about five seconds), the service starts from the background without "while in use"
+access, and Android 17 would play the briefing muted. The phone test on Android 16 logged exactly this warning
+(`AudioHardening … would be muted`). M4 will start the service first and prepare the briefing inside it.
+
 ## Planned features
 
 - **Morning briefing:** weather in Pilsen, today's calendar events, the daily plan, two or three world headlines
