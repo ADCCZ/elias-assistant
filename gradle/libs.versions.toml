@@ -1,5 +1,6 @@
 # Single place for all dependency and plugin versions.
-# Versions verified as the latest stable releases on 2026-10-27 (Media3 and DataStore on 2026-10-28). Dependabot proposes updates.
+# Versions verified as the latest stable releases on 2026-10-27 (Media3 and DataStore on 2026-10-28,
+# WorkManager, Room 3 and SQLite on 2026-10-28). Dependabot proposes updates.
 
 [versions]
 agp = "9.4.1"
@@ -17,6 +18,9 @@ composeBom = "2026.09.00"
 navigation3 = "1.2.0"
 media3 = "1.11.1"
 datastore = "1.3.0"
+work = "2.12.0"
+room3 = "3.0.3"
+sqlite = "2.7.1"
 
 ktor = "3.6.0"
 kotlinxSerialization = "1.12.0"
@@ -41,6 +45,13 @@ androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", vers
 androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3" }
 androidx-media3-session = { module = "androidx.media3:media3-session", version.ref = "media3" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
+androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "work" }
+androidx-hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "androidxHilt" }
+androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "androidxHilt" }
+# Room 3 lives in its own package (androidx.room3) and needs an SQLite driver: the platform one, no native library.
+androidx-room3-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }
+androidx-room3-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room3" }
+androidx-sqlite-framework = { module = "androidx.sqlite:sqlite-framework", version.ref = "sqlite" }
 
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
 androidx-compose-ui = { module = "androidx.compose.ui:ui" }
@@ -74,3 +85,4 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }
+room3 = { id = "androidx.room3", version.ref = "room3" }

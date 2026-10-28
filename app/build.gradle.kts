@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.room3)
 }
 
 // local.properties is git-ignored. Besides sdk.dir it holds our secrets, such as ANTHROPIC_API_KEY.
@@ -73,10 +74,16 @@ dependencies {
     implementation(libs.androidx.media3.session)
     implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.room3.runtime)
+    implementation(libs.androidx.sqlite.framework)
+    ksp(libs.androidx.room3.compiler)
+    implementation(libs.androidx.work.runtime)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
@@ -100,4 +107,9 @@ tasks.withType<Test>().configureEach {
 
 ktlint {
     version.set(libs.versions.ktlint)
+}
+
+// The database schema of every version is kept in git, so changes are reviewed and migrations can be tested.
+room3 {
+    schemaDirectory("$projectDir/schemas")
 }
