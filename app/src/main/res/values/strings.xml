@@ -4,6 +4,36 @@
     <string name="home_tagline">Hlas tichého vánku</string>
     <string name="home_today">Dnes je %1$s</string>
     <string name="home_open_data">Co E.L.I.A.S. dnes ví</string>
+    <string name="home_open_preview">Náhled textu</string>
+
+    <!-- Preview screen -->
+    <string name="preview_title">Náhled textu</string>
+    <string name="preview_morning">Ráno</string>
+    <string name="preview_evening">Večer</string>
+    <string name="preview_use_ai">Psát pomocí AI (Claude)</string>
+    <string name="preview_regenerate">Znovu</string>
+    <string name="preview_source_ai">Napsala AI (%1$s), tokeny: %2$d na vstupu, %3$d na výstupu</string>
+    <string name="preview_source_template">Napsala šablona. AI nepoužita: %1$s</string>
+    <string name="preview_stats">%1$s, asi %2$d s mluvení</string>
+    <plurals name="preview_words">
+        <item quantity="one">%d slovo</item>
+        <item quantity="few">%d slova</item>
+        <item quantity="many">%d slova</item>
+        <item quantity="other">%d slov</item>
+    </plurals>
+    <string name="ai_failure_disabled">AI je vypnutá</string>
+    <string name="ai_failure_no_api_key">chybí API klíč v local.properties</string>
+    <string name="ai_failure_invalid_api_key">API klíč je neplatný</string>
+    <string name="ai_failure_no_credit">na účtu Anthropic chybí kredit</string>
+    <string name="ai_failure_rate_limited">příliš mnoho požadavků, zkus to za chvíli</string>
+    <string name="ai_failure_overloaded">Claude je právě přetížený</string>
+    <string name="ai_failure_server_error">chyba serveru Anthropic</string>
+    <string name="ai_failure_network">bez připojení k internetu</string>
+    <string name="ai_failure_timeout">AI neodpověděla do patnácti sekund</string>
+    <string name="ai_failure_refused">model požadavek odmítl</string>
+    <string name="ai_failure_truncated">odpověď AI byla useknutá</string>
+    <string name="ai_failure_invalid_output">text od AI neprošel kontrolou</string>
+    <string name="ai_failure_unknown">neznámá chyba</string>
 
     <string name="action_back">Zpět</string>
     <string name="action_refresh">Obnovit</string>

@@ -51,7 +51,7 @@ class PlanParser @Inject constructor() {
                         "Weekly theme '${theme.title}' starts on $weekStart, which is not a Monday",
                     )
                 }
-                WeeklyTheme(weekStart, theme.title, theme.task)
+                WeeklyTheme(weekStart, theme.title, theme.task, theme.reflectionQuestion)
             },
             morningReadings = morningReadings.map { it.toDatedText("morningReadings") },
             saturdayStudies = saturdayStudies.map { it.toDatedText("saturdayStudies") },
@@ -113,7 +113,12 @@ private data class PlanFile(
 private data class PhaseEntry(val name: String, val from: String, val to: String)
 
 @Serializable
-private data class WeeklyThemeEntry(val weekStart: String, val title: String, val task: String)
+private data class WeeklyThemeEntry(
+    val weekStart: String,
+    val title: String,
+    val task: String,
+    val reflectionQuestion: String? = null,
+)
 
 @Serializable
 private data class DatedTextEntry(val date: String, val text: String)

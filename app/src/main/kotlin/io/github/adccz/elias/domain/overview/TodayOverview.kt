@@ -17,6 +17,7 @@ data class TodayOverview(
     val sunTimes: SunTimes,
     val sabbath: SabbathWindow,
     val calendar: SourceResult<List<CalendarEvent>>,
+    val tomorrowCalendar: SourceResult<List<CalendarEvent>>,
     val weather: SourceResult<DayWeather>,
     val plan: SourceResult<TodayPlan>,
     val newsFeeds: Map<NewsFeed, SourceResult<List<Headline>>>,

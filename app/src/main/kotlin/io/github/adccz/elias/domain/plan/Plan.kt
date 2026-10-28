@@ -27,8 +27,16 @@ data class Plan(
 /** A named part of the plan, both dates inclusive. */
 data class Phase(val name: String, val from: LocalDate, val to: LocalDate)
 
-/** A theme for the week starting on [weekStart] (a Monday), with a concrete task. */
-data class WeeklyTheme(val weekStart: LocalDate, val title: String, val task: String)
+/**
+ * A theme for the week starting on [weekStart] (a Monday), with a concrete task.
+ * [reflectionQuestion] is asked in the evening; when missing, the briefing builds a question from the task.
+ */
+data class WeeklyTheme(
+    val weekStart: LocalDate,
+    val title: String,
+    val task: String,
+    val reflectionQuestion: String? = null,
+)
 
 /** A text tied to one date, such as a Bible reading ("Ž 23") or a one-off task. */
 data class DatedText(val date: LocalDate, val text: String)

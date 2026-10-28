@@ -26,6 +26,22 @@ fun selectHeadlines(
         .sortedWith(newestFirst)
 }
 
+/**
+ * Picks [count] headlines for the spoken briefing. Sources take turns in [sourceOrder], each giving its
+ * newest headline first, so one busy feed cannot fill the whole briefing. Expects newest-first input,
+ * as [selectHeadlines] returns it.
+ */
+fun pickForBriefing(headlines: List<Headline>, sourceOrder: List<String>, count: Int): List<Headline> {
+    val queues = sourceOrder.map { source -> ArrayDeque(headlines.filter { it.source == source }) }
+    val picked = mutableListOf<Headline>()
+    while (picked.size < count && queues.any { it.isNotEmpty() }) {
+        for (queue in queues) {
+            if (picked.size < count) queue.removeFirstOrNull()?.let { picked += it }
+        }
+    }
+    return picked
+}
+
 /** Keeps the first (newest) headline of every story and drops later ones that tell the same story. */
 private fun List<Headline>.withoutRepeatedStories(): List<Headline> {
     val kept = mutableListOf<Headline>()

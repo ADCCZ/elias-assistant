@@ -187,4 +187,7 @@ Ke každému milníku: testy, aktualizace README a shrnutí pro mě.
 
 - **2026-10-27:** Repo je veřejné. Osobní plán byl přesunut ze specifikace do `docs/private/plan-2026-podzim.md` (mimo git). Ve specifikaci zůstala jen jeho struktura.
 - **2026-10-27:** Kořenový balíček a applicationId: `io.github.adccz.elias`.
+- **2026-10-27 (M2):** Parametr `temperature` (i `top_p`, `top_k`) API od verze `2026-10-21` odmítá u všech modelů. „Nízkou teplotu“ nahrazuje `output_config.effort: "low"`, odpověď ve struktuře JSON (structured outputs) a kontrola výstupu; při problému se použije šablona. Hlavička `anthropic-version: 2026-10-21`.
+- **2026-10-27 (M2):** Výchozí model `claude-haiku-5-5` (Claude Haiku 5.5).
+- **2026-10-27 (M2):** Téma týdne v `plan.json` má nepovinné pole `reflectionQuestion` pro večerní otázku. Když chybí, otázku složí šablona.
 - **2026-10-27:** Jméno se na obrazovce a v README píše **E.L.I.A.S.**, aby bylo jasné, že jde o zkratku. Nahlas se vyslovuje „Elias“ (hlasová syntéza by tečkovanou podobu hláskovala). V kódu zůstává `Elias`.

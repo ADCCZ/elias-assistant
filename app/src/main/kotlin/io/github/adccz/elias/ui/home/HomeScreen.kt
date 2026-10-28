@@ -26,14 +26,19 @@ import java.time.LocalDate
 
 /** Connects the screen to its ViewModel. Kept apart so [HomeScreen] stays easy to preview. */
 @Composable
-fun HomeRoute(onOpenData: () -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
+fun HomeRoute(onOpenData: () -> Unit, onOpenPreview: () -> Unit, viewModel: HomeViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    HomeScreen(uiState = uiState, onOpenData = onOpenData)
+    HomeScreen(uiState = uiState, onOpenData = onOpenData, onOpenPreview = onOpenPreview)
 }
 
 /** Stateless home screen: it only draws [uiState] and reports clicks. */
 @Composable
-fun HomeScreen(uiState: HomeUiState, onOpenData: () -> Unit, modifier: Modifier = Modifier) {
+fun HomeScreen(
+    uiState: HomeUiState,
+    onOpenData: () -> Unit,
+    onOpenPreview: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         Column(
             modifier = Modifier
@@ -63,6 +68,10 @@ fun HomeScreen(uiState: HomeUiState, onOpenData: () -> Unit, modifier: Modifier 
             FilledTonalButton(onClick = onOpenData) {
                 Text(stringResource(R.string.home_open_data))
             }
+            Spacer(modifier = Modifier.height(12.dp))
+            FilledTonalButton(onClick = onOpenPreview) {
+                Text(stringResource(R.string.home_open_preview))
+            }
         }
     }
 }
@@ -71,6 +80,6 @@ fun HomeScreen(uiState: HomeUiState, onOpenData: () -> Unit, modifier: Modifier 
 @Composable
 private fun HomeScreenPreview() {
     EliasTheme {
-        HomeScreen(uiState = HomeUiState(today = LocalDate.of(2026, 10, 27)), onOpenData = {})
+        HomeScreen(uiState = HomeUiState(today = LocalDate.of(2026, 10, 27)), onOpenData = {}, onOpenPreview = {})
     }
 }

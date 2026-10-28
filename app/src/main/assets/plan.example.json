@@ -11,8 +11,18 @@
   "dailyMinimum": ["Vstát do sedmi", "Jeden hlavní úkol", "Půl hodiny pohybu"],
   "rules": ["Telefon mimo ložnici", "Učit se v blocích po padesáti minutách", "Spát do půl dvanácté"],
   "weeklyThemes": [
-    { "weekStart": "2026-10-19", "title": "Trpělivost", "task": "Nechat druhé dokončit myšlenku, než odpovím" },
-    { "weekStart": "2026-10-26", "title": "Vděčnost", "task": "Každý večer zapsat tři dobré věci ze dne" },
+    {
+      "weekStart": "2026-10-19",
+      "title": "Trpělivost",
+      "task": "Nechat druhé dokončit myšlenku, než odpovím",
+      "reflectionQuestion": "Komu jsi dnes skočil do řeči a co ti to řeklo?"
+    },
+    {
+      "weekStart": "2026-10-26",
+      "title": "Vděčnost",
+      "task": "Každý večer zapsat tři dobré věci ze dne",
+      "reflectionQuestion": "Které tři dobré věci si z dneška zapíšeš?"
+    },
     { "weekStart": "2026-11-02", "title": "Pořádek", "task": "Večer uklidit stůl na další den" },
     { "weekStart": "2026-11-09", "title": "Pozornost", "task": "Při rozhovoru odložit telefon" },
     { "weekStart": "2026-11-16", "title": "Odvaha", "task": "Zeptat se na přednášce na jednu věc, které nerozumím" },
