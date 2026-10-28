@@ -67,6 +67,7 @@
     <string name="playback_title_evening">Večerní souhrn</string>
     <string name="playback_replay">Znovu</string>
     <string name="playback_stop">Stop</string>
+    <string name="playback_preparing">Připravuji…</string>
 
     <string name="action_back">Zpět</string>
     <string name="action_refresh">Obnovit</string>

@@ -53,7 +53,6 @@ class PreviewViewModel @Inject constructor(
     val uiState: StateFlow<PreviewUiState> = _uiState.asStateFlow()
 
     private var generateJob: Job? = null
-    private var playJob: Job? = null
     private var voiceJob: Job? = null
 
     init {
@@ -91,14 +90,10 @@ class PreviewViewModel @Inject constructor(
     /** Speaks the briefing on the screen, exactly as it is written there. */
     fun play() {
         val briefing = _uiState.value.current?.briefing ?: return
-        playJob?.cancel()
-        playJob = viewModelScope.launch { speech.speak(briefing.kind) { briefing } }
+        speech.speak(briefing)
     }
 
-    fun stop() {
-        playJob?.cancel()
-        speech.stop()
-    }
+    fun stop() = speech.stop()
 
     /** While the slider moves, only the screen changes. */
     fun onSpeechRateChange(value: Float) = _uiState.update { it.copy(speechRate = SpeechRate.of(value)) }

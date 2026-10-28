@@ -5,27 +5,20 @@ import io.github.adccz.elias.domain.briefing.BriefingKind
 import io.github.adccz.elias.domain.briefing.BriefingSection
 import io.github.adccz.elias.domain.briefing.BriefingText
 import io.github.adccz.elias.domain.briefing.SectionKind
-import io.github.adccz.elias.domain.voice.BriefingSpeaker
-import io.github.adccz.elias.domain.voice.PlaybackState
+import io.github.adccz.elias.domain.voice.BriefingRequest
+import io.github.adccz.elias.domain.voice.PlaybackTrigger
 import io.github.adccz.elias.domain.voice.SpeakResult
-import io.github.adccz.elias.domain.voice.SynthesisResult
+import io.github.adccz.elias.domain.voice.SpeechState
 import io.github.adccz.elias.domain.voice.VoiceStatus
-import io.github.adccz.elias.testing.FakeSpeechSynthesizer
 import io.github.adccz.elias.testing.FakeVoicePlayer
-import io.github.adccz.elias.testing.FakeVoiceSettings
 import io.github.adccz.elias.testing.testEngine
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class SpeechControllerTest {
-    private val synthesizer = FakeSpeechSynthesizer()
     private val player = FakeVoicePlayer()
-    private val controller = SpeechController(BriefingSpeaker(synthesizer, player, FakeVoiceSettings()), player)
+    private val controller = SpeechController(player)
 
     private val morning = BriefingText(
         BriefingKind.MORNING,
@@ -33,66 +26,40 @@ class SpeechControllerTest {
     )
 
     @Test
-    fun `shows preparing and then speaking`() = runTest {
-        synthesizer.gate = CompletableDeferred()
+    fun `follows every state of the playback service`() = runTest {
+        val problem = SpeakResult.VoiceNotReady(VoiceStatus.NoCzech(testEngine))
         controller.state.test {
             assertEquals(SpeechUiState.Idle, awaitItem())
 
-            val speaking = launch { controller.speak(BriefingKind.MORNING) { morning } }
-            assertEquals(SpeechUiState.Preparing(BriefingKind.MORNING), awaitItem())
+            player.state.value = SpeechState.Preparing(BriefingKind.EVENING)
+            assertEquals(SpeechUiState.Preparing(BriefingKind.EVENING), awaitItem())
 
-            synthesizer.gate?.complete(Unit)
-            speaking.join()
-            assertEquals(SpeechUiState.Speaking(BriefingKind.MORNING, isPaused = false), expectMostRecentItem())
+            player.state.value = SpeechState.Speaking(BriefingKind.EVENING, isPaused = true)
+            assertEquals(SpeechUiState.Speaking(BriefingKind.EVENING, isPaused = true), awaitItem())
+
+            player.state.value = SpeechState.Failed(BriefingKind.EVENING, problem)
+            assertEquals(SpeechUiState.Failed(BriefingKind.EVENING, problem), awaitItem())
         }
     }
 
     @Test
-    fun `follows a pause from the notification`() = runTest {
-        controller.speak(BriefingKind.MORNING) { morning }
+    fun `asks for today's briefing as the user`() {
+        controller.speakToday(BriefingKind.MORNING)
 
-        player.state.value = PlaybackState.Speaking(BriefingKind.MORNING, isPaused = true)
-
-        controller.state.test {
-            assertEquals(SpeechUiState.Speaking(BriefingKind.MORNING, isPaused = true), awaitItem())
-        }
+        assertEquals(BriefingRequest.FromToday(BriefingKind.MORNING, PlaybackTrigger.USER), player.requests.single())
     }
 
     @Test
-    fun `shows why Elias does not speak`() = runTest {
-        synthesizer.result = SynthesisResult.VoiceNotReady(VoiceStatus.NoCzech(testEngine))
+    fun `asks for exactly the written briefing`() {
+        controller.speak(morning)
 
-        controller.speak(BriefingKind.EVENING) { morning }
-
-        controller.state.test {
-            val expected = SpeakResult.VoiceNotReady(VoiceStatus.NoCzech(testEngine))
-            assertEquals(SpeechUiState.Failed(BriefingKind.EVENING, expected), awaitItem())
-        }
+        assertEquals(BriefingRequest.Written(morning), player.requests.single())
     }
 
     @Test
-    fun `cancelling while preparing goes back to idle`() = runTest {
-        synthesizer.gate = CompletableDeferred()
-        val speaking = launch { controller.speak(BriefingKind.MORNING) { morning } }
-        testScheduler.runCurrent()
-
-        speaking.cancel()
-        speaking.join()
-
-        controller.state.test {
-            assertEquals(SpeechUiState.Idle, awaitItem())
-        }
-    }
-
-    @Test
-    fun `stop ends speaking and clears a failure`() = runTest {
-        player.accepts = false
-        controller.speak(BriefingKind.MORNING) { morning }
-
+    fun `stop goes to the playback service`() {
         controller.stop()
 
-        controller.state.test {
-            assertEquals(SpeechUiState.Idle, awaitItem())
-        }
+        assertEquals(1, player.stops)
     }
 }

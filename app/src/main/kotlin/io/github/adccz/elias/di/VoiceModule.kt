@@ -6,7 +6,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.github.adccz.elias.data.settings.DataStoreVoiceSettingsRepository
 import io.github.adccz.elias.data.voice.AndroidTextToSpeech
-import io.github.adccz.elias.data.voice.MediaControllerVoicePlayer
+import io.github.adccz.elias.data.voice.PlaybackServiceClient
 import io.github.adccz.elias.domain.voice.SpeechSynthesizer
 import io.github.adccz.elias.domain.voice.VoiceChecker
 import io.github.adccz.elias.domain.voice.VoicePlayer
@@ -23,7 +23,7 @@ abstract class VoiceModule {
     abstract fun bindSpeechSynthesizer(impl: AndroidTextToSpeech): SpeechSynthesizer
 
     @Binds
-    abstract fun bindVoicePlayer(impl: MediaControllerVoicePlayer): VoicePlayer
+    abstract fun bindVoicePlayer(impl: PlaybackServiceClient): VoicePlayer
 
     @Binds
     abstract fun bindVoiceSettingsRepository(impl: DataStoreVoiceSettingsRepository): VoiceSettingsRepository

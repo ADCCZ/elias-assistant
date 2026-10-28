@@ -10,10 +10,9 @@ import io.github.adccz.elias.domain.briefing.BriefingSource
 import io.github.adccz.elias.domain.briefing.EveningInput
 import io.github.adccz.elias.domain.briefing.MorningInput
 import io.github.adccz.elias.domain.briefing.TemplateBriefingBuilder
-import io.github.adccz.elias.domain.voice.BriefingSpeaker
+import io.github.adccz.elias.domain.voice.BriefingRequest
 import io.github.adccz.elias.domain.voice.SpeechRate
 import io.github.adccz.elias.domain.voice.VoiceStatus
-import io.github.adccz.elias.testing.FakeSpeechSynthesizer
 import io.github.adccz.elias.testing.FakeVoiceChecker
 import io.github.adccz.elias.testing.FakeVoicePlayer
 import io.github.adccz.elias.testing.FakeVoiceSettings
@@ -57,7 +56,6 @@ class PreviewViewModelTest {
         }
     }
 
-    private val synthesizer = FakeSpeechSynthesizer()
     private val player = FakeVoicePlayer()
     private val settings = FakeVoiceSettings()
     private val checker = FakeVoiceChecker()
@@ -65,7 +63,7 @@ class PreviewViewModelTest {
     private fun viewModel(ai: AiBriefingBuilder = NoCreditAi()) = PreviewViewModel(
         loader = loader,
         briefings = BriefingService(TemplateBriefingBuilder(), ai),
-        speech = SpeechController(BriefingSpeaker(synthesizer, player, settings), player),
+        speech = SpeechController(player),
         voiceChecker = checker,
         voiceSettings = settings,
     )
@@ -115,9 +113,9 @@ class PreviewViewModelTest {
         viewModel.play()
         advanceUntilIdle()
 
-        val shown = viewModel.uiState.value.evening!!.briefing.spokenSections
-        assertEquals(shown, synthesizer.requests.single().first)
-        assertEquals(SpeechUiState.Speaking(BriefingKind.EVENING, isPaused = false), viewModel.uiState.value.speech)
+        val shown = viewModel.uiState.value.evening!!.briefing
+        assertEquals(BriefingRequest.Written(shown), player.requests.single())
+        assertEquals(SpeechUiState.Preparing(BriefingKind.EVENING), viewModel.uiState.value.speech)
     }
 
     @Test
@@ -130,6 +128,7 @@ class PreviewViewModelTest {
         viewModel.stop()
         advanceUntilIdle()
 
+        assertEquals(1, player.stops)
         assertEquals(SpeechUiState.Idle, viewModel.uiState.value.speech)
     }
 
