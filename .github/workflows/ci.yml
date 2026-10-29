@@ -37,7 +37,8 @@ jobs:
 
       # No API key here: BuildConfig.ANTHROPIC_API_KEY is empty and the build still works.
       - name: Build, run unit tests and checks
-        run: ./gradlew assembleDebug testDebugUnitTest lintDebug ktlintCheck
+        # Without the 60 MB voice model (D38): the app then speaks with the phone's voice.
+        run: ./gradlew assembleDebug testDebugUnitTest lintDebug ktlintCheck -Pelias.voiceModel=skip
 
       - name: Upload reports
         if: failure()
