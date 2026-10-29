@@ -229,7 +229,7 @@ private fun SectionCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = statusColor(status),
                 )
-                // The technical detail helps while developing. The Log screen (M7) will take this over.
+                // The technical detail helps while developing. The Log screen (M8) will take this over.
                 (status as? SourceResult.Failure)?.detail?.let { Hint(it) }
             }
             content()

@@ -21,7 +21,7 @@ data class BriefingResult(
  * Chooses who writes the briefing: the AI first, the template whenever the AI is off or fails.
  * "AI is an improvement, not a requirement" (spec): this never fails, because the template always works.
  *
- * Overnight messages (M5) will be inserted here, after the AI answer, so they never reach the AI. So is the journal.
+ * Overnight messages (M6) will be inserted here, after the AI answer, so they never reach the AI. So is the journal.
  */
 class BriefingService @Inject constructor(
     private val template: TemplateBriefingBuilder,

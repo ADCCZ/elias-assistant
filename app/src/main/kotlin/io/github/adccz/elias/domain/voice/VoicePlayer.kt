@@ -21,7 +21,7 @@ enum class PlaybackTrigger(val stream: PlaybackStream) {
     /** A tap in the app or on the notification. */
     USER(PlaybackStream.MEDIA),
 
-    /** A scheduled briefing (M4) or the alarm clock (M6). */
+    /** A scheduled briefing (M4) or the alarm clock (M7). */
     SCHEDULE(PlaybackStream.ALARM),
 }
 

@@ -51,7 +51,7 @@ data class RunRecord(
     val aiFailure: AiFailureReason? = null,
 )
 
-/** The log of runs on the phone (Room). The status screen shows the latest, the Log screen (M7) all of them. */
+/** The log of runs on the phone (Room). The status screen shows the latest, the Log screen (M8) all of them. */
 interface RunLog {
     /** The newest run, updated whenever one is recorded. */
     val latest: Flow<RunRecord?>

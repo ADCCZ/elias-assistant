@@ -8,7 +8,7 @@ import kotlinx.serialization.json.Json
 /**
  * What Elias tells the model. The prompts are Czech because the output is Czech.
  *
- * Overnight messages (M5) are never part of these prompts: names of people stay on the phone.
+ * Overnight messages (M6) are never part of these prompts: names of people stay on the phone.
  * The journal is never part of the briefing prompts. Only "na čem se zlepšit" goes into the step prompt, and only when
  * the user asks for a step.
  */

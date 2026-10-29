@@ -20,7 +20,7 @@ interface NewsRepository {
     suspend fun headlines(feed: NewsFeed): SourceResult<List<Headline>>
 }
 
-/** Feeds used until they can be chosen in settings (M7). URLs checked on 2026-10-27. */
+/** Feeds used until they can be chosen in settings (M8). URLs checked on 2026-10-27. */
 object DefaultNewsFeeds {
     val all = listOf(
         // "Hlavní zprávy" redirects to the editors' selection.

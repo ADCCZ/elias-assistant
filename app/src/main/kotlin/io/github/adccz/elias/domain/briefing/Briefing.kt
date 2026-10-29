@@ -34,7 +34,7 @@ enum class SectionKind {
 data class BriefingSection(val kind: SectionKind, val text: String)
 
 /**
- * A briefing split into sections. Keeping the sections apart lets the overnight messages (M5)
+ * A briefing split into sections. Keeping the sections apart lets the overnight messages (M6)
  * be inserted locally after the greeting, even when the rest was written by the AI.
  */
 data class BriefingText(val kind: BriefingKind, val sections: List<BriefingSection>) {

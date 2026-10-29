@@ -17,10 +17,11 @@ what is still left to do and what is coming tomorrow. Then it goes quiet.
 | M2 – Briefing | Spoken Czech, template builder, Claude API builder with fallback, preview screen | Done |
 | M3 – Voice | Offline Czech speech, playback service with notification controls, audio focus, speech rate | Done |
 | M4 – Scheduling | Times per day, evening briefing on its own, prefetch and cache, sabbath rules, status screen | Done |
-| M4.5 – Plans and journal | Plans by topic from Google Calendar, journal with an AI step, reminders in the briefings | In review |
-| M5 – Overnight messages | Notification listener (metadata only) | Planned |
-| M6 – Alarm clock | Alarm that always rings, then Elias speaks | Planned |
-| M7 – Polish | Settings, widget, demo mode, run log, screenshots | Planned |
+| M4.5 – Plans and journal | Plans by topic from Google Calendar, journal with an AI step, reminders in the briefings | Done |
+| M5 – Morning routine | Bible reading by a queue, exercises at the computer, recipe of the day | In progress |
+| M6 – Overnight messages | Notification listener (metadata only) | Planned |
+| M7 – Alarm clock | Alarm that always rings, then Elias speaks | Planned |
+| M8 – Polish | Settings, widget, demo mode, run log, screenshots | Planned |
 
 The full specification is in [docs/SPEC.md](docs/SPEC.md) (Czech). Design decisions are recorded in
 [docs/DECISIONS.md](docs/DECISIONS.md).
@@ -89,7 +90,7 @@ written fresh from today's data) or from **Náhled textu** (**Přehrát** reads 
 E.L.I.A.S. now works on its own.
 
 - **Your times, for each day.** On **Časy** every day of the week has a morning and an evening time, or none
-  (7:00 and 22:00 at first). Weather and headlines are downloaded 30 minutes before the morning time (from M6 the
+  (7:00 and 22:00 at first). Weather and headlines are downloaded 30 minutes before the morning time (from M7 the
   alarm will ring at it). At the evening time the evening briefing starts by itself.
 - **The evening briefing lights up the screen.** The briefing is prepared silently with the screen dark. When it is
   ready, a full-screen notification opens the evening briefing screen over the lock screen, like an alarm clock, and
@@ -109,7 +110,7 @@ E.L.I.A.S. now works on its own.
   the copy is used and the Data screen says from when.
 - **Headlines since the last briefing**, at least 6 and at most 24 hours back, so a replay still has news.
 - **Run log.** Every run records when it started, who started it, how each source did, who wrote the briefing and how
-  it ended. Never the briefing's text. The status screen shows the latest run, the Log screen comes with M7.
+  it ended. Never the briefing's text. The status screen shows the latest run, the Log screen comes with M8.
 - **Stav** shows what Elias needs: calendar access, notifications, exact alarms, no battery optimization, the
   full-screen notification and the Czech voice, each problem with **Opravit**. It also lists the next runs, the last
   run and a link to [dontkillmyapp.com/samsung](https://dontkillmyapp.com/samsung).
@@ -182,7 +183,7 @@ data    calendar provider, Open-Meteo, RSS, plan file (each returns a SourceResu
         Room (cache, run log, journal), alarms and their receivers, the prefetch worker, notifications
 ```
 
-`ui` and `data` both depend on `domain`, never the other way round. A full diagram comes with M7.
+`ui` and `data` both depend on `domain`, never the other way round. A full diagram comes with M8.
 
 ## Getting started
 
@@ -256,7 +257,7 @@ E.L.I.A.S. is built to keep personal data on the phone. This section grows with 
 
 **Rules for later milestones:**
 
-- **Overnight messages (M5):** only the app, the sender or conversation name and the time are stored, never the
+- **Overnight messages (M6):** only the app, the sender or conversation name and the time are stored, never the
   message content. Records are deleted after 48 hours. This data is **never sent to the AI**.
 - **Overnight messages and the AI:** the briefing is kept as separate sections, so the overnight messages will be
   inserted locally after the AI answer. Names of people from notifications never reach Anthropic.

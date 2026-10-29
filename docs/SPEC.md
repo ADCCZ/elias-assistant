@@ -64,7 +64,8 @@ Jsem student magisterského oboru Softwarové a informační systémy (ZČU Plze
 | Počasí | Open-Meteo, Plzeň (49.7475, 13.3776), `timezone=Europe/Prague` | Teplota ráno/odpoledne, srážky, vítr. Bez klíče. |
 | Zprávy ze světa | RSS: ČT24, iROZHLAS, Root.cz (ověř aktuální URL) | Seznam zdrojů v nastavení. Jen titulky od posledního souhrnu, deduplikace. |
 | Můj plán | `assets/plan.json` (viz níže) | Struktura obecná podle rozsahů dat, abych mohl plán později vyměnit. |
-| Zprávy přes noc | `NotificationListenerService` (milník 5) | Jen aplikace, odesílatel nebo název konverzace, čas. **Nikdy obsah zprávy.** |
+| Zprávy přes noc | `NotificationListenerService` (milník 6) | Jen aplikace, odesílatel nebo název konverzace, čas. **Nikdy obsah zprávy.** |
+| Ranní rutina | v aplikaci (milník 5) | Pořadník čtení Bible, cviky a recepty přibalené v aplikaci. Viz [Ranní rutina](#ranní-rutina-m5). |
 | Západ slunce | výpočet (NOAA algoritmus) pro Plzeň | Kvůli sabatu |
 
 ### Struktura `plan.json`
@@ -75,7 +76,7 @@ Plán je obecný a řízený rozsahy dat, aby šel později vyměnit za jiný. O
 - **Minimum dne** (seznam bodů)
 - **Pravidla** (seznam bodů)
 - **Témata týdne** (týden začíná pondělím): název, popis a konkrétní úkol
-- **Ranní čtení** podle data (denně jedna kapitola, i v sobotu)
+- **Ranní čtení** podle data (denně jedna kapitola, i v sobotu). Od M5 se použije, jen když je pořadník čtení prázdný.
 - **Sobotní studium Bible** podle data
 - **Opakované body** podle dne v týdnu (např. „denně kromě soboty“, „út, čt, ne“) a jednorázové body s datem
 - **Termíny** (datum, předmět, popis, povinnost) a **revize plánu**
@@ -89,7 +90,7 @@ Plán je obecný a řízený rozsahy dat, aby šel později vyměnit za jiný. O
 
 - Sabat trvá od **západu slunce v pátek** do **západu slunce v sobotu**.
 - **Pátek odpoledne, hodinu před západem slunce:** krátká připomínka „vstup do sabatu“ (úklid, starosti napsat na papír, nedokončené věci do úkolů na neděli, modlitba, při západu vypnout telefon, Žalm 92).
-- **Sobota:** žádný ranní hlasový souhrn. Budík (od milníku 6) jen zazvoní, nemluví.
+- **Sobota:** žádný ranní hlasový souhrn. Budík (od milníku 7) jen zazvoní, nemluví.
 - **Sobota po západu slunce:** krátký souhrn „sabat skončil“: co si odnáším ze studia (otázka), zítra revize cílů a plán týdne.
 - V pátek večer žádný večerní souhrn.
 
@@ -99,17 +100,19 @@ Plán je obecný a řízený rozsahy dat, aby šel později vyměnit za jiný. O
 
 **Ranní (pevné pořadí):**
 1. Pozdrav, den a datum, počasí v Plzni
-2. Zprávy přes noc (od milníku 5): kdo a kde psal, seskupeno
+2. Zprávy přes noc (od milníku 6): kdo a kde psal, seskupeno
 3. Termíny a události z kalendáře na dnešek
-4. Plán: fáze, minimum dne, ranní čtení, dnešní opakované body, téma týdne s konkrétním úkolem
-5. Dva až tři titulky ze světa
-6. Případné upozornění (termín dnes nebo zítra)
+4. Plán: fáze, minimum dne, dnešní opakované body, téma týdne s konkrétním úkolem
+5. Ranní rutina (od milníku 5): čtení Bible z pořadníku, cviky na dnešek, recept dne
+6. Dva až tři titulky ze světa
+7. Případné upozornění (termín dnes nebo zítra)
 
 **Večerní:**
 1. Odškrtnout dnešek v checklistu, zapsat výdaje, vybrat zítřejší hlavní úkol
 2. Zítřejší události a termíny
 3. Jedna reflexní otázka k tématu týdne
-4. Telefon pryč, spát do půlnoci
+4. Dnešní čtení, když ještě není přečtené (od milníku 5, v sobotu ne)
+5. Telefon pryč, spát do půlnoci
 
 ---
 
@@ -134,7 +137,7 @@ Plán je obecný a řízený rozsahy dat, aby šel později vyměnit za jiný. O
 - **Každý zdroj zvlášť** s timeoutem, opakováním a fallbackem na poslední cache. Selhání jednoho zdroje nesmí shodit souhrn.
 - **Přesné časy přes `setAlarmClock()`.** Znovunaplánovat po `BOOT_COMPLETED`, `TIME_SET`, `TIMEZONE_CHANGED` a po aktualizaci aplikace.
 - **Přehrávání ve foreground service** (typ `mediaPlayback`), audio focus (ztlumit hudbu, při hovoru pauza), notifikace s tlačítky Pauza / Znovu / Stop.
-- **Budík (milník 6) musí zazvonit vždy**, i bez sítě a bez TTS. Zvuk budíku je nezávislý na zbytku.
+- **Budík (milník 7) musí zazvonit vždy**, i bez sítě a bez TTS. Zvuk budíku je nezávislý na zbytku.
 - **Kontroly oprávnění** při startu a obrazovka „Stav“: kalendář, notifikace (Android 13+), přesné budíky (Android 14+), čtení oznámení, výjimka z optimalizace baterie, nainstalovaný český hlas. U každého tlačítko „Opravit“, které otevře správné nastavení. Odkaz na dontkillmyapp.com pro můj telefon.
 - **Log běhů v Roomu:** čas, které zdroje se povedly, které selhaly a proč, jestli se použila AI, nebo šablona. Obrazovka „Log“.
 - **Změna času (letní/zimní)** a celodenní události pokryté testy.
@@ -187,6 +190,51 @@ Plán je obecný a řízený rozsahy dat, aby šel později vyměnit za jiný. O
 
 ---
 
+## Ranní rutina (M5)
+
+**Čtení Bible podle pořadníku**
+
+- Obrazovka **Čtení** s pořadníkem: seznam úseků, které mám přečíst. Úsek je celá kniha („Marek“), rozsah kapitol
+  („Marek 3–16“) nebo jedna kapitola („Jan 13“). Úseky jde přidat, smazat a posunout výš nebo níž. U úseku nastavím,
+  kterou kapitolou pokračuju. Úpravy pořadníku zachovají další kapitolu.
+- Prázdný pořadník nabídne **Převzít z plánu**: z ranních čtení v `plan.json` od dneška složí úseky, po sobě jdoucí
+  kapitoly spojí do rozsahu.
+- **Přečteno** (na úvodní obrazovce i na Čtení) posune pořadník o jednu kapitolu, **Vrátit** omyl vrátí. Vynechaný den
+  nic neposune, víc kapitol znamená víc ťuknutí. Přečtené kapitoly se ukládají s datem. Den čtení začíná ve 4:00,
+  stejně jako u deníku.
+- Pořadník zná 66 knih protestantského kánonu s českými zkratkami a počty kapitol podle Českého ekumenického překladu
+  (Jóel má čtyři kapitoly, Malachiáš tři).
+- Pořadník nezávisí na platnosti plánu. Ranní čtení podle data z `plan.json` se použije, jen když je pořadník prázdný.
+  Sobotní studium zůstává v plánu beze změny.
+
+**Cviky u počítače**
+
+- Asi dvacet obecných protahovacích cviků ve čtyřech oblastech: krk a ramena, záda a hrudník, ruce a zápěstí, nohy
+  a oči. Každý má krátký popis psaný pro poslech, délku nebo počet opakování a údaj, jestli se cvičí na obě strany.
+  Žádná zdravotní tvrzení, jen věta „Cvič pomalu a jen do příjemného tahu, když něco bolí, cvik vynech.“
+- Každý den čtyři cviky, z každé oblasti jeden, vybrané podle data bez náhody: celý den stejné, zítra jiné.
+- Obrazovka **Cviky** s tlačítkem **Cvič se mnou**: Elias čte cvik po cviku, nechá čas na cvičení a ohlásí druhou
+  stranu. Hraje jako souhrn (Pauza a Stop v oznámení, hovor ho přeruší, hudba se ztiší).
+- Žádná připomínka cviků během dne.
+
+**Recept dne**
+
+- Asi čtyřicet jednoduchých receptů, většinou do třiceti minut, psaných vlastními slovy. Bez vepřového a plodů moře:
+  maso jen drůbež, hovězí a ryby se šupinami, hodně bezmasých jídel.
+- Obrazovka **Recept dne**: suroviny, postup, čas a porce, pod tím název zítřejšího receptu (kvůli nákupu). Recepty se
+  střídají podle data a žádný se neopakuje, dokud se nevystřídají všechny.
+
+**Souhrny**
+
+- Ráno nová část hned za plánem: „Ranní čtení: Marek, třetí kapitola.“ (nebo „Dnešní čtení máš hotové.“, když už je
+  dnes něco přečteno, nebo „Pořadník čtení je dočtený, další knihy si vyber v aplikaci.“), „Cviky na dnešek: …“
+  a „Recept dne: …“. Tuhle část skládá šablona v telefonu a přidává se po odpovědi AI, jako krok z deníku. Ranní čtení
+  proto z dat pro AI zmizí a AI dostane o tolik kratší cíl, aby celý souhrn zůstal kolem minuty.
+- Večer jedna věta „Ještě tě čeká dnešní čtení: …“, jen když dnes ještě nic není přečtené. V sobotu večer ne.
+- Obrazovka Data ukáže i ranní rutinu.
+
+---
+
 ## Milníky
 
 Ke každému milníku: testy, aktualizace README a shrnutí pro mě.
@@ -213,13 +261,19 @@ Podrobnosti v sekci [Plány a deník](#plány-a-deník-m45).
 ✅ Hotovo, když: v Plánech vidím příští dny podle témat, Elias je ráno i večer čte po tématech, zapíšu deník, AI navrhne
 krok, večer mi Elias připomene chybějící zápis a ráno včerejší krok.
 
-**M5 – Zprávy přes noc:** NotificationListenerService, filtry, seskupení, Room, mazání po 48 h, whitelist aplikací, lokální šablona.
+**M5 – Ranní rutina:** čtení Bible podle pořadníku (obrazovka „Čtení“, Přečteno a Vrátit, převzetí z plánu), cviky
+u počítače (obrazovka „Cviky“ s „Cvič se mnou“), recept dne (obrazovka „Recept dne“), rutina v ranním souhrnu
+a večerní připomínka nepřečteného čtení. Podrobnosti v sekci [Ranní rutina](#ranní-rutina-m5).
+✅ Hotovo, když: pořadník jde nastavit a posouvat tlačítkem Přečteno, Elias ráno řekne čtení, cviky a recept, večer
+připomene nepřečtenou kapitolu, Cvič se mnou provede cviky hlasem a Recept dne ukáže postup.
+
+**M6 – Zprávy přes noc:** NotificationListenerService, filtry, seskupení, Room, mazání po 48 h, whitelist aplikací, lokální šablona.
 ✅ Hotovo, když: ráno uslyším, kdo a kde mi v noci psal, bez obsahu zpráv a bez spamu ze skupin.
 
-**M6 – Budík:** vlastní budík v aplikaci. Zazvoní, po vypnutí Elias mluví. Odložení (snooze). Záložní zvuk, když cokoli selže. V sobotu bez mluvení.
+**M7 – Budík:** vlastní budík v aplikaci. Zazvoní, po vypnutí Elias mluví. Odložení (snooze). Záložní zvuk, když cokoli selže. V sobotu bez mluvení.
 ✅ Hotovo, když: budík zazvoní i v režimu letadlo a po restartu telefonu.
 
-**M7 – Dotažení:** nastavení (časy, zdroje, kalendáře, aplikace, model, hlas), widget „Přehrát“, demo režim s falešnými daty, obrazovka „Log“, README s diagramem architektury, screenshoty a sekcí Privacy.
+**M8 – Dotažení:** nastavení (časy, zdroje, kalendáře, aplikace, model, hlas), widget „Přehrát“, demo režim s falešnými daty, obrazovka „Log“, README s diagramem architektury, screenshoty a sekcí Privacy.
 ✅ Hotovo, když: projekt je připravený ukázat v portfoliu.
 
 **Později (nápady, nedělat bez domluvy):** hlasové otázky („Eliasi, co mám zítra?“) přes rozpoznávání řeči, propojení s Google Tasks, hlídání změn na stránkách předmětů.
@@ -256,3 +310,9 @@ krok, večer mi Elias připomene chybějící zápis a ráno včerejší krok.
   položky dnů vizuálně oddělené a bez tlačítka „Přidat do kalendáře“ (bylo zbytečné).
 - **2026-10-29 (M4.5):** V Plánech tlačítko „Synchronizovat“ a samočinné obnovení po změně kalendáře v telefonu
   (přání uživatele).
+- **2026-10-29 (M5):** Nový milník M5 „Ranní rutina“ (sekce [Ranní rutina](#ranní-rutina-m5)): čtení Bible podle
+  pořadníku, cviky u počítače a recept dne. Dosavadní M5–M7 se posouvají na M6 Zprávy přes noc, M7 Budík a M8
+  Dotažení. Starší záznamy v této sekci mají čísla z doby, kdy vznikly.
+- **2026-10-29 (M5):** Ranní čtení je v ranním souhrnu nově v části ranní rutiny, kterou skládá šablona v telefonu po
+  odpovědi AI. Podle data z `plan.json` se použije, jen když je pořadník prázdný. Večerní souhrn připomene nepřečtené
+  dnešní čtení (v sobotu ne).

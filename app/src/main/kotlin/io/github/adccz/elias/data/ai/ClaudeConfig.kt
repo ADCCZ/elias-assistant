@@ -1,7 +1,7 @@
 package io.github.adccz.elias.data.ai
 
 /**
- * Settings for the Claude API. The model will be selectable in settings (M7); until then the default is used.
+ * Settings for the Claude API. The model will be selectable in settings (M8); until then the default is used.
  *
  * [toString] never prints the key, so the config can be logged safely.
  */

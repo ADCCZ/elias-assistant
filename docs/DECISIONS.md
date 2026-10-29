@@ -356,3 +356,12 @@ Format: **context** – what we had to decide, **decision**, **why**.
 - **Why:** A public API that calendar apps use for "refresh", no new permission and no change to any sync setting.
   Whether a calendar syncs at all stays the user's choice in the calendar app. Whether Samsung honours the request
   at once is checked on the phone.
+
+## D49 – The morning routine becomes M5, later milestones move up (2026-10-29)
+- **Context:** The user wanted a morning routine (Bible reading by a queue, exercises at the computer, a recipe of the
+  day) before the overnight messages. The spec numbered the remaining milestones M5–M7.
+- **Decision:** New M5 "Ranní rutina". The overnight messages become M6, the alarm clock M7 and the polish M8. The spec,
+  README, `CLAUDE.md` and code comments use the new numbers. Older entries in the spec's change list and older decisions
+  keep the numbers they had when they were written.
+- **Why:** The numbers follow the order of the work. Rewriting old records would make them say something they did not
+  say at the time; this entry explains the shift.
