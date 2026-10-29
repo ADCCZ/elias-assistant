@@ -1,11 +1,14 @@
 package io.github.adccz.elias.domain.speech
 
+import io.github.adccz.elias.domain.bible.BibleBooks
+import io.github.adccz.elias.domain.bible.Chapter
+
 /**
  * Turns Czech Bible references into words for listening:
  * "Mk 1" → "Marek, první kapitola", "Jk 1,19–27" → "List Jakubův, první kapitola, verše devatenáct až dvacet sedm",
  * "Ž 139" → "Žalm sto třicet devět". Several references joined by " a " are read one after another.
  *
- * Abbreviations follow the Czech ecumenical translation. An unknown reference is returned unchanged,
+ * Abbreviations follow the Czech ecumenical translation ([BibleBooks]). An unknown reference is returned unchanged,
  * so a typo in the plan never breaks the briefing.
  */
 object BibleReference {
@@ -13,53 +16,54 @@ object BibleReference {
         .split(" a ")
         .joinToString(" a ") { spokenSingle(it.trim()) }
 
+    /**
+     * One chapter: "Marek, třetí kapitola", "Žalm dvacet tři". A book with one chapter is only named ("List Filemonovi").
+     */
+    fun spoken(chapter: Chapter): String {
+        val book = chapter.book
+        return when {
+            book.isPsalms -> "${book.spokenName} ${label(chapter.number)}"
+            book.chapters == 1 -> book.spokenName
+            else -> "${book.spokenName}, ${CzechNumbers.ordinalFeminine(chapter.number)} kapitola"
+        }
+    }
+
+    /**
+     * The chapters a reference points to, verses left out: "Jk 1,19–27" is James 1, "Př 15,1–4 a 1 Pt 2,21–25" is
+     * Proverbs 15 and 1 Peter 2. Parts that are not a known book and chapter are skipped.
+     */
+    fun chapters(reference: String): List<Chapter> = reference
+        .split(" a ")
+        .mapNotNull { parse(it.trim())?.chapter }
+
+    private class Parsed(val chapter: Chapter, val firstVerse: Int?, val lastVerse: Int?)
+
     private val pattern = Regex("""^((?:\d\s?)?\p{L}+)\s+(\d+)(?:,(\d+)(?:\s*[–-]\s*(\d+))?)?$""")
 
-    private fun spokenSingle(reference: String): String {
-        val match = pattern.matchEntire(reference) ?: return reference
+    private fun parse(reference: String): Parsed? {
+        val match = pattern.matchEntire(reference) ?: return null
         val (abbreviation, chapterText, firstVerseText, lastVerseText) = match.destructured
-        val book = books[abbreviation.replace(Regex("""^(\d)(\p{L})"""), "$1 $2")] ?: return reference
-        val chapter = chapterText.toInt()
+        val book = BibleBooks.byAbbreviation(abbreviation) ?: return null
+        val number = chapterText.toIntOrNull()?.takeIf { it in 1..book.chapters } ?: return null
+        return Parsed(Chapter(book, number), firstVerseText.toIntOrNull(), lastVerseText.toIntOrNull())
+    }
 
-        val chapterPart = if (book == PSALM) {
-            "$book ${label(chapter)}"
-        } else if (chapter in 1..99) {
-            "$book, ${CzechNumbers.ordinalFeminine(chapter)} kapitola"
+    private fun spokenSingle(reference: String): String {
+        val parsed = parse(reference) ?: return reference
+        val chapter = parsed.chapter
+        val firstVerse = parsed.firstVerse ?: return spoken(chapter)
+        // With verses the chapter is always said, also in a book with one chapter.
+        val chapterPart = if (chapter.book.isPsalms) {
+            spoken(chapter)
         } else {
-            return reference
+            "${chapter.book.spokenName}, ${CzechNumbers.ordinalFeminine(chapter.number)} kapitola"
         }
-        val versePart = when {
-            firstVerseText.isEmpty() -> ""
-            lastVerseText.isEmpty() -> ", verš ${label(firstVerseText.toInt())}"
-            else -> ", verše ${label(firstVerseText.toInt())} až ${label(lastVerseText.toInt())}"
-        }
+        val versePart = parsed.lastVerse
+            ?.let { ", verše ${label(firstVerse)} až ${label(it)}" }
+            ?: ", verš ${label(firstVerse)}"
         return chapterPart + versePart
     }
 
     /** Numbers used as labels are read in the counting form: "jedna, dva, tři" ("verš jedna", "Žalm dva"). */
     private fun label(number: Int): String = if (number == 1) "jedna" else CzechNumbers.cardinal(number)
-
-    private const val PSALM = "Žalm"
-
-    private val books = mapOf(
-        // Old Testament (the books most likely in a reading plan)
-        "Gn" to "Genesis", "Ex" to "Exodus", "Lv" to "Leviticus", "Nu" to "Numeri", "Dt" to "Deuteronomium",
-        "Joz" to "Jozue", "Sd" to "Kniha Soudců", "Rt" to "Rút",
-        "1 S" to "První kniha Samuelova", "2 S" to "Druhá kniha Samuelova",
-        "1 Kr" to "První kniha královská", "2 Kr" to "Druhá kniha královská",
-        "Neh" to "Nehemjáš", "Est" to "Ester", "Jb" to "Job", "Ž" to PSALM, "Př" to "Přísloví",
-        "Kaz" to "Kazatel", "Pís" to "Píseň písní", "Iz" to "Izajáš", "Jr" to "Jeremjáš", "Pl" to "Pláč",
-        "Ez" to "Ezechiel", "Da" to "Daniel", "Oz" to "Ozeáš", "Jl" to "Jóel", "Am" to "Ámos", "Jon" to "Jonáš",
-        "Mi" to "Micheáš", "Ab" to "Abakuk", "Ag" to "Ageus", "Za" to "Zacharjáš", "Mal" to "Malachiáš",
-        // New Testament
-        "Mt" to "Matouš", "Mk" to "Marek", "L" to "Lukáš", "J" to "Jan", "Sk" to "Skutky apoštolů",
-        "Ř" to "List Římanům", "1 K" to "První list Korintským", "2 K" to "Druhý list Korintským",
-        "Ga" to "List Galatským", "Ef" to "List Efezským", "Fp" to "List Filipským", "Ko" to "List Koloským",
-        "1 Te" to "První list Tesalonickým", "2 Te" to "Druhý list Tesalonickým",
-        "1 Tm" to "První list Timoteovi", "2 Tm" to "Druhý list Timoteovi", "Tt" to "List Titovi",
-        "Fm" to "List Filemonovi", "Žd" to "List Židům", "Jk" to "List Jakubův",
-        "1 Pt" to "První list Petrův", "2 Pt" to "Druhý list Petrův",
-        "1 J" to "První list Janův", "2 J" to "Druhý list Janův", "3 J" to "Třetí list Janův",
-        "Ju" to "List Judův", "Zj" to "Zjevení Janovo",
-    )
 }
