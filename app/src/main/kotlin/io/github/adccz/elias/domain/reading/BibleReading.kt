@@ -17,8 +17,8 @@ import kotlinx.coroutines.flow.first
 interface ReadingQueueRepository {
     val queue: Flow<ReadingQueue>
 
-    /** Applies [change] to the stored queue in one step and returns the new queue. */
-    suspend fun update(change: (ReadingQueue) -> ReadingQueue): ReadingQueue
+    /** Applies [change] to the stored queue in one step. Returns the new queue, or null when it could not be saved. */
+    suspend fun update(change: (ReadingQueue) -> ReadingQueue): ReadingQueue?
 }
 
 /** One chapter marked as read on the reading [day] (which starts at 4:00), at [readAt]. */
@@ -72,13 +72,13 @@ class BibleReading @Inject constructor(
 
     fun readOn(day: LocalDate): Flow<List<ReadChapter>> = log.readOn(day)
 
-    /** "Přečteno": the next chapter is read today. Null when the queue is empty. */
+    /** "Přečteno": the next chapter is read today. Null when the queue is empty or could not be saved. */
     suspend fun markRead(): ReadMark? {
         var read: Chapter? = null
         queues.update { queue ->
             read = queue.next
             queue.advance()
-        }
+        } ?: return null
         val chapter = read ?: return null
         val logId = try {
             log.add(chapter, today(), clock.instant())
@@ -113,7 +113,7 @@ class BibleReading @Inject constructor(
         queues.update { queue ->
             replaced = queue.sections.isEmpty()
             if (replaced) fromPlan else queue
-        }
+        } ?: return false
         return replaced
     }
 

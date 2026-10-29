@@ -25,7 +25,7 @@ class InMemoryReadingQueue(initial: ReadingQueue = ReadingQueue()) : ReadingQueu
 
     override val queue: Flow<ReadingQueue> = state
 
-    override suspend fun update(change: (ReadingQueue) -> ReadingQueue): ReadingQueue = state.updateAndGet(change)
+    override suspend fun update(change: (ReadingQueue) -> ReadingQueue): ReadingQueue? = state.updateAndGet(change)
 
     /** The stored queue, for assertions. */
     val current: ReadingQueue get() = state.value

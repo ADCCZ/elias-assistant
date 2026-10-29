@@ -12,13 +12,16 @@ import dagger.hilt.components.SingletonComponent
 import io.github.adccz.elias.data.cache.SourceCache
 import io.github.adccz.elias.data.db.EliasDatabase
 import io.github.adccz.elias.data.db.JournalDao
+import io.github.adccz.elias.data.db.ReadChapterDao
 import io.github.adccz.elias.data.db.RoomJournalRepository
+import io.github.adccz.elias.data.db.RoomReadingLog
 import io.github.adccz.elias.data.db.RoomRunLog
 import io.github.adccz.elias.data.db.RoomSourceCache
 import io.github.adccz.elias.data.db.RunDao
 import io.github.adccz.elias.data.db.SourceCacheDao
 import io.github.adccz.elias.domain.journal.JournalRepository
 import io.github.adccz.elias.domain.log.RunLog
+import io.github.adccz.elias.domain.reading.ReadingLogRepository
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 
@@ -34,6 +37,9 @@ abstract class DatabaseModule {
 
     @Binds
     abstract fun bindJournalRepository(impl: RoomJournalRepository): JournalRepository
+
+    @Binds
+    abstract fun bindReadingLog(impl: RoomReadingLog): ReadingLogRepository
 
     companion object {
         @Provides
@@ -53,5 +59,8 @@ abstract class DatabaseModule {
 
         @Provides
         fun provideJournalDao(database: EliasDatabase): JournalDao = database.journalDao()
+
+        @Provides
+        fun provideReadChapterDao(database: EliasDatabase): ReadChapterDao = database.readChapterDao()
     }
 }
