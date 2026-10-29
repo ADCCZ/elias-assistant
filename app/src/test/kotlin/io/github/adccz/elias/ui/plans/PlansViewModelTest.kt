@@ -149,6 +149,11 @@ class PlansViewModelTest {
 
         viewModel.setRead(2, read = true)
         advanceUntilIdle()
-        assertEquals(listOf("Připravit referát"), viewModel.uiState.value.days.first().topics.single().plans.map { it.title })
+        assertEquals(
+            listOf("Připravit referát"),
+            viewModel.uiState.value.days.first().topics.single().plans.map {
+                it.title
+            },
+        )
     }
 }

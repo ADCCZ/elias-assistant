@@ -82,12 +82,16 @@ class JournalTest {
     @Test
     fun `the morning reminds of yesterday's step, or of what to improve without one`() = runTest {
         val friday = thursday.plusDays(1)
-        val withStep = InMemoryJournal(entry(thursday, JournalText(toImprove = "Číst víc", step = "Přečíst deset stran")))
+        val withStep =
+            InMemoryJournal(entry(thursday, JournalText(toImprove = "Číst víc", step = "Přečíst deset stran")))
         val withoutStep = InMemoryJournal(entry(thursday, JournalText(toImprove = "Číst víc")))
         val onlyThought = InMemoryJournal(entry(thursday, JournalText(thought = "Ticho")))
         val clock = clockAt("2026-10-30T07:00")
 
-        assertEquals(JournalReminder("Přečíst deset stran", isStep = true), Journal(withStep, clock).reminderFor(friday))
+        assertEquals(
+            JournalReminder("Přečíst deset stran", isStep = true),
+            Journal(withStep, clock).reminderFor(friday),
+        )
         assertEquals(JournalReminder("Číst víc", isStep = false), Journal(withoutStep, clock).reminderFor(friday))
         assertNull(Journal(onlyThought, clock).reminderFor(friday))
         assertNull(Journal(InMemoryJournal(), clock).reminderFor(friday))

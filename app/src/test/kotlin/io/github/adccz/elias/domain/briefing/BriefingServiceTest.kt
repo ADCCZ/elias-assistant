@@ -96,7 +96,10 @@ class BriefingServiceTest {
             listOf(SectionKind.GREETING_AND_WEATHER, SectionKind.JOURNAL_STEP),
             result.briefing.spokenSections.map { it.kind },
         )
-        assertEquals("Včera sis dal za krok: Přečti si před spaním deset stran.", result.briefing.spokenSections[1].text)
+        assertEquals(
+            "Včera sis dal za krok: Přečti si před spaním deset stran.",
+            result.briefing.spokenSections[1].text,
+        )
     }
 
     @Test
