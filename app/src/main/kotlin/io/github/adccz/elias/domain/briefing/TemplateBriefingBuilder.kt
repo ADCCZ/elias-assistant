@@ -14,10 +14,10 @@ class TemplateBriefingBuilder @Inject constructor() {
     fun morning(input: MorningInput): BriefingText {
         // Try the full version first, then drop the least important details until it fits the target length.
         val budgets = listOf(
-            Budget(events = 4, headlines = 3, withMinimum = true),
-            Budget(events = 4, headlines = 2, withMinimum = true),
-            Budget(events = 3, headlines = 2, withMinimum = false),
-            Budget(events = 2, headlines = 1, withMinimum = false),
+            Budget(events = 4, headlines = 3, withMinimum = true, plansPerTopic = 3),
+            Budget(events = 4, headlines = 2, withMinimum = true, plansPerTopic = 3),
+            Budget(events = 3, headlines = 2, withMinimum = false, plansPerTopic = 2),
+            Budget(events = 2, headlines = 1, withMinimum = false, plansPerTopic = 1),
         )
         val versions = budgets.asSequence().map { morningWith(input, it) }
         return versions.firstOrNull { it.wordCount <= BriefingLength.MORNING.last } ?: versions.last()
@@ -50,13 +50,13 @@ class TemplateBriefingBuilder @Inject constructor() {
         )
     }
 
-    private data class Budget(val events: Int, val headlines: Int, val withMinimum: Boolean)
+    private data class Budget(val events: Int, val headlines: Int, val withMinimum: Boolean, val plansPerTopic: Int)
 
     private fun morningWith(input: MorningInput, budget: Budget) = BriefingText(
         BriefingKind.MORNING,
         listOf(
             BriefingSection(SectionKind.GREETING_AND_WEATHER, greetingAndWeather(input)),
-            BriefingSection(SectionKind.CALENDAR, todayCalendar(input.events, budget.events)),
+            BriefingSection(SectionKind.CALENDAR, todayCalendar(input, budget)),
             BriefingSection(SectionKind.PLAN, plan(input, budget.withMinimum)),
             BriefingSection(SectionKind.NEWS, news(input, budget.headlines)),
             BriefingSection(SectionKind.WARNINGS, warnings(input)),
@@ -92,10 +92,17 @@ class TemplateBriefingBuilder @Inject constructor() {
         return sentences.joinToString(" ")
     }
 
-    private fun todayCalendar(events: List<EventFacts>?, maxEvents: Int): String = when {
-        events == null -> "Kalendář se mi nepodařilo přečíst."
-        events.isEmpty() -> "V kalendáři dnes nic nemáš."
-        else -> "V kalendáři máš dnes ${countEvents(events.size)}. " + eventList(events, maxEvents)
+    private fun todayCalendar(input: MorningInput, budget: Budget): String {
+        val events = input.events ?: return "Kalendář se mi nepodařilo přečíst."
+        if (events.isEmpty() && input.topicPlans.isEmpty()) return "V kalendáři dnes nic nemáš."
+        val sentences = mutableListOf<String>()
+        if (events.isNotEmpty()) {
+            sentences += "V kalendáři máš dnes ${countEvents(events.size)}. " + eventList(events, budget.events)
+        }
+        if (input.topicPlans.isNotEmpty()) {
+            sentences += "Plány na dnešek. " + topicPlans(input.topicPlans, budget.plansPerTopic)
+        }
+        return sentences.joinToString(" ")
     }
 
     private fun tomorrow(input: EveningInput): String {
@@ -103,11 +110,33 @@ class TemplateBriefingBuilder @Inject constructor() {
         val events = input.tomorrowEvents
         sentences += when {
             events == null -> "Kalendář na zítřek se mi nepodařilo přečíst."
-            events.isEmpty() -> "V kalendáři nic nemáš."
+            events.isEmpty() && input.tomorrowTopicPlans.isEmpty() -> "V kalendáři nic nemáš."
+            events.isEmpty() -> ""
             else -> "V kalendáři máš ${countEvents(events.size)}. " + eventList(events, maxEvents = 3)
         }
+        if (input.tomorrowTopicPlans.isNotEmpty()) {
+            sentences += "Plány na zítřek. " + topicPlans(input.tomorrowTopicPlans, maxPlans = 2)
+        }
+        if (input.topicsWithoutPlansTomorrow.isNotEmpty()) {
+            sentences += "Bez plánu na zítřek: ${joinCzech(input.topicsWithoutPlansTomorrow)}."
+        }
         input.deadlinesTomorrow.forEach { sentences += "Máš ${deadlineLabel(it)}: ${describe(it)}." }
-        return sentences.joinToString(" ")
+        return sentences.filter { it.isNotEmpty() }.joinToString(" ")
+    }
+
+    /** "Škola: připravit referát a v půl třetí odpoledne přečíst kapitolu. Španělština: lekce pět." */
+    private fun topicPlans(topics: List<TopicPlanFacts>, maxPlans: Int): String {
+        var shortened = false
+        val spoken = topics.map { topic ->
+            if (topic.plans.size > maxPlans) shortened = true
+            val plans = topic.plans.take(maxPlans).map { plan ->
+                val title = lowerFirst(withoutEndPunctuation(plan.title))
+                plan.time?.let { "$it $title" } ?: title
+            }
+            "${topic.topic}: ${joinCzech(plans)}."
+        }
+        val rest = if (shortened) listOf("Další plány najdeš v aplikaci.") else emptyList()
+        return (spoken + rest).joinToString(" ")
     }
 
     private fun eventList(events: List<EventFacts>, maxEvents: Int): String {

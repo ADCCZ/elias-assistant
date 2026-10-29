@@ -12,6 +12,8 @@ import io.github.adccz.elias.domain.speech.CzechNumbers
 import io.github.adccz.elias.domain.speech.Gender
 import io.github.adccz.elias.domain.speech.SpokenDate
 import io.github.adccz.elias.domain.speech.SpokenTime
+import io.github.adccz.elias.domain.topics.TopicPlans
+import io.github.adccz.elias.domain.topics.Topics
 import io.github.adccz.elias.domain.weather.DayWeather
 import io.github.adccz.elias.domain.weather.WeatherCondition
 import kotlin.math.roundToInt
@@ -29,11 +31,15 @@ object BriefingInputs {
         val plan = (overview.plan as? SourceResult.Success)?.data
         val day = plan?.day
         val feedsLoaded = overview.newsFeeds.values.any { it is SourceResult.Success }
+        val agenda = (overview.calendar as? SourceResult.Success)?.data?.let {
+            Topics.agenda(date, it, overview.topics)
+        }
         return MorningInput(
             date = date,
             dateSpoken = SpokenDate.dayAndDate(date),
             weather = (overview.weather as? SourceResult.Success)?.data?.toFacts(),
-            events = (overview.calendar as? SourceResult.Success)?.data?.map { it.toFacts() },
+            events = agenda?.events?.map { it.toFacts() },
+            topicPlans = agenda?.topicsWithPlans.orEmpty().map { it.toFacts() },
             plan = day?.takeIf { it.isPlanValid }?.let {
                 PlanFacts(
                     phase = it.phase?.name,
@@ -59,10 +65,15 @@ object BriefingInputs {
     fun evening(overview: TodayOverview): EveningInput {
         val date = overview.loadedAt.toLocalDate()
         val day = (overview.plan as? SourceResult.Success)?.data?.day
+        val tomorrow = date.plusDays(1)
+        val agenda = (overview.tomorrowCalendar as? SourceResult.Success)?.data
+            ?.let { Topics.agenda(tomorrow, it, overview.topics) }
         return EveningInput(
             date = date,
-            tomorrowSpoken = SpokenDate.dayAndDate(date.plusDays(1)),
-            tomorrowEvents = (overview.tomorrowCalendar as? SourceResult.Success)?.data?.map { it.toFacts() },
+            tomorrowSpoken = SpokenDate.dayAndDate(tomorrow),
+            tomorrowEvents = agenda?.events?.map { it.toFacts() },
+            tomorrowTopicPlans = agenda?.topicsWithPlans.orEmpty().map { it.toFacts() },
+            topicsWithoutPlansTomorrow = agenda?.topicsWithoutPlans.orEmpty().map { it.name },
             deadlinesTomorrow = day?.deadlinesTomorrow.orEmpty().map { it.toFacts() },
             theme = day?.takeIf { it.isPlanValid }?.weeklyTheme?.toFacts(),
         )
@@ -102,6 +113,11 @@ object BriefingInputs {
         title = title,
         time = if (isAllDay) "celý den" else SpokenTime.at(start.toLocalTime()),
         location = location,
+    )
+
+    private fun TopicPlans.toFacts() = TopicPlanFacts(
+        topic = topic.name,
+        plans = plans.map { PlanItemFacts(it.title, if (it.isAllDay) null else SpokenTime.at(it.start.toLocalTime())) },
     )
 
     private fun WeeklyTheme.toFacts() = ThemeFacts(title, task, reflectionQuestion)

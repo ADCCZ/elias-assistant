@@ -9,6 +9,7 @@ import io.github.adccz.elias.domain.briefing.EventFacts
 import io.github.adccz.elias.domain.briefing.MorningInput
 import io.github.adccz.elias.domain.briefing.SectionKind
 import io.github.adccz.elias.domain.briefing.ThemeFacts
+import io.github.adccz.elias.domain.briefing.TopicPlanFacts
 import io.github.adccz.elias.domain.briefing.WeatherFacts
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -28,6 +29,7 @@ internal data class MorningData(
     val weather: WeatherData?,
     @SerialName("weather_unavailable") val weatherUnavailable: Boolean,
     val events: List<EventData>?,
+    @SerialName("topic_plans") val topicPlans: List<TopicPlanData>,
     @SerialName("calendar_unavailable") val calendarUnavailable: Boolean,
     val plan: PlanData?,
     @SerialName("plan_unavailable") val planUnavailable: Boolean,
@@ -41,6 +43,8 @@ internal data class MorningData(
 internal data class EveningData(
     val tomorrow: String,
     @SerialName("tomorrow_events") val tomorrowEvents: List<EventData>?,
+    @SerialName("tomorrow_topic_plans") val tomorrowTopicPlans: List<TopicPlanData>,
+    @SerialName("topics_without_plans") val topicsWithoutPlans: List<String>,
     @SerialName("calendar_unavailable") val calendarUnavailable: Boolean,
     @SerialName("deadlines_tomorrow") val deadlinesTomorrow: List<DeadlineData>,
     @SerialName("weekly_theme") val weeklyTheme: ThemeData?,
@@ -59,6 +63,13 @@ internal data class WeatherData(
 
 @Serializable
 internal data class EventData(val time: String, val title: String, val location: String?)
+
+@Serializable
+internal data class TopicPlanData(val topic: String, val plans: List<PlanItemData>)
+
+/** A plan without a time (an all-day event) has no `time`. */
+@Serializable
+internal data class PlanItemData(val title: String, val time: String?)
 
 @Serializable
 internal data class PlanData(
@@ -85,6 +96,7 @@ internal fun MorningInput.toData() = MorningData(
     weather = weather?.toData(),
     weatherUnavailable = weather == null,
     events = events?.map { it.toData() },
+    topicPlans = topicPlans.map { it.toData() },
     calendarUnavailable = events == null,
     plan = plan?.let {
         PlanData(it.phase, it.dailyMinimum, it.morningReading, it.saturdayStudy, it.items, it.theme?.toData())
@@ -99,6 +111,8 @@ internal fun MorningInput.toData() = MorningData(
 internal fun EveningInput.toData() = EveningData(
     tomorrow = tomorrowSpoken,
     tomorrowEvents = tomorrowEvents?.map { it.toData() },
+    tomorrowTopicPlans = tomorrowTopicPlans.map { it.toData() },
+    topicsWithoutPlans = topicsWithoutPlansTomorrow,
     calendarUnavailable = tomorrowEvents == null,
     deadlinesTomorrow = deadlinesTomorrow.map { it.toData() },
     weeklyTheme = theme?.toData(),
@@ -115,6 +129,8 @@ private fun WeatherFacts.toData() = WeatherData(
 )
 
 private fun EventFacts.toData() = EventData(time, title, location)
+
+private fun TopicPlanFacts.toData() = TopicPlanData(topic, plans.map { PlanItemData(it.title, it.time) })
 
 private fun ThemeFacts.toData() = ThemeData(title, task, reflectionQuestion)
 

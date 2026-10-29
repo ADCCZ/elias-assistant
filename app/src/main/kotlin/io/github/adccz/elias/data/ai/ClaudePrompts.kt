@@ -35,7 +35,8 @@ internal object ClaudePrompts {
     fun morning(input: MorningInput): String = """
         Napiš ranní souhrn. Části v tomto pořadí:
         greeting_and_weather: pozdrav „Dobré ráno, Oldo“, den a datum, počasí v Plzni.
-        calendar: dnešní události z kalendáře, nebo věta, že dnes nic není.
+        calendar: dnešní události z kalendáře (events), pak plány podle témat (topic_plans): u každého tématu jeho
+        název a plány, s časem jen tam, kde ho plán má. Když není nic, jedna věta, že dnes nic není.
         plan: fáze, minimum dne, ranní čtení, dnešní body z plánu a téma týdne s úkolem.
         news: dva až tři titulky ze světa. Převyprávěj jen samotné titulky, nic k nim nepřidávej.
         warnings: termíny dnes nebo zítra. Když žádné nejsou, prázdný řetězec.
@@ -49,7 +50,8 @@ internal object ClaudePrompts {
         Napiš večerní souhrn. Části v tomto pořadí:
         checklist: pozdrav „Dobrý večer, Oldo“ a připomenutí: odškrtnout dnešek v checklistu, zapsat výdaje
         a vybrat zítřejší hlavní úkol.
-        tomorrow: zítřejší den, události z kalendáře a termíny.
+        tomorrow: zítřejší den, události z kalendáře, plány podle témat (tomorrow_topic_plans), jednou větou témata
+        bez plánu (topics_without_plans), a termíny.
         reflection: jedna otázka k tématu týdne. Když je ve vstupu reflection_question, polož přesně ji.
         Bez tématu prázdný řetězec.
         good_night: telefon pryč, spát do půlnoci, dobrou noc.
