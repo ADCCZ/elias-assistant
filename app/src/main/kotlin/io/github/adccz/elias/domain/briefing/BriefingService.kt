@@ -21,29 +21,39 @@ data class BriefingResult(
  * Chooses who writes the briefing: the AI first, the template whenever the AI is off or fails.
  * "AI is an improvement, not a requirement" (spec): this never fails, because the template always works.
  *
- * Overnight messages (M5) will be inserted here, after the AI answer, so they never reach the AI.
+ * Overnight messages (M5) will be inserted here, after the AI answer, so they never reach the AI. So is the journal.
  */
 class BriefingService @Inject constructor(
     private val template: TemplateBriefingBuilder,
     private val ai: AiBriefingBuilder,
 ) {
+    /** Yesterday's journal step is added here by the template, after the AI answer: the journal stays on the phone. */
     suspend fun morning(overview: TodayOverview, useAi: Boolean = true): BriefingResult {
         val input = BriefingInputs.morning(overview)
-        return choose(template.morning(input), useAi) { ai.morning(input) }
+        val result = choose(template.morning(input), useAi) { ai.morning(input) }
+        val step = overview.journal.reminder?.let(template::journalStep) ?: return result
+        return result.withSections(result.briefing.sections + step)
     }
 
     /**
      * On Saturday after sunset the briefing opens with "the sabbath has ended" instead of the greeting and the daily
      * checklist. That part is written here by the template, after the AI answer: it is fixed text with the study.
+     * The reminder to write the journal is added the same way, only when today's entry is surely missing.
      */
     suspend fun evening(overview: TodayOverview, useAi: Boolean = true): BriefingResult {
         val input = BriefingInputs.evening(overview)
         val result = choose(template.evening(input), useAi) { ai.evening(input) }
-        if (!overview.sabbathJustEnded) return result
-        val sabbathEnded = template.sabbathEnded(BriefingInputs.sabbathStudy(overview))
-        val sections = result.briefing.sections.filter { it.kind != SectionKind.CHECKLIST } + sabbathEnded
-        return result.copy(briefing = result.briefing.copy(sections = sections))
+        var sections = result.briefing.sections
+        if (overview.sabbathJustEnded) {
+            val sabbathEnded = template.sabbathEnded(BriefingInputs.sabbathStudy(overview))
+            sections = sections.filter { it.kind != SectionKind.CHECKLIST } + sabbathEnded
+        }
+        if (overview.journal.writtenToday == false) sections = sections + template.journalReminder()
+        return result.withSections(sections)
     }
+
+    private fun BriefingResult.withSections(sections: List<BriefingSection>) =
+        copy(briefing = briefing.copy(sections = sections))
 
     private suspend fun choose(
         templateText: BriefingText,

@@ -87,8 +87,8 @@ class JournalTest {
         val onlyThought = InMemoryJournal(entry(thursday, JournalText(thought = "Ticho")))
         val clock = clockAt("2026-10-30T07:00")
 
-        assertEquals("Přečíst deset stran", Journal(withStep, clock).reminderFor(friday))
-        assertEquals("Číst víc", Journal(withoutStep, clock).reminderFor(friday))
+        assertEquals(JournalReminder("Přečíst deset stran", isStep = true), Journal(withStep, clock).reminderFor(friday))
+        assertEquals(JournalReminder("Číst víc", isStep = false), Journal(withoutStep, clock).reminderFor(friday))
         assertNull(Journal(onlyThought, clock).reminderFor(friday))
         assertNull(Journal(InMemoryJournal(), clock).reminderFor(friday))
     }

@@ -4,6 +4,11 @@ import io.github.adccz.elias.core.time.PRAGUE_ZONE
 import io.github.adccz.elias.domain.calendar.CalendarEvent
 import io.github.adccz.elias.domain.calendar.CalendarRepository
 import io.github.adccz.elias.domain.calendar.PhoneCalendar
+import io.github.adccz.elias.domain.journal.Journal
+import io.github.adccz.elias.domain.journal.JournalEntry
+import io.github.adccz.elias.domain.journal.JournalReminder
+import io.github.adccz.elias.domain.journal.JournalStatus
+import io.github.adccz.elias.domain.journal.JournalText
 import io.github.adccz.elias.domain.log.RunKind
 import io.github.adccz.elias.domain.log.RunOutcome
 import io.github.adccz.elias.domain.log.RunRecord
@@ -26,6 +31,7 @@ import io.github.adccz.elias.domain.weather.WeatherForecast
 import io.github.adccz.elias.domain.weather.WeatherRepository
 import io.github.adccz.elias.testing.FakeRunLog
 import io.github.adccz.elias.testing.FakeTopicSettings
+import io.github.adccz.elias.testing.InMemoryJournal
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -123,7 +129,33 @@ class TodayOverviewLoaderTest {
         news: NewsRepository = workingNews,
         runLog: FakeRunLog = FakeRunLog(),
         topicSettings: FakeTopicSettings = FakeTopicSettings(),
-    ) = TodayOverviewLoader(calendar, weather, plans, news, sun, SabbathCalculator(sun), runLog, clock, topicSettings)
+        journal: InMemoryJournal = InMemoryJournal(),
+    ) = TodayOverviewLoader(
+        calendar,
+        weather,
+        plans,
+        news,
+        sun,
+        SabbathCalculator(sun),
+        runLog,
+        clock,
+        topicSettings,
+        Journal(journal, clock),
+    )
+
+    @Test
+    fun `knows whether today's journal entry exists and yesterday's step`() = runTest {
+        val journal = InMemoryJournal(
+            JournalEntry(today.minusDays(1), JournalText(step = "Zeptej se na jednu věc."), Instant.EPOCH),
+        )
+
+        val status = loader(journal = journal).load().journal
+
+        assertEquals(
+            JournalStatus(writtenToday = false, reminder = JournalReminder("Zeptej se na jednu věc.", true)),
+            status,
+        )
+    }
 
     @Test
     fun `names the topics from the phone's calendars`() = runTest {

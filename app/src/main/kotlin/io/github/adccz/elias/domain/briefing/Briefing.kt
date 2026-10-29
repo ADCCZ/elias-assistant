@@ -11,6 +11,9 @@ enum class SectionKind {
     OVERNIGHT_MESSAGES,
     CALENDAR,
     PLAN,
+
+    /** Yesterday's step from the journal (M4.5). Written on the phone, never by the AI. */
+    JOURNAL_STEP,
     NEWS,
     WARNINGS,
     CLOSING,
@@ -22,6 +25,9 @@ enum class SectionKind {
     CHECKLIST,
     TOMORROW,
     REFLECTION,
+
+    /** A reminder to write today's journal entry when it is missing (M4.5). Written on the phone. */
+    JOURNAL_REMINDER,
     GOOD_NIGHT,
 }
 

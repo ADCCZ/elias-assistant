@@ -1,6 +1,9 @@
 package io.github.adccz.elias.domain.overview
 
 import io.github.adccz.elias.domain.calendar.CalendarRepository
+import io.github.adccz.elias.domain.journal.Journal
+import io.github.adccz.elias.domain.journal.JournalDay
+import io.github.adccz.elias.domain.journal.JournalStatus
 import io.github.adccz.elias.domain.log.RunLog
 import io.github.adccz.elias.domain.model.FailureReason
 import io.github.adccz.elias.domain.model.SourceResult
@@ -47,6 +50,7 @@ class TodayOverviewLoader @Inject constructor(
     private val runLog: RunLog,
     private val clock: Clock,
     private val topicSettings: TopicSettingsRepository,
+    private val journal: Journal,
 ) {
     suspend fun load(): TodayOverview = coroutineScope {
         val now = ZonedDateTime.now(clock)
@@ -76,6 +80,7 @@ class TodayOverviewLoader @Inject constructor(
             }
         }
         val topicsResult = async { loadTopics() }
+        val journalResult = async { loadJournal(now) }
         val newsResults = DefaultNewsFeeds.all.map { feed -> async { feed to guarded { news.headlines(feed) } } }
 
         val newsFeeds = newsResults.awaitAll().toMap()
@@ -96,7 +101,18 @@ class TodayOverviewLoader @Inject constructor(
                 headlineWindow(lastBriefingAt(), now.toInstant()),
             ),
             topics = topicsResult.await(),
+            journal = journalResult.await(),
         )
+    }
+
+    /** Today's journal entry and yesterday's step. A broken journal only means the briefing leaves it out. */
+    private suspend fun loadJournal(now: ZonedDateTime): JournalStatus = try {
+        val day = JournalDay.of(now)
+        JournalStatus(writtenToday = journal.isWritten(day), reminder = journal.reminderFor(day))
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        JournalStatus.UNKNOWN
     }
 
     /**

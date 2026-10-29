@@ -1,5 +1,6 @@
 package io.github.adccz.elias.domain.briefing
 
+import io.github.adccz.elias.domain.journal.JournalReminder
 import io.github.adccz.elias.domain.speech.CzechNumbers
 import io.github.adccz.elias.domain.speech.Gender
 import javax.inject.Inject
@@ -49,6 +50,32 @@ class TemplateBriefingBuilder @Inject constructor() {
             "Dobrý večer, Oldo. Sabat skončil. $question Zítra tě čeká revize cílů a plán na další týden.",
         )
     }
+
+    /**
+     * Yesterday's step from the journal (spec, M4.5). A long text is not read out, the journal has it.
+     * It is said on the phone only: the journal never goes to the AI that writes briefings.
+     */
+    fun journalStep(reminder: JournalReminder): BriefingSection {
+        val text = reminder.text.replace(whitespace, " ").trim()
+        val spoken = when {
+            CzechNumbers.wordCount(text) > MAX_SPOKEN_JOURNAL_WORDS -> if (reminder.isStep) {
+                "Včera sis do deníku zapsal krok na dnešek. Najdeš ho v aplikaci."
+            } else {
+                "Včera sis do deníku zapsal, na čem se chceš zlepšit. Najdeš to v aplikaci."
+            }
+
+            reminder.isStep -> "Včera sis dal za krok: ${sentence(text)}"
+
+            else -> "Včera sis zapsal, na čem se chceš zlepšit: ${sentence(text)}"
+        }
+        return BriefingSection(SectionKind.JOURNAL_STEP, spoken)
+    }
+
+    /** The evening reminder when today's journal entry is missing (spec, M4.5). */
+    fun journalReminder(): BriefingSection = BriefingSection(
+        SectionKind.JOURNAL_REMINDER,
+        "Dnešní zápis v deníku ti ještě chybí. Zapiš si myšlenku dne, co ti utkvělo a na čem se chceš zlepšit.",
+    )
 
     private data class Budget(val events: Int, val headlines: Int, val withMinimum: Boolean, val plansPerTopic: Int)
 
@@ -202,6 +229,13 @@ class TemplateBriefingBuilder @Inject constructor() {
     private fun describe(deadline: DeadlineFacts): String {
         val title = withoutEndPunctuation(deadline.title)
         return deadline.subject?.let { "$it, ${lowerFirst(title)}" } ?: title
+    }
+
+    private companion object {
+        /** About ten seconds of speech. A longer journal text would crowd out the rest of the morning. */
+        const val MAX_SPOKEN_JOURNAL_WORDS = 30
+
+        val whitespace = Regex("""\s+""")
     }
 }
 

@@ -79,8 +79,25 @@ class Journal @Inject constructor(private val repository: JournalRepository, pri
      * What the morning briefing of [morningDate] reminds of: the step from the day before, or what the user wanted to
      * improve when there is no step. Null when there is nothing to remind of.
      */
-    suspend fun reminderFor(morningDate: LocalDate): String? {
+    suspend fun reminderFor(morningDate: LocalDate): JournalReminder? {
         val text = repository.entryOn(morningDate.minusDays(1)).first()?.text ?: return null
-        return text.step.ifBlank { text.toImprove }.ifBlank { null }
+        return when {
+            text.step.isNotBlank() -> JournalReminder(text.step, isStep = true)
+            text.toImprove.isNotBlank() -> JournalReminder(text.toImprove, isStep = false)
+            else -> null
+        }
+    }
+}
+
+/** Yesterday's step, or what the user wanted to improve when no step was written ([isStep] false). */
+data class JournalReminder(val text: String, val isStep: Boolean)
+
+/**
+ * What the briefings say about the journal. Read on the phone and spoken from a template, never sent to the AI.
+ * [writtenToday] is null when the journal could not be read: then the evening says nothing rather than nag.
+ */
+data class JournalStatus(val writtenToday: Boolean?, val reminder: JournalReminder?) {
+    companion object {
+        val UNKNOWN = JournalStatus(writtenToday = null, reminder = null)
     }
 }
