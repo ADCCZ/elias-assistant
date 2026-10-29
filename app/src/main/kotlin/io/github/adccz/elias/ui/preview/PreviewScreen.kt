@@ -1,6 +1,5 @@
 package io.github.adccz.elias.ui.preview
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,6 +56,7 @@ import io.github.adccz.elias.domain.voice.TtsEngine
 import io.github.adccz.elias.domain.voice.VoiceChoice
 import io.github.adccz.elias.domain.voice.VoiceStatus
 import io.github.adccz.elias.ui.common.CzechFormat
+import io.github.adccz.elias.ui.common.messageRes
 import io.github.adccz.elias.ui.theme.EliasTheme
 import io.github.adccz.elias.ui.voice.SpeechStatusText
 import io.github.adccz.elias.ui.voice.SpeechUiState
@@ -289,23 +289,6 @@ private fun sourceText(result: BriefingResult): String {
         val reason = result.aiFailure?.reason ?: AiFailureReason.UNKNOWN
         stringResource(R.string.preview_source_template, stringResource(reason.messageRes()))
     }
-}
-
-@StringRes
-private fun AiFailureReason.messageRes(): Int = when (this) {
-    AiFailureReason.DISABLED -> R.string.ai_failure_disabled
-    AiFailureReason.NO_API_KEY -> R.string.ai_failure_no_api_key
-    AiFailureReason.INVALID_API_KEY -> R.string.ai_failure_invalid_api_key
-    AiFailureReason.NO_CREDIT -> R.string.ai_failure_no_credit
-    AiFailureReason.RATE_LIMITED -> R.string.ai_failure_rate_limited
-    AiFailureReason.OVERLOADED -> R.string.ai_failure_overloaded
-    AiFailureReason.SERVER_ERROR -> R.string.ai_failure_server_error
-    AiFailureReason.NETWORK -> R.string.ai_failure_network
-    AiFailureReason.TIMEOUT -> R.string.ai_failure_timeout
-    AiFailureReason.REFUSED -> R.string.ai_failure_refused
-    AiFailureReason.TRUNCATED -> R.string.ai_failure_truncated
-    AiFailureReason.INVALID_OUTPUT -> R.string.ai_failure_invalid_output
-    AiFailureReason.UNKNOWN -> R.string.ai_failure_unknown
 }
 
 @Preview(showBackground = true, locale = "cs", heightDp = 900)
