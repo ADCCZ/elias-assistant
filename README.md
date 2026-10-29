@@ -61,10 +61,14 @@ how long they take to say.
 E.L.I.A.S. reads the briefing aloud: from the home screen (**Přehrát ranní souhrn**, **Přehrát večerní souhrn**,
 written fresh from today's data) or from **Náhled textu** (**Přehrát** reads exactly the text on the screen).
 
-- **Offline Czech voice only.** The phone's text-to-speech engine (Google or Samsung) speaks with a `cs-CZ` voice
-  that works without network. A voice that needs the network is never used, because the engine would send the whole
-  briefing to a server. The voice check on **Náhled textu** says what is missing, and **Opravit** opens the right
-  settings: the voice download, or the text-to-speech settings to choose another engine.
+- **Its own male voice, offline.** E.L.I.A.S. speaks as **Oldřich 3.0**: the Piper voice "Jirka" (Czech, male),
+  run on the phone by [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) with ONNX Runtime. The model is part of
+  the app, so nothing leaves the phone. **Náhled textu** switches to the phone's text-to-speech instead.
+- **The phone's voice as the fallback.** When the app's voice is missing (a build without the model) or fails, the
+  phone's engine (Google or Samsung) speaks with an offline `cs-CZ` voice. A voice that needs the network is never
+  used, because the engine would send the whole briefing to a server. A native crash of the app's voice switches it
+  off until the next app update. The voice check on **Náhled textu** says what is missing, and **Opravit** opens the
+  right settings.
 - **Section by section.** Each section of the briefing is spoken into its own audio file (`synthesizeToFile`)
   at the chosen speech rate, and the files play as a playlist with a short pause in between.
 - **A real playback service.** A Media3 `MediaSessionService` of type `mediaPlayback` with ExoPlayer plays the
@@ -133,7 +137,7 @@ midnight, Friday, Saturday and the late summer sunset.
 | Networking | Ktor client (OkHttp engine) + kotlinx.serialization |
 | Storage | DataStore (speech rate, weekly schedule), Room 3 (source cache, run log) |
 | Scheduling | AlarmManager (`setAlarmClock()`, exact alarms), WorkManager with Hilt workers (prefetch) |
-| Voice | Android `TextToSpeech` (`cs-CZ`, offline voice), Media3 ExoPlayer and `MediaSessionService` |
+| Voice | Piper voice "Jirka" with sherpa-onnx (ONNX Runtime), Android `TextToSpeech` as the fallback, Media3 |
 | Time | `java.time`, zone `Europe/Prague`, injected `Clock` |
 | Tests | JUnit 6, MockK, kotlinx-coroutines-test, Turbine, Ktor MockEngine |
 | Code style and CI | ktlint, Android lint, GitHub Actions, Dependabot |
@@ -174,6 +178,9 @@ point `JAVA_HOME` to a JDK 25, for example Android Studio's `jbr` folder.
    Without a key (or without credit on the account) the app still builds and runs and uses the local template.
 3. Optional: put your own plan into `app/src/main/assets/plan.json` (git-ignored). The format is the same as
    [plan.example.json](app/src/main/assets/plan.example.json). Without it the app uses the fictional sample plan.
+   The first build downloads the voice "Jirka" (about 67 MB) from the sherpa-onnx release, checks its SHA-256 and
+   keeps it in the Gradle user home. It is not in git. Build with `-Pelias.voiceModel=skip` to leave it out (CI does
+   that); the app then speaks with the phone's voice.
 4. Build and run:
 
    ```bash
@@ -183,7 +190,8 @@ point `JAVA_HOME` to a JDK 25, for example Android Studio's `jbr` folder.
    ./gradlew lintDebug ktlintCheck
    ```
 
-   On Windows use `.\gradlew.bat` instead of `./gradlew`.
+   On Windows use `.\gradlew.bat` instead of `./gradlew`. There is one APK per processor type (64-bit ARM for
+   phones, x86_64 for the emulator); `installDebug` installs the one that fits.
 
 > [!WARNING]
 > **Never share an APK built with your API key.** The key is compiled into the app and anyone with the APK can
@@ -206,8 +214,9 @@ E.L.I.A.S. is built to keep personal data on the phone. This section grows with 
 
 - Calendar events are read on the device. Without an API key they never leave it. The app never writes to the calendar.
 - The personal plan is part of the app and is only read locally.
-- Speech is made on the phone with an offline voice. Elias never uses a voice that needs the network, so the
-  briefing text does not go to a text-to-speech server.
+- Speech is made on the phone: by the app's own voice (Oldřich 3.0) or by an offline voice of the phone. Elias never
+  uses a voice that needs the network, so the briefing text does not go to a text-to-speech server. The voice model is
+  downloaded when the app is built, never by the app.
 - The spoken audio files are in the app's cache (`cache/voice/`) while a briefing plays. They are deleted when
   playback ends, at the latest before the next briefing. The speech rate and the weekly schedule are stored in the
   app's private storage.
@@ -233,6 +242,17 @@ sample data only.
   and [Root.cz](https://www.root.cz). Only titles are shown, with their source.
 - Sunrise and sunset follow the [NOAA Solar Calculator](https://gml.noaa.gov/grad/solcalc/) formulas.
 
+## Third-party licenses
+
+- [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) 1.13.8, Apache License 2.0.
+- [ONNX Runtime](https://github.com/microsoft/onnxruntime), MIT License.
+- [espeak-ng](https://github.com/espeak-ng/espeak-ng), GNU GPL v3, built into sherpa-onnx 1.13.8's native library
+  (through piper-phonemize) to turn Czech text into phonemes. An APK with the voice therefore contains GPL code.
+  This repository's own code stays under the MIT License; anyone who distributes such an APK has to follow the GPL
+  (the source is public here).
+- The Piper voice "Jirka" from [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices), MIT License,
+  trained on a CC0 dataset ([NabuCasa voice-datasets](https://github.com/NabuCasa/voice-datasets)).
+
 ## About the name
 
 **E.L.I.A.S.** stands for *Everyday Life Intelligent Assistant & Scheduler* (in Czech, *Elektronický Lehký
@@ -249,7 +269,8 @@ no unnecessary notifications, and silence on the sabbath.
 E.L.I.A.S. (čti „Elias“) je osobní hlasový asistent pro Android. Ráno a večer česky a stručně řekne, co je
 důležité: počasí, kalendář, plán dne, titulky ze světa a termíny. Jméno odkazuje na proroka Eliáše a „hlas
 tichého vánku“ (1 Kr 19,12), takže Elias mluví málo a jen když to má smysl. Souhrn čte nahlas offline českým
-hlasem, při hovoru se zastaví a ovládá se z oznámení (Znovu, Pauza, Stop). Od M4 pracuje i sám: v čase, který si
+mužským hlasem „Oldřich 3.0“ (Piper, přímo v telefonu), při hovoru se zastaví a ovládá se z oznámení (Znovu,
+Pauza, Stop). Od M4 pracuje i sám: v čase, který si
 nastavíš pro každý den, rozsvítí obrazovku a přečte večerní souhrn, před ranním souhrnem stáhne data, v pátek hodinu
 před západem slunce připomene sabat a v sobotu večer začne slovy „sabat skončil“. Podrobná specifikace je
 v [docs/SPEC.md](docs/SPEC.md).

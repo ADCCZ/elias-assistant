@@ -247,3 +247,31 @@ Format: **context** – what we had to decide, **decision**, **why**.
 - **Decision:** On Saturday from sunset on, the template's "sabat skončil" section (greeting, a question about the
   study, tomorrow's review) takes the place of the checklist section, after the AI answer.
 - **Why:** One greeting, no work list on the sabbath, and the AI needs no special case.
+
+## D37 – sherpa-onnx 1.13.8 for the Piper voice (2026-10-29)
+- **Context:** The user wanted a male, more natural Czech voice than Google's. The only ready-made male Czech Piper voice
+  is "Jirka" (CC0 data). sherpa-onnx runs Piper voices on Android, but its 2.0 (October 2026) removed espeak-ng, so
+  Piper voices would need our own GPL text-to-phoneme library built for Android.
+- **Decision:** sherpa-onnx 1.13.8 (September 2026), the last release with Piper's text-to-phoneme built in. It comes
+  from JitPack, limited to that one group, and the file was checked against the GitHub release's SHA-256.
+- **Why:** A working voice with one dependency instead of building native code. An older version is acceptable here:
+  the library only turns text into audio files on the phone, it never touches the network.
+
+## D38 – The voice model is an app asset, downloaded at build time (2026-10-29)
+- **Context:** The model is about 63 MB. It must work offline and right after installing, but it does not belong in git.
+- **Decision:** A Gradle task downloads `vits-piper-cs_CZ-jirka-medium` from the sherpa-onnx release, checks the
+  published SHA-256, keeps the archive in the Gradle user home and unpacks it into generated assets (stored
+  uncompressed). Only the Czech and English pronunciation data stay; without the English one espeak-ng crashed. One APK
+  per processor type (arm64-v8a, x86_64) without sherpa-onnx's C and C++ API libraries. CI builds with
+  `-Pelias.voiceModel=skip`.
+- **Why:** The user chose the APK over a download in the app: it works at once and offline. The phone's APK grows by
+  about 90 MB (model and ONNX Runtime), which is fine for an app that is not distributed.
+
+## D39 – The app's own voice falls back to the phone's voice (2026-10-29)
+- **Context:** Native code can crash the whole app, as the first test on the emulator showed. A scheduled briefing would
+  then fail every evening.
+- **Decision:** `SelectedVoice` uses the chosen voice and falls back to the phone's voice whenever the app's voice is
+  missing or reports a failure. A marker file exists only while the app's voice speaks; found at the next start, it
+  switches the voice off until the app is updated, and Náhled textu says so.
+- **Why:** A new voice must never cost the user a briefing. The rule is pure and unit-tested; the marker covers what no
+  try/catch can.
