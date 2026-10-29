@@ -106,7 +106,8 @@ fun ScheduleScreen(
         TimeDialog(
             title = stringResource(
                 if (slot == TimeSlot.MORNING) R.string.schedule_dialog_morning else R.string.schedule_dialog_evening,
-                day.czechName(),
+                // "Večer, středa": a day name inside a sentence is lowercase in Czech.
+                day.czechName().lowercase(),
             ),
             initial = uiState.schedule.on(day).timeOf(slot) ?: defaultOf(slot),
             onDismiss = { editing = null },
