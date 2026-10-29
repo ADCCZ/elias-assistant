@@ -85,6 +85,7 @@
     <string name="scheduled_notification_text">E.L.I.A.S. čte večerní souhrn.</string>
     <!-- Hides the evening briefing screen; Elias goes on speaking. -->
     <string name="scheduled_close">Zavřít</string>
+    <string name="scheduled_open_journal">Zapsat do deníku</string>
     <string name="sabbath_reminder_title">Za hodinu začíná sabat</string>
     <!-- %1$s: sunset, "16:47". Read, not spoken, so a list is fine. -->
     <string name="sabbath_reminder_text">Západ slunce v %1$s.\n• Úklid\n• Starosti napsat na papír\n• Nedokončené věci do úkolů na neděli\n• Modlitba\n• Při západu vypnout telefon\n• Žalm 92</string>

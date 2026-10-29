@@ -1,5 +1,6 @@
 package io.github.adccz.elias.ui.scheduled
 
+import android.app.KeyguardManager
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -28,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import io.github.adccz.elias.MainActivity
 import io.github.adccz.elias.R
 import io.github.adccz.elias.domain.briefing.BriefingKind
 import io.github.adccz.elias.ui.theme.EliasTheme
@@ -60,9 +63,26 @@ class ScheduledBriefingActivity : ComponentActivity() {
                         finish()
                     },
                     onClose = ::finish,
+                    onOpenJournal = ::openJournal,
                 )
             }
         }
+    }
+
+    /**
+     * Opens the journal in the app. The screen may be shown over the lock screen, so the phone asks to be unlocked
+     * first. Elias goes on speaking: the briefing plays in its own service.
+     */
+    private fun openJournal() {
+        getSystemService(KeyguardManager::class.java).requestDismissKeyguard(
+            this,
+            object : KeyguardManager.KeyguardDismissCallback() {
+                override fun onDismissSucceeded() {
+                    startActivity(MainActivity.journalIntent(this@ScheduledBriefingActivity))
+                    finish()
+                }
+            },
+        )
     }
 }
 
@@ -72,6 +92,7 @@ fun ScheduledBriefingScreen(
     speech: SpeechUiState,
     onStop: () -> Unit,
     onClose: () -> Unit,
+    onOpenJournal: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
@@ -96,6 +117,7 @@ fun ScheduledBriefingScreen(
             if (speech is SpeechUiState.Preparing || speech is SpeechUiState.Speaking) {
                 OutlinedButton(onClick = onStop) { Text(stringResource(R.string.speech_stop)) }
             }
+            FilledTonalButton(onClick = onOpenJournal) { Text(stringResource(R.string.scheduled_open_journal)) }
             TextButton(onClick = onClose) { Text(stringResource(R.string.scheduled_close)) }
         }
     }
@@ -106,6 +128,6 @@ fun ScheduledBriefingScreen(
 private fun ScheduledBriefingScreenPreview() {
     EliasTheme {
         ScheduledBriefingScreen(speech = SpeechUiState.Speaking(BriefingKind.EVENING, isPaused = false), onStop = {
-        }, onClose = {})
+        }, onClose = {}, onOpenJournal = {})
     }
 }

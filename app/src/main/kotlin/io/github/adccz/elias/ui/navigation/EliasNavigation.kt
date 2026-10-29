@@ -42,10 +42,11 @@ data object JournalKey : NavKey
 /**
  * The app's navigation with Navigation 3. The back stack is a plain list we own:
  * opening a screen adds its key, going back removes the last one.
+ * With [openJournal] the app starts on the journal, and going back leads home.
  */
 @Composable
-fun EliasNavigation() {
-    val backStack = rememberNavBackStack(HomeKey)
+fun EliasNavigation(openJournal: Boolean = false) {
+    val backStack = if (openJournal) rememberNavBackStack(HomeKey, JournalKey) else rememberNavBackStack(HomeKey)
     NavDisplay(
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
