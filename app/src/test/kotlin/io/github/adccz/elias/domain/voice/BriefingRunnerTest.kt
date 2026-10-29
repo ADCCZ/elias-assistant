@@ -17,11 +17,16 @@ import io.github.adccz.elias.domain.log.RunKind
 import io.github.adccz.elias.domain.log.RunOutcome
 import io.github.adccz.elias.domain.log.RunTrigger
 import io.github.adccz.elias.domain.log.SourceOutcome
+import io.github.adccz.elias.domain.routine.ExerciseScript
+import io.github.adccz.elias.domain.routine.ExerciseStep
+import io.github.adccz.elias.domain.routine.MorningRoutine
 import io.github.adccz.elias.testing.FakePlaylistPlayer
 import io.github.adccz.elias.testing.FakeRunLog
 import io.github.adccz.elias.testing.FakeSpeechSynthesizer
 import io.github.adccz.elias.testing.FakeVoiceSettings
+import io.github.adccz.elias.testing.FixedRoutineContent
 import io.github.adccz.elias.testing.TestLoaders
+import io.github.adccz.elias.testing.TestRoutine
 import io.github.adccz.elias.testing.testEngine
 import java.time.Clock
 import java.time.Instant
@@ -43,13 +48,18 @@ class BriefingRunnerTest {
         override suspend fun evening(input: EveningInput) = AiBriefingResult.Failure(AiFailureReason.NO_CREDIT)
     }
 
-    private fun runner(speech: SpeechSynthesizer = synthesizer, log: FakeRunLog = runLog) = BriefingRunner(
+    private fun runner(
+        speech: SpeechSynthesizer = synthesizer,
+        log: FakeRunLog = runLog,
+        routineContent: FixedRoutineContent = FixedRoutineContent(),
+    ) = BriefingRunner(
         loader = TestLoaders.failing(clock),
         briefings = BriefingService(TemplateBriefingBuilder(), noAi),
         synthesizer = speech,
         settings = settings,
         runLog = log,
         clock = clock,
+        routine = MorningRoutine(routineContent, routineContent, clock),
     )
 
     private val evening = BriefingText(
@@ -173,5 +183,44 @@ class BriefingRunnerTest {
 
         assertEquals(SpeakResult.Started, result)
         assertEquals(1, player.played.size)
+    }
+
+    // Cvič se mnou (M5)
+
+    @Test
+    fun `leads today's exercises with silent time on the media stream`() = runTest {
+        val result = runner().run(BriefingRequest.Exercises, player)
+
+        assertEquals(SpeakResult.Started, result)
+        val (sections, rate) = synthesizer.requests.single()
+        assertTrue(sections.all { it.kind == SectionKind.EXERCISE })
+        assertEquals(SpeechRate.of(1.2f), rate)
+        val (playlist, stream) = player.played.single()
+        assertEquals(BriefingKind.EXERCISES, playlist.kind)
+        assertEquals(PlaybackStream.MEDIA, stream)
+        val waits = ExerciseScript.of(TestRoutine.exercises).filterIsInstance<ExerciseStep.Wait>()
+        assertEquals(
+            waits.map {
+                it.millis
+            },
+            playlist.entries.filterIsInstance<PlaylistEntry.Pause>().map { it.millis },
+        )
+    }
+
+    @Test
+    fun `the exercises are not written to the run log`() = runTest {
+        runner().run(BriefingRequest.Exercises, player)
+
+        assertTrue(runLog.runs.isEmpty())
+    }
+
+    @Test
+    fun `without exercises there is nothing to say`() = runTest {
+        val result = runner(
+            routineContent = FixedRoutineContent(exercises = null),
+        ).run(BriefingRequest.Exercises, player)
+
+        assertEquals(SpeakResult.NothingToSay, result)
+        assertTrue(player.played.isEmpty())
     }
 }

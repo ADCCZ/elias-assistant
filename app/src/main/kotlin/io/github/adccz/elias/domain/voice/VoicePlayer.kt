@@ -33,6 +33,15 @@ sealed interface BriefingRequest {
     /** Write the briefing from today's data (the AI first, the template as fallback) and speak it. */
     data class FromToday(override val kind: BriefingKind, override val trigger: PlaybackTrigger) : BriefingRequest
 
+    /**
+     * "Cvič se mnou" (M5): today's exercises one by one, with time to do them. Only the user asks for this, and it is
+     * not written to the run log: it is not a briefing.
+     */
+    data object Exercises : BriefingRequest {
+        override val kind: BriefingKind get() = BriefingKind.EXERCISES
+        override val trigger: PlaybackTrigger get() = PlaybackTrigger.USER
+    }
+
     /** Speak exactly this text, as it is shown on Náhled textu. Only the user asks for this. */
     data class Written(val briefing: BriefingText) : BriefingRequest {
         override val kind: BriefingKind get() = briefing.kind

@@ -1,11 +1,16 @@
 package io.github.adccz.elias.ui.routine
 
 import io.github.adccz.elias.core.time.PRAGUE_ZONE
+import io.github.adccz.elias.domain.briefing.BriefingKind
 import io.github.adccz.elias.domain.routine.MorningRoutine
 import io.github.adccz.elias.domain.routine.Recipes
+import io.github.adccz.elias.domain.voice.BriefingRequest
+import io.github.adccz.elias.testing.FakeVoicePlayer
 import io.github.adccz.elias.testing.FixedRoutineContent
 import io.github.adccz.elias.testing.MainDispatcherExtension
 import io.github.adccz.elias.testing.TestRoutine
+import io.github.adccz.elias.ui.voice.SpeechController
+import io.github.adccz.elias.ui.voice.SpeechUiState
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -32,11 +37,13 @@ class RoutineViewModelsTest {
     )
     private val thursday = LocalDate.of(2026, 10, 29)
 
+    private val player = FakeVoicePlayer()
+
     private fun routine(content: FixedRoutineContent = FixedRoutineContent()) = MorningRoutine(content, content, clock)
 
     @Test
     fun `the exercises screen shows one exercise from each area`() = runTest {
-        val viewModel = ExercisesViewModel(routine())
+        val viewModel = ExercisesViewModel(routine(), SpeechController(player))
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -48,11 +55,29 @@ class RoutineViewModelsTest {
 
     @Test
     fun `the exercises screen says when the file is broken`() = runTest {
-        val viewModel = ExercisesViewModel(routine(FixedRoutineContent(exercises = null)))
+        val viewModel = ExercisesViewModel(routine(FixedRoutineContent(exercises = null)), SpeechController(player))
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.failed)
         assertEquals(emptyList<Any>(), viewModel.uiState.value.exercises)
+    }
+
+    @Test
+    fun `Cvič se mnou asks the playback service and shows what it does`() = runTest {
+        val viewModel = ExercisesViewModel(routine(), SpeechController(player))
+        advanceUntilIdle()
+
+        viewModel.exerciseWithMe()
+        advanceUntilIdle()
+
+        assertEquals(listOf<BriefingRequest>(BriefingRequest.Exercises), player.requests)
+        assertEquals(SpeechUiState.Preparing(BriefingKind.EXERCISES), viewModel.uiState.value.speech)
+
+        viewModel.stop()
+        advanceUntilIdle()
+
+        assertEquals(1, player.stops)
+        assertEquals(SpeechUiState.Idle, viewModel.uiState.value.speech)
     }
 
     @Test

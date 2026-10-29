@@ -33,6 +33,7 @@ object BriefingRequestCodec {
         val stored = runCatching { json.decodeFromString(StoredRequest.serializer(), text) }.getOrNull() ?: return null
         val kind = enumOrNull<BriefingKind>(stored.kind) ?: return null
         val trigger = enumOrNull<PlaybackTrigger>(stored.trigger) ?: return null
+        if (kind == BriefingKind.EXERCISES) return BriefingRequest.Exercises
         val sections = stored.sections ?: return BriefingRequest.FromToday(kind, trigger)
         return BriefingRequest.Written(
             BriefingText(

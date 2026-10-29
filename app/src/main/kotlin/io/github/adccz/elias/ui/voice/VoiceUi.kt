@@ -28,6 +28,7 @@ fun SpeechStatusText(state: SpeechUiState, modifier: Modifier = Modifier, textAl
             when (state.kind) {
                 BriefingKind.MORNING -> R.string.speech_preparing_morning
                 BriefingKind.EVENING -> R.string.speech_preparing_evening
+                BriefingKind.EXERCISES -> R.string.speech_preparing_exercises
             },
         )
 
@@ -35,6 +36,7 @@ fun SpeechStatusText(state: SpeechUiState, modifier: Modifier = Modifier, textAl
             when {
                 state.isPaused -> R.string.speech_paused
                 state.kind == BriefingKind.MORNING -> R.string.speech_speaking_morning
+                state.kind == BriefingKind.EXERCISES -> R.string.speech_speaking_exercises
                 else -> R.string.speech_speaking_evening
             },
         )

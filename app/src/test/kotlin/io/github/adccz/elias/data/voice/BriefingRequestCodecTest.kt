@@ -47,4 +47,12 @@ class BriefingRequestCodecTest {
             BriefingRequestCodec.decode("""{"kind":"MORNING","trigger":"USER","sections":[{"kind":"X","text":"a"}]}"""),
         )
     }
+
+    @Test
+    fun `Cvič se mnou survives the trip`() {
+        assertEquals(
+            BriefingRequest.Exercises,
+            BriefingRequestCodec.decode(BriefingRequestCodec.encode(BriefingRequest.Exercises)),
+        )
+    }
 }

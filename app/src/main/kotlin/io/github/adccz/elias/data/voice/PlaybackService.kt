@@ -396,6 +396,7 @@ class PlaybackService : MediaSessionService() {
     private fun titleOf(kind: BriefingKind) = when (kind) {
         BriefingKind.MORNING -> R.string.playback_title_morning
         BriefingKind.EVENING -> R.string.playback_title_evening
+        BriefingKind.EXERCISES -> R.string.playback_title_exercises
     }
 
     private fun replayCurrentSection(player: Player) {

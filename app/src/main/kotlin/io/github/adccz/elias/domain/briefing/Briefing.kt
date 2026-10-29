@@ -2,7 +2,13 @@ package io.github.adccz.elias.domain.briefing
 
 import io.github.adccz.elias.domain.speech.CzechNumbers
 
-enum class BriefingKind { MORNING, EVENING }
+enum class BriefingKind {
+    MORNING,
+    EVENING,
+
+    /** Not a briefing: today's exercises spoken with "Cvič se mnou" (M5). They share the playback service. */
+    EXERCISES,
+}
 
 /** The parts of a briefing. The order here is the speaking order (spec: "Obsah souhrnů"). */
 enum class SectionKind {
@@ -35,6 +41,11 @@ enum class SectionKind {
     /** A reminder to write today's journal entry when it is missing (M4.5). Written on the phone. */
     JOURNAL_REMINDER,
     GOOD_NIGHT,
+
+    // Cvič se mnou (M5)
+
+    /** One thing Elias says while leading the exercises. Never part of a briefing. */
+    EXERCISE,
 }
 
 data class BriefingSection(val kind: SectionKind, val text: String)

@@ -21,6 +21,7 @@ object BriefingValidator {
         val (allowed, firstSection) = when (briefing.kind) {
             BriefingKind.MORNING -> MORNING_WORDS to SectionKind.GREETING_AND_WEATHER
             BriefingKind.EVENING -> EVENING_WORDS to SectionKind.CHECKLIST
+            BriefingKind.EXERCISES -> return "Not a briefing"
         }
         return when {
             briefing.sections.none { it.kind == firstSection && it.text.isNotBlank() } -> "The greeting is missing"

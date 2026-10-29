@@ -19,6 +19,8 @@
     <string name="speech_preparing_evening">Připravuji večerní souhrn…</string>
     <string name="speech_speaking_morning">E.L.I.A.S. čte ranní souhrn.</string>
     <string name="speech_speaking_evening">E.L.I.A.S. čte večerní souhrn.</string>
+    <string name="speech_preparing_exercises">Připravuji cviky…</string>
+    <string name="speech_speaking_exercises">E.L.I.A.S. vede cviky.</string>
     <string name="speech_paused">Pozastaveno. Pokračovat můžeš v oznámení.</string>
     <string name="speech_failed_nothing">Souhrn je prázdný, není co číst.</string>
     <string name="speech_failed_voice">Nemluvím. %1$s</string>
@@ -73,6 +75,7 @@
     <string name="playback_channel_name">Přehrávání souhrnu</string>
     <string name="playback_title_morning">Ranní souhrn</string>
     <string name="playback_title_evening">Večerní souhrn</string>
+    <string name="playback_title_exercises">Cviky u počítače</string>
     <string name="playback_replay">Znovu</string>
     <string name="playback_stop">Stop</string>
     <string name="playback_preparing">Připravuji…</string>
@@ -324,6 +327,8 @@
     <string name="exercises_seconds">%1$d s</string>
     <string name="exercises_both_sides">na každou stranu</string>
     <string name="exercises_failed">Cviky se nepodařilo načíst.</string>
+    <string name="exercises_with_me">Cvič se mnou</string>
+    <string name="exercises_with_me_note">E.L.I.A.S. přečte cvik po cviku a nechá ti čas na cvičení. Pauza a Stop jsou v oznámení.</string>
     <string name="recipe_title">Recept dne</string>
     <!-- "25 min · 2 porce · bez masa" -->
     <string name="recipe_minutes">%1$d min</string>
