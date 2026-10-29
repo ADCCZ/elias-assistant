@@ -14,7 +14,10 @@ data class MorningInput(
     /** "úterý sedmadvacátého října". */
     val dateSpoken: String,
     val weather: WeatherFacts?,
+    /** Events from calendars that are not topics. Null when the calendar could not be read. */
     val events: List<EventFacts>?,
+    /** Today's plans of each topic that has some (M4.5). */
+    val topicPlans: List<TopicPlanFacts>,
     /** Null when the plan could not be loaded or is not valid today. */
     val plan: PlanFacts?,
     val planUnavailable: Boolean,
@@ -29,6 +32,9 @@ data class EveningInput(
     /** "středa osmadvacátého října". */
     val tomorrowSpoken: String,
     val tomorrowEvents: List<EventFacts>?,
+    val tomorrowTopicPlans: List<TopicPlanFacts>,
+    /** Names of the topics with nothing planned for tomorrow. Empty without topics or a calendar. */
+    val topicsWithoutPlansTomorrow: List<String>,
     val deadlinesTomorrow: List<DeadlineFacts>,
     val theme: ThemeFacts?,
 )
@@ -56,6 +62,12 @@ data class EventFacts(
     val time: String,
     val location: String?,
 )
+
+/** The plans of one topic on one day: "Škola" with "připravit referát". */
+data class TopicPlanFacts(val topic: String, val plans: List<PlanItemFacts>)
+
+/** One plan. [time] is spoken ("v půl třetí odpoledne"), null for a plan without a time (an all-day event). */
+data class PlanItemFacts(val title: String, val time: String?)
 
 data class PlanFacts(
     val phase: String?,

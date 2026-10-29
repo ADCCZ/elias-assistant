@@ -275,3 +275,84 @@ Format: **context** – what we had to decide, **decision**, **why**.
   switches the voice off until the app is updated, and Náhled textu says so.
 - **Why:** A new voice must never cost the user a briefing. The rule is pure and unit-tested; the marker covers what no
   try/catch can.
+
+## D40 – A topic is a calendar on the phone (2026-10-29)
+- **Context:** The user wants to plan the next days by topic (school, self-development, Spanish) in Google Calendar,
+  and Elias should read the plans grouped by topic.
+- **Decision:** Each topic is its own Google calendar. The **Plány** screen lists the phone's calendars and the user
+  marks the topics; their ids are kept in DataStore. `Topics.agenda` splits a day into ordinary events and the plans of
+  each topic, sorted by the Czech alphabet. Elias only reads the calendar; **Přidat do kalendáře** opens the calendar
+  app with the day filled in (the insert intent cannot choose a calendar, the user picks it there).
+- **Why:** The user's choice. No prefixes to type and no parsing, each topic keeps its color, and the calendar id is
+  already in `CalendarContract.Instances`. No new permission.
+
+## D41 – A journal day starts at 4:00 (2026-10-29)
+- **Context:** The journal is written in the evening, which often ends after midnight.
+- **Decision:** `JournalDay` counts anything written before 4:00 to the day before. One entry per day; an entry emptied
+  of all text is deleted instead of kept blank.
+- **Why:** A thought written at 0:30 belongs to the day it is about. The rule is pure and tested, including the night
+  the clocks go back.
+
+## D42 – Only "na čem se zlepšit" goes to the AI, and only on a tap (2026-10-29)
+- **Context:** The user wanted the AI to suggest a step from the journal. The journal is the most private data in the app.
+- **Decision:** **Navrhni krok** sends `StepRequest`: the text of "na čem se zlepšit" and the weekly theme (not the
+  theme of the fictional sample plan). The answer is one sentence of at most 40 words (`StepValidator`), shown as a
+  suggestion that the user may use or close. The briefing prompts never contain the journal: yesterday's step and the
+  evening reminder are template sections added after the AI answer, like the overnight messages (D21).
+- **Why:** The user's choice from three options. Sending data is an explicit act, the screen says what leaves the phone,
+  and the rest of the entry never does.
+
+## D43 – The journal text lives in the screen, saving in the app's scope (2026-10-29)
+- **Context:** Text fields lose characters or the cursor when their state comes through an asynchronous stream, which
+  matters for Czech letters typed through the keyboard's composition.
+- **Decision:** The editor keeps the typed text in Compose state (`rememberSaveable`, per day) and reports every change.
+  The ViewModel saves 0.8 s after typing stops, at once when the screen pauses or another day opens, and in its
+  `onCleared`. The save itself runs in the `@ApplicationScope`, so it finishes after the screen is gone.
+- **Why:** Google's advice for text field state, and nothing typed is lost when the user leaves the screen.
+
+## D44 – One Claude client for every request (2026-10-29)
+- **Context:** The step suggestion needs the same request, timeout and error handling as the briefings.
+- **Decision:** `ClaudeClient` sends one structured request and turns every API or network problem into a reason
+  (`ClaudeAnswer.Failed`). `ClaudeBriefingBuilder` and `ClaudeStepSuggester` only build the prompt and check the answer.
+- **Why:** One tested error path (no credit, bad key, timeouts...) instead of two copies.
+
+## D45 – Calendars can be switched off, in one place (2026-10-29)
+- **Context:** While testing Plány the user wanted to switch off any calendar of the account, not only mark topics.
+  The spec had the choice of calendars in M7.
+- **Decision:** Each calendar on Plány has **Číst** and **Téma**. Switched-off ids are stored in DataStore, so a new
+  calendar is read until the user switches it off. `SelectedCalendars` wraps the phone's calendar and drops those
+  events; Hilt gives it to everything that reads the calendar. A switched-off calendar cannot be a topic. The topic
+  picker stays at the top of the screen and collapses only on Hotovo, so a switch never moves under the finger.
+- **Why:** One filter makes the choice hold for the briefings, Plány, Data and the AI alike, with no place forgotten.
+  Spec change recorded.
+
+## D46 – An event in several calendars is kept once (2026-10-29)
+- **Context:** The user's account has two family calendars, and the same event can be in both. The briefing would say
+  it twice.
+- **Decision:** `SelectedCalendars` keeps one event per title (ignoring case and extra spaces) and exact start and end.
+  The first copy keeps its place; a copy in a topic calendar takes it over, so a plan stays with its topic.
+- **Why:** The user's wish. Comparing the exact time keeps a repeated activity at another time (morning and evening
+  run) as two events, and doing it in the one filter applies it everywhere.
+
+## D47 – Calendars by account, no add button (2026-10-29)
+- **Context:** On the user's phone Plány listed 31 calendars from three Google accounts, the Samsung account and the
+  phone itself, with names like "České státní svátky" three times. **Přidat do kalendáře** (D40) could not choose the
+  topic calendar, so it saved only picking the date, and the day items ran together.
+- **Decision:** `PhoneCalendar.account` (from `Calendars.ACCOUNT_TYPE`: Google and other online accounts by e-mail,
+  `LOCAL` as phone only, Samsung's sign-in as Samsung) and `CalendarAccounts.group` put the picker under account
+  headers, each with **Číst vše**; an account's main calendar shows as "Hlavní kalendář", unsynced calendars go faded
+  to the end. The add button is gone. Every day item shows its calendar's color and its time in a column of its own,
+  with a line between the topics and the other events.
+- **Why:** The user's choices after the phone test. The account explains the duplicates, and a whole work or school
+  account can be switched off in one tap.
+
+## D48 – Synchronizovat asks Android, Plány follow the calendar (2026-10-29)
+- **Context:** Calendars made on the web reach the phone only when its Google account syncs. The user missed a sync
+  button in Plány, and the screen did not notice new events until it was opened again.
+- **Decision:** **Synchronizovat** calls `ContentResolver.requestSync` (manual, expedited) for every online account
+  that owns calendars on the phone, read from `CalendarContract.Calendars`; phone-only (`LOCAL`) calendars are
+  skipped. `CalendarRepository.changes()` listens to the calendar provider with a `ContentObserver`, and Plány read
+  the calendar again 1 s after the changes stop.
+- **Why:** A public API that calendar apps use for "refresh", no new permission and no change to any sync setting.
+  Whether a calendar syncs at all stays the user's choice in the calendar app. Whether Samsung honours the request
+  at once is checked on the phone.

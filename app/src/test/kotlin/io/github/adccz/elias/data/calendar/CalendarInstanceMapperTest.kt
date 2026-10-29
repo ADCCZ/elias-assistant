@@ -1,6 +1,7 @@
 package io.github.adccz.elias.data.calendar
 
 import io.github.adccz.elias.core.time.PRAGUE_ZONE
+import io.github.adccz.elias.domain.calendar.CalendarAccount
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -107,5 +108,70 @@ class CalendarInstanceMapperTest {
         val allDay = row("Celý den", utc("2026-10-27T00:00:00Z"), utc("2026-10-28T00:00:00Z"), allDay = true)
 
         assertEquals(listOf("Celý den", "Ráno", "Odpoledne"), titlesOn(tuesday, afternoon, morning, allDay))
+    }
+
+    @Test
+    fun `keeps the calendar id, so topics can be told apart`() {
+        val plan = CalendarInstanceRow(
+            "Připravit referát",
+            local("2026-10-27T10:00"),
+            local("2026-10-27T11:00"),
+            isAllDay = false,
+            location = null,
+            calendarName = "Škola",
+            isCanceled = false,
+            isDeclinedByMe = false,
+            calendarId = 2,
+        )
+
+        assertEquals(2L, mapper.eventsOn(tuesday, PRAGUE_ZONE, listOf(plan)).single().calendarId)
+    }
+
+    @Test
+    fun `lists calendars and marks those whose events do not reach the phone`() {
+        val rows = listOf(
+            CalendarRow(1, " Škola ", "olda@example.com", 0xFF3366CC.toInt(), isVisible = true, isSynced = true),
+            CalendarRow(2, "Španělština", "olda@example.com", null, isVisible = true, isSynced = false),
+            CalendarRow(3, "Skryté", "olda@example.com", null, isVisible = false, isSynced = true),
+            CalendarRow(4, null, "olda@example.com", null, isVisible = true, isSynced = true),
+            CalendarRow(5, " ", null, null, isVisible = true, isSynced = true),
+        )
+
+        val calendars = mapper.calendars(rows)
+
+        assertEquals(listOf("Škola", "Španělština", "Skryté", "olda@example.com"), calendars.map { it.name })
+        assertEquals(listOf(true, false, false, true), calendars.map { it.isShown })
+        assertEquals(0xFF3366CC.toInt(), calendars.first().color)
+    }
+
+    @Test
+    fun `tells Google, Samsung and the phone's own calendars apart`() {
+        val rows = listOf(
+            CalendarRow(1, "My calendar", "My calendar", null, true, true, accountType = "LOCAL"),
+            CalendarRow(
+                2,
+                "Samsung Calendar",
+                "olda@example.com",
+                null,
+                true,
+                true,
+                accountType = "com.osp.app.signin",
+            ),
+            CalendarRow(3, "olda@example.com", "olda@example.com", null, true, true, accountType = "com.google"),
+            CalendarRow(4, "Škola", "olda@example.com", null, true, true, accountType = "com.google"),
+        )
+
+        val calendars = mapper.calendars(rows)
+
+        assertEquals(
+            listOf(
+                CalendarAccount.Phone,
+                CalendarAccount.Samsung,
+                CalendarAccount.Online("olda@example.com"),
+                CalendarAccount.Online("olda@example.com"),
+            ),
+            calendars.map { it.account },
+        )
+        assertEquals(listOf(false, false, true, false), calendars.map { it.isMain })
     }
 }

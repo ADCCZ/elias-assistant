@@ -60,6 +60,8 @@ fun HomeRoute(
     onOpenPreview: () -> Unit,
     onOpenSchedule: () -> Unit,
     onOpenStatus: () -> Unit,
+    onOpenPlans: () -> Unit,
+    onOpenJournal: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -105,6 +107,8 @@ fun HomeRoute(
         onOpenPreview = onOpenPreview,
         onOpenSchedule = onOpenSchedule,
         onOpenStatus = onOpenStatus,
+        onOpenPlans = onOpenPlans,
+        onOpenJournal = onOpenJournal,
     )
 }
 
@@ -125,6 +129,8 @@ fun HomeScreen(
     onOpenPreview: () -> Unit,
     onOpenSchedule: () -> Unit,
     onOpenStatus: () -> Unit,
+    onOpenPlans: () -> Unit,
+    onOpenJournal: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val speech = uiState.speech
@@ -164,6 +170,15 @@ fun HomeScreen(
             }
             SpeechControls(speech = speech, onStop = onStop, onFixVoice = onFixVoice)
             Spacer(modifier = Modifier.height(32.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                FilledTonalButton(onClick = onOpenPlans) {
+                    Text(stringResource(R.string.home_open_plans))
+                }
+                FilledTonalButton(onClick = onOpenJournal) {
+                    Text(stringResource(R.string.home_open_journal))
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
             FilledTonalButton(onClick = onOpenData) {
                 Text(stringResource(R.string.home_open_data))
             }
@@ -245,6 +260,8 @@ private fun HomeScreenPreview() {
             onOpenPreview = {},
             onOpenSchedule = {},
             onOpenStatus = {},
+            onOpenPlans = {},
+            onOpenJournal = {},
         )
     }
 }

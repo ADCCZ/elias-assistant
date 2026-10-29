@@ -7,7 +7,7 @@ The name is **written E.L.I.A.S.** on screens and in docs, **spoken "Elias"**, a
 ## How we work
 
 - **Plan first, then code.** Propose a milestone plan and wait for approval.
-- **One milestone at a time** (M0–M7 in the spec). After each one, stop and report to the user **in Czech**:
+- **One milestone at a time** (M0–M7 and M4.5 in the spec). After each one, stop and report to the user **in Czech**:
   what was done and why (short, the user is learning Kotlin/Android), what to test on the phone and how,
   known limitations and debt. Do not start the next milestone until the user confirms it works.
 - **Commit after each logical step.** English messages, Conventional Commits style
@@ -67,6 +67,12 @@ io/github/adccz/elias/
   update). Receivers get dependencies through `ScheduleEntryPoint`. The evening briefing opens
   `ScheduledBriefingActivity` with a full-screen notification (`EveningBriefingStarter`), which speaks while visible.
   Never play audio after `BOOT_COMPLETED`, only reschedule.
+- **Plans and journal (M4.5):** a topic is a phone calendar marked on Plány (`CalendarSettingsRepository`, DataStore);
+  `Topics.agenda` splits a day into events and plans by topic. Calendars switched off on Plány and duplicate
+  events are dropped by `SelectedCalendars`, which Hilt provides as the `CalendarRepository`: never read the phone's
+  calendar around it. The journal (`Journal`, Room table `journal_entries`)
+  stays on the phone: briefing prompts never contain it, `BriefingService` adds the journal sections after the AI
+  answer, and only "na čem se zlepšit" with the weekly theme goes to the AI on a tap (`SuggestStep`).
 - **Room 3:** package `androidx.room3`, platform SQLite driver, schemas in `app/schemas/` (commit them). DAOs stay thin
   and are not tested on the JVM; test the logic around them with fakes (`InMemorySourceCache`, `FakeRunLog`).
 - **Claude API:** `POST /v1/messages` via Ktor, header `anthropic-version: 2026-10-21`. Never send `temperature`,

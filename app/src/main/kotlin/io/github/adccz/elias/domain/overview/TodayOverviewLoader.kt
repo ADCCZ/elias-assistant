@@ -1,6 +1,10 @@
 package io.github.adccz.elias.domain.overview
 
 import io.github.adccz.elias.domain.calendar.CalendarRepository
+import io.github.adccz.elias.domain.calendar.CalendarSettingsRepository
+import io.github.adccz.elias.domain.journal.Journal
+import io.github.adccz.elias.domain.journal.JournalDay
+import io.github.adccz.elias.domain.journal.JournalStatus
 import io.github.adccz.elias.domain.log.RunLog
 import io.github.adccz.elias.domain.model.FailureReason
 import io.github.adccz.elias.domain.model.SourceResult
@@ -14,6 +18,8 @@ import io.github.adccz.elias.domain.plan.PlanRepository
 import io.github.adccz.elias.domain.plan.dayPlan
 import io.github.adccz.elias.domain.sun.SabbathCalculator
 import io.github.adccz.elias.domain.sun.SunCalculator
+import io.github.adccz.elias.domain.topics.Topic
+import io.github.adccz.elias.domain.topics.Topics
 import io.github.adccz.elias.domain.weather.WeatherRepository
 import io.github.adccz.elias.domain.weather.dayWeather
 import java.time.Clock
@@ -26,6 +32,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 
 /**
  * Loads all sources at the same time and puts the results together.
@@ -42,6 +49,8 @@ class TodayOverviewLoader @Inject constructor(
     private val sabbath: SabbathCalculator,
     private val runLog: RunLog,
     private val clock: Clock,
+    private val calendarSettings: CalendarSettingsRepository,
+    private val journal: Journal,
 ) {
     suspend fun load(): TodayOverview = coroutineScope {
         val now = ZonedDateTime.now(clock)
@@ -70,6 +79,8 @@ class TodayOverviewLoader @Inject constructor(
                 )
             }
         }
+        val topicsResult = async { loadTopics() }
+        val journalResult = async { loadJournal(now) }
         val newsResults = DefaultNewsFeeds.all.map { feed -> async { feed to guarded { news.headlines(feed) } } }
 
         val newsFeeds = newsResults.awaitAll().toMap()
@@ -89,7 +100,37 @@ class TodayOverviewLoader @Inject constructor(
                 now.toInstant(),
                 headlineWindow(lastBriefingAt(), now.toInstant()),
             ),
+            topics = topicsResult.await(),
+            journal = journalResult.await(),
         )
+    }
+
+    /** Today's journal entry and yesterday's step. A broken journal only means the briefing leaves it out. */
+    private suspend fun loadJournal(now: ZonedDateTime): JournalStatus = try {
+        val day = JournalDay.of(now)
+        JournalStatus(writtenToday = journal.isWritten(day), reminder = journal.reminderFor(day))
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        JournalStatus.UNKNOWN
+    }
+
+    /**
+     * The calendars the user marked as topics, with their current names. Without topics, or when the calendars
+     * cannot be listed, the briefing simply has no plans by topic.
+     */
+    private suspend fun loadTopics(): List<Topic> {
+        val ids = try {
+            // A calendar that is switched off is not read, so it cannot be a topic either.
+            calendarSettings.topicCalendarIds.first() - calendarSettings.hiddenCalendarIds.first()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            emptySet()
+        }
+        if (ids.isEmpty()) return emptyList()
+        val calendars = guarded { calendar.calendars() } as? SourceResult.Success ?: return emptyList()
+        return Topics.resolve(calendars.data, ids)
     }
 
     /** When the last briefing played. A broken log only means the full day of headlines. */

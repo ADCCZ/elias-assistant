@@ -16,7 +16,8 @@ what is still left to do and what is coming tomorrow. Then it goes quiet.
 | M1 – Data sources | Calendar, weather, RSS, personal plan, sunset, Data screen | Done |
 | M2 – Briefing | Spoken Czech, template builder, Claude API builder with fallback, preview screen | Done |
 | M3 – Voice | Offline Czech speech, playback service with notification controls, audio focus, speech rate | Done |
-| M4 – Scheduling | Times per day, evening briefing on its own, prefetch and cache, sabbath rules, status screen | In review |
+| M4 – Scheduling | Times per day, evening briefing on its own, prefetch and cache, sabbath rules, status screen | Done |
+| M4.5 – Plans and journal | Plans by topic from Google Calendar, journal with an AI step, reminders in the briefings | In review |
 | M5 – Overnight messages | Notification listener (metadata only) | Planned |
 | M6 – Alarm clock | Alarm that always rings, then Elias speaks | Planned |
 | M7 – Polish | Settings, widget, demo mode, run log, screenshots | Planned |
@@ -116,6 +117,27 @@ E.L.I.A.S. now works on its own.
 All rules are pure Kotlin with unit tests, including the daylight saving changes of 25 October 2026 and 28 March 2027,
 midnight, Friday, Saturday and the late summer sunset.
 
+## Plans and journal (M4.5)
+
+- **Plans by topic.** Plans for the next days are written in Google Calendar, one calendar per topic (for example
+  Škola, Seberozvoj, Španělština). On **Plány** the phone's calendars are grouped by account (each Google account,
+  Samsung, phone only). You mark which calendars are topics and can switch off reading any calendar, or a whole
+  account with **Číst vše**: Elias then leaves it out everywhere, also from what goes to the AI. An event that is in
+  several calendars is shown and read only once. The screen shows the next seven days, each split into the plans of
+  every topic and the other events, every item with its calendar's color and its time. **Synchronizovat** asks the
+  phone to download the calendars of its online accounts now, and the screen updates by itself when they arrive.
+  Elias only reads the calendar.
+- **Briefings by topic.** The morning briefing reads today's events first, then the plans by topic. The evening
+  briefing reads tomorrow's plans by topic and says in one sentence which topics have nothing planned yet.
+- **Journal.** On **Deník** you write one entry per day: the thought of the day, what stuck with you and what to
+  improve, plus a step for the next day. It saves itself shortly after you stop typing. Writing before 4:00 still
+  belongs to the evening before. Older entries can be opened and edited.
+- **A step from the AI.** **Navrhni krok** sends only "na čem se zlepšit" and the weekly theme to the Claude API and
+  shows one concrete step. You decide whether to use it.
+- **Reminders.** When today's entry is missing, the evening briefing reminds you to write it, and the evening screen
+  has **Zapsat do deníku**. The next morning Elias reminds you of yesterday's step. Both parts are written on the phone
+  and added after the AI answer, so the journal never goes to the AI that writes briefings.
+
 ## Planned features
 
 - **Morning briefing:** weather in Pilsen, today's calendar events, the daily plan, two or three world headlines
@@ -135,7 +157,7 @@ midnight, Friday, Saturday and the late summer sunset.
 | Architecture | MVVM, layers `data` / `domain` / `ui` |
 | Dependency injection | Hilt (KSP) |
 | Networking | Ktor client (OkHttp engine) + kotlinx.serialization |
-| Storage | DataStore (speech rate, weekly schedule), Room 3 (source cache, run log) |
+| Storage | DataStore (speech rate, weekly schedule, calendar choices), Room 3 (source cache, run log, journal) |
 | Scheduling | AlarmManager (`setAlarmClock()`, exact alarms), WorkManager with Hilt workers (prefetch) |
 | Voice | Piper voice "Jirka" with sherpa-onnx (ONNX Runtime), Android `TextToSpeech` as the fallback, Media3 |
 | Time | `java.time`, zone `Europe/Prague`, injected `Clock` |
@@ -152,12 +174,12 @@ ui      Compose screens + ViewModels (one StateFlow of UI state per screen)
  ▼
 domain  pure Kotlin: models, plan rules, sun and sabbath, headline selection, the loader that combines sources,
         spoken Czech, briefing inputs, template builder, AI-or-template choice, voice check and playlist,
-        the briefing runner, schedule rules with the sabbath, the prefetch, the run log
+        the briefing runner, schedule rules with the sabbath, the prefetch, the run log, topics, the journal
  ▲
  │
 data    calendar provider, Open-Meteo, RSS, plan file (each returns a SourceResult: data or a failure reason),
         Claude API client, text-to-speech, playback service with audio focus, settings in DataStore,
-        Room (cache, run log), alarms and their receivers, the prefetch worker, notifications
+        Room (cache, run log, journal), alarms and their receivers, the prefetch worker, notifications
 ```
 
 `ui` and `data` both depend on `domain`, never the other way round. A full diagram comes with M7.
@@ -207,12 +229,16 @@ E.L.I.A.S. is built to keep personal data on the phone. This section grows with 
 - A weather request to Open-Meteo with the fixed coordinates of Pilsen. Nothing about you.
 - Requests for the RSS feeds of ČT24, iROZHLAS and Root.cz. Like any web request, they reveal your IP address.
 - **Only if an API key is set:** the briefing data goes to the Claude API (Anthropic): the date, the weather
-  summary, titles, times and places of today's and tomorrow's calendar events, today's part of the personal plan,
-  the chosen headlines and upcoming deadlines. The key is sent only as the `x-api-key` header and never logged.
+  summary, titles, times and places of today's and tomorrow's calendar events with the names of your topics, today's
+  part of the personal plan, the chosen headlines and upcoming deadlines. The key is sent only as the `x-api-key`
+  header and never logged.
+- **Only when you tap Navrhni krok in the journal:** the text of "na čem se zlepšit" and the weekly theme go to the
+  Claude API. Nothing else from the journal ever leaves the phone.
 
 **What stays on the phone:**
 
-- Calendar events are read on the device. Without an API key they never leave it. The app never writes to the calendar.
+- Calendar events are read on the device. Without an API key they never leave it, and calendars switched off on
+  Plány are never read at all. The app never writes to the calendar.
 - The personal plan is part of the app and is only read locally.
 - Speech is made on the phone: by the app's own voice (Oldřich 3.0) or by an offline voice of the phone. Elias never
   uses a voice that needs the network, so the briefing text does not go to a text-to-speech server. The voice model is
@@ -221,6 +247,9 @@ E.L.I.A.S. is built to keep personal data on the phone. This section grows with 
   playback ends, at the latest before the next briefing. The speech rate and the weekly schedule are stored in the
   app's private storage.
 - The last weather forecast and RSS feeds that worked are kept in the app's database. They are public data.
+- The journal is kept in the app's database and read out by the phone's offline voice. It is never part of a
+  briefing request to the AI and never written to the run log. Which calendars are read and which are topics is stored
+  in the app's private storage.
 - The run log keeps, for 30 days, when each briefing or prefetch ran, how each source did and how it ended. It never
   holds the briefing's text.
 - Android cloud backup and device-to-device transfer are disabled for this app.
@@ -274,6 +303,11 @@ Pauza, Stop). Od M4 pracuje i sám: v čase, který si
 nastavíš pro každý den, rozsvítí obrazovku a přečte večerní souhrn, před ranním souhrnem stáhne data, v pátek hodinu
 před západem slunce připomene sabat a v sobotu večer začne slovy „sabat skončil“. Podrobná specifikace je
 v [docs/SPEC.md](docs/SPEC.md).
+
+Od M4.5 čte plány na další dny podle témat z Google Kalendáře (každé téma má svůj kalendář) a ukáže je na obrazovce
+Plány. V aplikaci je deník (myšlenka dne, co mi utkvělo, na čem se zlepšit). AI z něj na požádání navrhne jeden
+konkrétní krok a dostane jen pole „na čem se zlepšit“ a téma týdne. Večer Elias připomene chybějící zápis, ráno
+včerejší krok.
 
 ## License
 

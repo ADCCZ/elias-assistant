@@ -3,6 +3,7 @@ package io.github.adccz.elias.testing
 import io.github.adccz.elias.core.time.PRAGUE_ZONE
 import io.github.adccz.elias.domain.calendar.CalendarEvent
 import io.github.adccz.elias.domain.calendar.CalendarRepository
+import io.github.adccz.elias.domain.journal.Journal
 import io.github.adccz.elias.domain.model.FailureReason
 import io.github.adccz.elias.domain.model.GeoLocation
 import io.github.adccz.elias.domain.model.SourceResult
@@ -45,6 +46,8 @@ object TestLoaders {
             sabbath = SabbathCalculator(sun),
             runLog = FakeRunLog(),
             clock = clock,
+            calendarSettings = FakeCalendarSettings(),
+            journal = Journal(InMemoryJournal(), clock),
         )
     }
 }

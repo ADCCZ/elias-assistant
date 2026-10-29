@@ -11,10 +11,13 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.adccz.elias.data.cache.SourceCache
 import io.github.adccz.elias.data.db.EliasDatabase
+import io.github.adccz.elias.data.db.JournalDao
+import io.github.adccz.elias.data.db.RoomJournalRepository
 import io.github.adccz.elias.data.db.RoomRunLog
 import io.github.adccz.elias.data.db.RoomSourceCache
 import io.github.adccz.elias.data.db.RunDao
 import io.github.adccz.elias.data.db.SourceCacheDao
+import io.github.adccz.elias.domain.journal.JournalRepository
 import io.github.adccz.elias.domain.log.RunLog
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +31,9 @@ abstract class DatabaseModule {
 
     @Binds
     abstract fun bindRunLog(impl: RoomRunLog): RunLog
+
+    @Binds
+    abstract fun bindJournalRepository(impl: RoomJournalRepository): JournalRepository
 
     companion object {
         @Provides
@@ -44,5 +50,8 @@ abstract class DatabaseModule {
 
         @Provides
         fun provideRunDao(database: EliasDatabase): RunDao = database.runDao()
+
+        @Provides
+        fun provideJournalDao(database: EliasDatabase): JournalDao = database.journalDao()
     }
 }

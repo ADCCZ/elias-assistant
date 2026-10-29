@@ -16,6 +16,7 @@ import io.github.adccz.elias.domain.plan.Phase
 import io.github.adccz.elias.domain.plan.WeeklyTheme
 import io.github.adccz.elias.domain.sun.SabbathCalculator
 import io.github.adccz.elias.domain.sun.SunCalculator
+import io.github.adccz.elias.domain.topics.Topic
 import io.github.adccz.elias.domain.weather.DayWeather
 import io.github.adccz.elias.domain.weather.WeatherCondition
 import java.time.LocalDate
@@ -39,6 +40,22 @@ object TestOverviews {
 
     fun allDay(title: String, date: LocalDate = day) =
         CalendarEvent(title, at(date, 0), at(date.plusDays(1), 0), true, null, "Svátky")
+
+    /** Fictional topics: each is a calendar on the phone (M4.5). */
+    val school = Topic(2, "Škola")
+    val growth = Topic(3, "Seberozvoj")
+    val spanish = Topic(4, "Španělština")
+
+    /** A plan in [topic]'s calendar: all-day without [hour], timed with it. */
+    fun plan(title: String, topic: Topic, hour: Int? = null, minute: Int = 0, date: LocalDate = day) = CalendarEvent(
+        title = title,
+        start = at(date, hour ?: 0, minute),
+        end = if (hour == null) at(date.plusDays(1), 0) else at(date, hour + 1, minute),
+        isAllDay = hour == null,
+        location = null,
+        calendarName = topic.name,
+        calendarId = topic.calendarId,
+    )
 
     val richWeather = DayWeather(
         date = day,
@@ -85,6 +102,7 @@ object TestOverviews {
         tomorrowEvents: List<CalendarEvent> = listOf(event("Cvičení", 10, date = day.plusDays(1))),
         dayPlan: DayPlan = richDayPlan,
         headlines: List<Headline> = richHeadlines,
+        topics: List<Topic> = emptyList(),
     ) = TodayOverview(
         loadedAt = now,
         sunTimes = sun.sunTimes(day),
@@ -98,6 +116,7 @@ object TestOverviews {
         ),
         newsFeeds = DefaultNewsFeeds.all.associateWith { SourceResult.Success(emptyList<Headline>(), loadedAt) },
         headlines = headlines,
+        topics = topics,
     )
 
     /** A day where every source failed. */

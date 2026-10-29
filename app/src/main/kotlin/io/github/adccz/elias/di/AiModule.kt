@@ -8,13 +8,18 @@ import dagger.hilt.components.SingletonComponent
 import io.github.adccz.elias.BuildConfig
 import io.github.adccz.elias.data.ai.ClaudeBriefingBuilder
 import io.github.adccz.elias.data.ai.ClaudeConfig
+import io.github.adccz.elias.data.ai.ClaudeStepSuggester
 import io.github.adccz.elias.domain.briefing.AiBriefingBuilder
+import io.github.adccz.elias.domain.journal.StepSuggester
 
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class AiModule {
     @Binds
     abstract fun bindAiBriefingBuilder(impl: ClaudeBriefingBuilder): AiBriefingBuilder
+
+    @Binds
+    abstract fun bindStepSuggester(impl: ClaudeStepSuggester): StepSuggester
 
     companion object {
         /** The key comes from local.properties via BuildConfig. It is empty when not set, and then AI is skipped. */

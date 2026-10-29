@@ -85,6 +85,7 @@
     <string name="scheduled_notification_text">E.L.I.A.S. čte večerní souhrn.</string>
     <!-- Hides the evening briefing screen; Elias goes on speaking. -->
     <string name="scheduled_close">Zavřít</string>
+    <string name="scheduled_open_journal">Zapsat do deníku</string>
     <string name="sabbath_reminder_title">Za hodinu začíná sabat</string>
     <!-- %1$s: sunset, "16:47". Read, not spoken, so a list is fine. -->
     <string name="sabbath_reminder_text">Západ slunce v %1$s.\n• Úklid\n• Starosti napsat na papír\n• Nedokončené věci do úkolů na neděli\n• Modlitba\n• Při západu vypnout telefon\n• Žalm 92</string>
@@ -214,4 +215,60 @@
     <string name="failure_server_error">Chyba serveru</string>
     <string name="failure_invalid_data">Data nejdou přečíst</string>
     <string name="failure_unknown">Neznámá chyba</string>
+
+    <!-- Plans screen (M4.5) -->
+    <string name="home_open_plans">Plány</string>
+    <string name="plans_title">Plány</string>
+    <string name="plans_intro">Plány na další dny píšeš do Google Kalendáře, každé téma má svůj kalendář. E.L.I.A.S. je ráno a večer přečte podle témat. Do kalendáře sám nezapisuje.</string>
+    <string name="plans_setup">Zatím nemáš žádné téma. Na calendar.google.com si založ kalendář pro každé téma (třeba Škola, Seberozvoj, Španělština). V aplikaci Google Kalendář ho zapni v synchronizaci a nahoře ho označ jako téma.</string>
+    <string name="plans_topics_title">Kalendáře a témata</string>
+    <string name="plans_topics_edit">Upravit</string>
+    <string name="plans_topics_done">Hotovo</string>
+    <string name="plans_topics_hint">Číst: vypnutý kalendář E.L.I.A.S. úplně vynechá, v souhrnech i tady. Téma: plány z kalendáře čte podle témat. Ostatní kalendáře jsou běžné události.</string>
+    <string name="plans_switch_read">Číst</string>
+    <string name="plans_switch_topic">Téma</string>
+    <string name="plans_topics_summary">Témata: %1$s</string>
+    <plurals name="plans_hidden_count">
+        <item quantity="one">Nečte %d kalendář</item>
+        <item quantity="few">Nečte %d kalendáře</item>
+        <item quantity="many">Nečte %d kalendáře</item>
+        <item quantity="other">Nečte %d kalendářů</item>
+    </plurals>
+    <string name="plans_switch_read_all">Číst vše</string>
+    <string name="plans_sync">Synchronizovat</string>
+    <string name="plans_sync_asking">Žádám telefon o stažení kalendářů…</string>
+    <string name="plans_sync_sent">Telefon stahuje kalendáře z tvých účtů. Plány se obnoví samy, jakmile změny dorazí. Nový kalendář s vypnutou synchronizací zapni v aplikaci Google Kalendář.</string>
+    <string name="plans_sync_nothing">V telefonu není žádný online účet s kalendářem, není co stahovat.</string>
+    <string name="plans_sync_failed">Synchronizaci se nepodařilo spustit. Zkus „Synchronizovat nyní“ v nastavení účtu.</string>
+    <string name="plans_account_phone">Jen v telefonu</string>
+    <string name="plans_account_samsung">Účet Samsung</string>
+    <string name="plans_main_calendar">Hlavní kalendář</string>
+    <string name="plans_calendar_not_shown">Nesynchronizuje se do telefonu</string>
+    <string name="plans_no_calendars">V telefonu není žádný kalendář.</string>
+    <string name="plans_today">Dnes, %1$s</string>
+    <string name="plans_tomorrow">Zítra, %1$s</string>
+    <string name="plans_nothing">Nic naplánováno</string>
+    <string name="plans_without_plan">Bez plánu: %1$s</string>
+    <string name="plans_other_events">Další události</string>
+
+    <!-- Journal screen (M4.5) -->
+    <string name="home_open_journal">Deník</string>
+    <string name="journal_title">Deník</string>
+    <string name="journal_note">Zápis před čtvrtou ráno patří ještě k předchozímu dni. Ukládá se sám a zůstává jen v telefonu.</string>
+    <string name="journal_today">Dnes, %1$s</string>
+    <string name="journal_thought">Myšlenka dne</string>
+    <string name="journal_stuck">Co mi utkvělo</string>
+    <string name="journal_improve">Na čem se zlepšit</string>
+    <string name="journal_step">Krok na další den</string>
+    <string name="journal_saved">Uloženo: %1$s v %2$s</string>
+    <string name="journal_back_to_today">Zpět na dnešek</string>
+    <string name="journal_history">Starší zápisy</string>
+    <string name="journal_history_empty">Zatím žádné starší zápisy.</string>
+    <string name="journal_suggest_step">Navrhni krok</string>
+    <string name="journal_suggest_note">Do AI (Claude) odejde jen pole „Na čem se zlepšit“ a téma týdne. Zbytek deníku zůstává v telefonu.</string>
+    <string name="journal_suggest_working">Vymýšlím krok…</string>
+    <string name="journal_suggestion">Návrh: %1$s</string>
+    <string name="journal_use_step">Použít</string>
+    <string name="journal_dismiss">Zavřít</string>
+    <string name="journal_step_failed">Krok se nepodařilo navrhnout: %1$s.</string>
 </resources>

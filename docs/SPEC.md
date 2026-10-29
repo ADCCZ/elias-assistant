@@ -151,6 +151,42 @@ Plán je obecný a řízený rozsahy dat, aby šel později vyměnit za jiný. O
 
 ---
 
+## Plány a deník (M4.5)
+
+**Plány podle témat**
+
+- Plány na další dny píšu do Google Kalendáře. Každé téma má vlastní kalendář (např. Škola, Seberozvoj, Španělština).
+  V Eliasovi označím, které kalendáře jsou témata. Ostatní kalendáře jsou běžné události.
+- U každého kalendáře jde v Plánech vypnout **čtení** (třeba Narozeniny nebo Svátky), u každého účtu jedním
+  přepínačem **Číst vše**. Kalendáře jsou seskupené podle účtů v telefonu (Google účty, účet Samsung, jen v telefonu).
+  Vypnutý kalendář Elias úplně vynechá: v souhrnech, v Plánech, na obrazovce Data i v datech pro AI. Nový kalendář se
+  čte, dokud ho nevypnu.
+- Stejná událost ve více kalendářích (stejný název a čas, třeba ve dvou rodinných kalendářích) se ukáže a přečte jen
+  jednou. Když je jedna z kopií v kalendáři tématu, zůstane ta.
+- Obrazovka **Plány** ukáže sedm dní dopředu, každý den seskupený podle témat. Každá položka má barvu svého kalendáře
+  a čas ve vlastním sloupci, témata a další události odděluje čára. Plány se píšou rovnou v Google Kalendáři, Elias do
+  kalendáře sám nezapisuje (žádné oprávnění `WRITE_CALENDAR`).
+- Tlačítko **Synchronizovat** požádá telefon, ať hned stáhne kalendáře z online účtů (jako „Synchronizovat nyní“
+  v nastavení účtu). Plány se obnoví samy, jakmile se kalendář v telefonu změní. Zapnout synchronizaci jednotlivého
+  kalendáře Elias neumí, to zůstává v aplikaci Google Kalendář.
+- Ranní souhrn: nejdřív události s časem, pak plány podle témat. Večerní souhrn: zítřek podle témat a jedna věcná věta,
+  když některé téma na zítřek nemá nic.
+
+**Deník**
+
+- Zápis se píše v aplikaci, jeden na den: **myšlenka dne**, **co mi utkvělo**, **na čem se zlepšit**. Zápis před
+  čtvrtou ráno patří ještě k předchozímu dni.
+- Obrazovka **Deník**: dnešní zápis a historie starších zápisů, které jdou otevřít a upravit.
+- **Krok od AI:** tlačítko „Navrhni krok“ pošle do AI jen pole „na čem se zlepšit“ a téma týdne. Myšlenka dne a co mi
+  utkvělo telefon nikdy neopustí. Navržený krok jde upravit.
+- **Večer:** když dnešní zápis chybí, večerní souhrn připomene, ať si ho zapíšu. Žádná další notifikace.
+- **Ráno:** ranní souhrn připomene včerejší krok (nebo „na čem se zlepšit“, když krok chybí).
+- Části souhrnu o deníku skládá šablona v telefonu a vkládají se až po odpovědi AI, stejně jako zprávy přes noc.
+  Obsah deníku se do AI pro souhrn nikdy neposílá.
+- Deník je jen v telefonu (Room, bez zálohy). Do logu běhů se nezapisuje.
+
+---
+
 ## Milníky
 
 Ke každému milníku: testy, aktualizace README a shrnutí pro mě.
@@ -169,6 +205,13 @@ Ke každému milníku: testy, aktualizace README a shrnutí pro mě.
 
 **M4 – Plánování:** předběžné stažení dat, automatický večerní souhrn (notifikace + přehrání), páteční připomínka sabatu, sobotní režim, znovunaplánování po restartu, obrazovka „Stav“ s oprávněními.
 ✅ Hotovo, když: večerní souhrn se sám spustí v nastavený čas i po restartu telefonu, v pátek a v sobotu platí pravidla sabatu.
+
+**M4.5 – Plány a deník:** plány na další dny podle témat z Google Kalendáře (kalendář pro každé téma), obrazovka
+„Plány“ na sedm dní dopředu, souhrny seskupené podle témat, deník v aplikaci (myšlenka dne, co mi utkvělo, na čem se
+zlepšit) s historií, krok navržený AI, večerní připomínka zápisu a ranní připomenutí včerejšího kroku.
+Podrobnosti v sekci [Plány a deník](#plány-a-deník-m45).
+✅ Hotovo, když: v Plánech vidím příští dny podle témat, Elias je ráno i večer čte po tématech, zapíšu deník, AI navrhne
+krok, večer mi Elias připomene chybějící zápis a ráno včerejší krok.
 
 **M5 – Zprávy přes noc:** NotificationListenerService, filtry, seskupení, Room, mazání po 48 h, whitelist aplikací, lokální šablona.
 ✅ Hotovo, když: ráno uslyším, kdo a kde mi v noci psal, bez obsahu zpráv a bez spamu ze skupin.
@@ -203,3 +246,13 @@ Ke každému milníku: testy, aktualizace README a shrnutí pro mě.
   24 hodin zpět.
 - **2026-10-29 (hlas):** Výchozí hlas je vlastní mužský offline hlas „Oldřich 3.0“ (Piper „Jirka“ přes sherpa-onnx,
   model přibalený v APK). Vestavěný Android `TextToSpeech` zůstává jako záloha a jde zvolit v Náhledu textu.
+- **2026-10-29 (M4.5):** Nový milník M4.5 „Plány a deník“ mezi M4 a M5 (sekce [Plány a deník](#plány-a-deník-m45)).
+  Plány podle témat se čtou z Google Kalendáře, kde má každé téma vlastní kalendář. Deník se píše v aplikaci. AI dostane
+  jen pole „na čem se zlepšit“ a téma týdne, a to jen po klepnutí na „Navrhni krok“.
+- **2026-10-29 (M4.5):** Výběr kalendářů ze sekce M7 je dřív: v Plánech jde u každého kalendáře vypnout čtení.
+  Vypnutý kalendář Elias nikde nečte a nemůže být téma.
+- **2026-10-29 (M4.5):** Stejná událost ve více kalendářích se ukáže a přečte jen jednou (přání uživatele).
+- **2026-10-29 (M4.5):** Po testu na telefonu: kalendáře v Plánech seskupené podle účtů s přepínačem „Číst vše“,
+  položky dnů vizuálně oddělené a bez tlačítka „Přidat do kalendáře“ (bylo zbytečné).
+- **2026-10-29 (M4.5):** V Plánech tlačítko „Synchronizovat“ a samočinné obnovení po změně kalendáře v telefonu
+  (přání uživatele).

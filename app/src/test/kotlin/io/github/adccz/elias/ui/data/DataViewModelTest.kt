@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import io.github.adccz.elias.core.time.PRAGUE_ZONE
 import io.github.adccz.elias.domain.calendar.CalendarEvent
 import io.github.adccz.elias.domain.calendar.CalendarRepository
+import io.github.adccz.elias.domain.journal.Journal
 import io.github.adccz.elias.domain.model.FailureReason
 import io.github.adccz.elias.domain.model.GeoLocation
 import io.github.adccz.elias.domain.model.SourceResult
@@ -17,7 +18,9 @@ import io.github.adccz.elias.domain.sun.SabbathCalculator
 import io.github.adccz.elias.domain.sun.SunCalculator
 import io.github.adccz.elias.domain.weather.WeatherForecast
 import io.github.adccz.elias.domain.weather.WeatherRepository
+import io.github.adccz.elias.testing.FakeCalendarSettings
 import io.github.adccz.elias.testing.FakeRunLog
+import io.github.adccz.elias.testing.InMemoryJournal
 import io.github.adccz.elias.testing.MainDispatcherExtension
 import java.time.Clock
 import java.time.Instant
@@ -78,6 +81,8 @@ class DataViewModelTest {
                 SabbathCalculator(sun),
                 FakeRunLog(),
                 clock,
+                FakeCalendarSettings(),
+                Journal(InMemoryJournal(), clock),
             )
         return DataViewModel(loader)
     }

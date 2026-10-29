@@ -143,4 +143,79 @@ class TemplateBriefingBuilderTest {
         assertTrue("Kalendář na zítřek se mi nepodařilo přečíst." in text) { text }
         assertTrue(text.endsWith("Dobrou noc, Oldo.")) { text }
     }
+
+    // Plans by topic (M4.5)
+
+    private val topics = listOf(TestOverviews.growth, TestOverviews.school, TestOverviews.spanish)
+
+    private fun BriefingText.section(kind: SectionKind) = sections.single { it.kind == kind }.text
+
+    @Test
+    fun `the morning reads plans by topic after the events`() {
+        val overview = TestOverviews.rich(
+            events = listOf(
+                TestOverviews.event("Zubař", 8),
+                TestOverviews.plan("Připravit referát", TestOverviews.school),
+                TestOverviews.plan("Přečíst kapitolu", TestOverviews.school, hour = 14, minute = 30),
+                TestOverviews.plan("Lekce pět.", TestOverviews.spanish),
+            ),
+            topics = topics,
+        )
+
+        assertEquals(
+            "V kalendáři máš dnes jednu událost. V osm: Zubař. Plány na dnešek. " +
+                "Škola: připravit referát a v půl třetí odpoledne přečíst kapitolu. Španělština: lekce pět.",
+            morning(overview).section(SectionKind.CALENDAR),
+        )
+    }
+
+    @Test
+    fun `a morning with plans only does not say the calendar is empty`() {
+        val overview = TestOverviews.rich(
+            events = listOf(TestOverviews.plan("Číst dvacet minut", TestOverviews.growth)),
+            topics = topics,
+        )
+
+        assertEquals(
+            "Plány na dnešek. Seberozvoj: číst dvacet minut.",
+            morning(overview).section(SectionKind.CALENDAR),
+        )
+    }
+
+    @Test
+    fun `a topic with many plans is shortened and points to the app`() {
+        val many = (1..5).map { TestOverviews.plan("Úkol $it", TestOverviews.school) }
+
+        val calendar = morning(TestOverviews.rich(events = many, topics = topics)).section(SectionKind.CALENDAR)
+
+        assertTrue(calendar.startsWith("Plány na dnešek. Škola: úkol 1, úkol 2 a úkol 3.")) { calendar }
+        assertTrue(calendar.endsWith("Další plány najdeš v aplikaci.")) { calendar }
+    }
+
+    @Test
+    fun `the evening reads tomorrow's plans and names the topics without a plan`() {
+        val tomorrow = TestOverviews.day.plusDays(1)
+        val overview = TestOverviews.rich(
+            tomorrowEvents = listOf(TestOverviews.plan("Odevzdat referát", TestOverviews.school, date = tomorrow)),
+            topics = topics,
+        )
+
+        val briefing = evening(overview)
+        val text = briefing.section(SectionKind.TOMORROW)
+
+        assertTrue(
+            text.startsWith(
+                "Zítra je středa osmadvacátého října. Plány na zítřek. Škola: odevzdat referát. " +
+                    "Bez plánu na zítřek: Seberozvoj a Španělština.",
+            ),
+        ) { text }
+        assertTrue(briefing.wordCount in BriefingLength.EVENING) { "${briefing.wordCount} words:\n${briefing.text}" }
+    }
+
+    @Test
+    fun `without topics the evening says nothing about plans`() {
+        val text = evening().section(SectionKind.TOMORROW)
+
+        assertFalse("Plány" in text || "Bez plánu" in text) { text }
+    }
 }

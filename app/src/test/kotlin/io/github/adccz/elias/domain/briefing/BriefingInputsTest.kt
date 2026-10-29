@@ -75,4 +75,34 @@ class BriefingInputsTest {
 
         assertEquals(listOf("a", "d", "e", "b"), picked.map { it.id })
     }
+
+    @Test
+    fun `plans in topic calendars are not counted as events`() {
+        val overview = TestOverviews.rich(
+            events = listOf(
+                TestOverviews.event("Přednáška", 9),
+                TestOverviews.plan("Lekce", TestOverviews.spanish, hour = 18),
+            ),
+            topics = listOf(TestOverviews.school, TestOverviews.spanish),
+        )
+
+        val input = BriefingInputs.morning(overview)
+
+        assertEquals(listOf("Přednáška"), input.events?.map { it.title })
+        assertEquals(
+            listOf(TopicPlanFacts("Španělština", listOf(PlanItemFacts("Lekce", "v šest večer")))),
+            input.topicPlans,
+        )
+    }
+
+    @Test
+    fun `the evening knows which topics have nothing for tomorrow, but only when the calendar was read`() {
+        val topics = listOf(TestOverviews.school, TestOverviews.spanish)
+
+        val loaded = BriefingInputs.evening(TestOverviews.rich(tomorrowEvents = emptyList(), topics = topics))
+        val failed = BriefingInputs.evening(TestOverviews.empty().copy(topics = topics))
+
+        assertEquals(listOf("Škola", "Španělština"), loaded.topicsWithoutPlansTomorrow)
+        assertEquals(emptyList<String>(), failed.topicsWithoutPlansTomorrow)
+    }
 }

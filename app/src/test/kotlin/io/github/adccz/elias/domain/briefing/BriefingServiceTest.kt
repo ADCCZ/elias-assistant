@@ -1,10 +1,13 @@
 package io.github.adccz.elias.domain.briefing
 
+import io.github.adccz.elias.domain.journal.JournalReminder
+import io.github.adccz.elias.domain.journal.JournalStatus
 import io.github.adccz.elias.testing.TestOverviews
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class BriefingServiceTest {
@@ -75,5 +78,61 @@ class BriefingServiceTest {
         assertEquals(AiFailureReason.DISABLED, result.aiFailure?.reason)
         assertEquals(0, ai.calls)
         assertFalse(result.briefing.text.isBlank())
+    }
+
+    // The journal (M4.5): added on the phone after the AI answer.
+
+    private fun withJournal(writtenToday: Boolean?, reminder: JournalReminder? = null) =
+        overview.copy(journal = JournalStatus(writtenToday, reminder))
+
+    @Test
+    fun `the morning adds yesterday's step after the plan, also to an AI text`() = runTest {
+        val service = BriefingService(template, FakeAi { AiBriefingResult.Success(aiText, usage) })
+
+        val result = service.morning(withJournal(true, JournalReminder("Přečti si před spaním deset stran.", true)))
+
+        assertEquals(BriefingSource.AI, result.source)
+        assertEquals(
+            listOf(SectionKind.GREETING_AND_WEATHER, SectionKind.JOURNAL_STEP),
+            result.briefing.spokenSections.map { it.kind },
+        )
+        assertEquals(
+            "Včera sis dal za krok: Přečti si před spaním deset stran.",
+            result.briefing.spokenSections[1].text,
+        )
+    }
+
+    @Test
+    fun `the journal step is spoken right after the plan`() = runTest {
+        val result = BriefingService(template, FakeAi { AiBriefingResult.Failure(AiFailureReason.DISABLED) })
+            .morning(withJournal(true, JournalReminder("Méně odkládat úkoly", false)))
+
+        val kinds = result.briefing.spokenSections.map { it.kind }
+        assertEquals(kinds.indexOf(SectionKind.PLAN) + 1, kinds.indexOf(SectionKind.JOURNAL_STEP))
+        assertTrue(
+            "Včera sis zapsal, na čem se chceš zlepšit: Méně odkládat úkoly." in result.briefing.text,
+        ) { result.briefing.text }
+    }
+
+    @Test
+    fun `the evening reminds of the journal only when today's entry is surely missing`() = runTest {
+        val service = BriefingService(template, FakeAi { AiBriefingResult.Failure(AiFailureReason.DISABLED) })
+
+        suspend fun kinds(writtenToday: Boolean?) =
+            service.evening(withJournal(writtenToday)).briefing.spokenSections.map { it.kind }
+
+        val missing = kinds(writtenToday = false)
+        assertEquals(missing.indexOf(SectionKind.GOOD_NIGHT) - 1, missing.indexOf(SectionKind.JOURNAL_REMINDER))
+        assertFalse(SectionKind.JOURNAL_REMINDER in kinds(writtenToday = true))
+        assertFalse(SectionKind.JOURNAL_REMINDER in kinds(writtenToday = null))
+    }
+
+    @Test
+    fun `a long journal text is not read out`() {
+        val long = List(40) { "slovo" }.joinToString(" ")
+
+        val section = template.journalStep(JournalReminder(long, isStep = false))
+
+        assertEquals("Včera sis do deníku zapsal, na čem se chceš zlepšit. Najdeš to v aplikaci.", section.text)
     }
 }
