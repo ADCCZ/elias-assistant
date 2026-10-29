@@ -214,4 +214,22 @@
     <string name="failure_server_error">Chyba serveru</string>
     <string name="failure_invalid_data">Data nejdou přečíst</string>
     <string name="failure_unknown">Neznámá chyba</string>
+
+    <!-- Plans screen (M4.5) -->
+    <string name="home_open_plans">Plány</string>
+    <string name="plans_title">Plány</string>
+    <string name="plans_intro">Plány na další dny píšeš do Google Kalendáře, každé téma má svůj kalendář. E.L.I.A.S. je ráno a večer přečte podle témat. Do kalendáře sám nezapisuje.</string>
+    <string name="plans_setup">Zatím nemáš žádné téma. Na calendar.google.com si založ kalendář pro každé téma (třeba Škola, Seberozvoj, Španělština). V aplikaci Google Kalendář ho zapni v synchronizaci a tady ho označ jako téma.</string>
+    <string name="plans_topics_title">Témata</string>
+    <string name="plans_topics_hint">Zapni kalendáře, které jsou témata. Ostatní kalendáře jsou běžné události.</string>
+    <string name="plans_calendar_not_shown">Události se do telefonu nesynchronizují. Zapni kalendář v aplikaci Google Kalendář.</string>
+    <string name="plans_no_calendars">V telefonu není žádný kalendář.</string>
+    <string name="plans_today">Dnes, %1$s</string>
+    <string name="plans_tomorrow">Zítra, %1$s</string>
+    <string name="plans_nothing">Nic naplánováno</string>
+    <string name="plans_without_plan">Bez plánu: %1$s</string>
+    <string name="plans_other_events">Další události</string>
+    <string name="plans_add">Přidat do kalendáře</string>
+    <string name="plans_calendar_app_missing">Kalendářová aplikace se nepodařila otevřít.</string>
+    <string name="plans_item_timed">%1$s %2$s</string>
 </resources>
