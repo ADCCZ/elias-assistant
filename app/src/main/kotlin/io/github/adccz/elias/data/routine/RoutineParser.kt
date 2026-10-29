@@ -3,6 +3,8 @@ package io.github.adccz.elias.data.routine
 import io.github.adccz.elias.domain.routine.Exercise
 import io.github.adccz.elias.domain.routine.ExerciseAmount
 import io.github.adccz.elias.domain.routine.ExerciseArea
+import io.github.adccz.elias.domain.routine.Recipe
+import io.github.adccz.elias.domain.routine.RecipeMeat
 import javax.inject.Inject
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -33,6 +35,30 @@ class RoutineParser @Inject constructor() {
         }
         if (name.isBlank() || description.isBlank()) throw InvalidRoutineException("Exercise $id has an empty text")
         return Exercise(id, area, name.trim(), description.trim(), amount, bothSides)
+    }
+
+    /** `recipes.json`. @throws InvalidRoutineException when the JSON or a value is wrong. */
+    fun parseRecipes(text: String): List<Recipe> {
+        val file = decode(text) { json.decodeFromString<RecipeFile>(it) }
+        checkSchema(file.schemaVersion)
+        checkUniqueIds(file.recipes.map { it.id })
+        return file.recipes.map { it.toRecipe() }
+    }
+
+    private fun RecipeEntry.toRecipe(): Recipe {
+        val meat = RecipeMeat.entries.firstOrNull { it.name == meat }
+            ?: throw InvalidRoutineException("Recipe $id: unknown meat $meat")
+        if (minutes <= 0 ||
+            servings <= 0
+        ) {
+            throw InvalidRoutineException("Recipe $id needs positive minutes and servings")
+        }
+        val ingredients = ingredients.map { it.trim() }.filter { it.isNotEmpty() }
+        val steps = steps.map { it.trim() }.filter { it.isNotEmpty() }
+        if (name.isBlank() || ingredients.isEmpty() || steps.isEmpty()) {
+            throw InvalidRoutineException("Recipe $id needs a name, ingredients and steps")
+        }
+        return Recipe(id, name.trim(), minutes, servings, meat, ingredients, steps)
     }
 
     private fun <T> decode(text: String, read: (String) -> T): T = try {
@@ -69,4 +95,18 @@ private class ExerciseEntry(
     val seconds: Int? = null,
     val times: Int? = null,
     val bothSides: Boolean = false,
+)
+
+@Serializable
+private class RecipeFile(val schemaVersion: Int, val recipes: List<RecipeEntry>)
+
+@Serializable
+private class RecipeEntry(
+    val id: String,
+    val name: String,
+    val minutes: Int,
+    val servings: Int,
+    val meat: String,
+    val ingredients: List<String>,
+    val steps: List<String>,
 )

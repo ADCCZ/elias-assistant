@@ -7,6 +7,8 @@ import io.github.adccz.elias.domain.model.FailureReason
 import io.github.adccz.elias.domain.model.SourceResult
 import io.github.adccz.elias.domain.routine.Exercise
 import io.github.adccz.elias.domain.routine.ExerciseRepository
+import io.github.adccz.elias.domain.routine.Recipe
+import io.github.adccz.elias.domain.routine.RecipeRepository
 import java.io.IOException
 import java.time.Clock
 import javax.inject.Inject
@@ -22,8 +24,11 @@ class AssetRoutineRepository @Inject constructor(
     private val parser: RoutineParser,
     private val clock: Clock,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : ExerciseRepository {
+) : ExerciseRepository,
+    RecipeRepository {
     override suspend fun exercises(): SourceResult<List<Exercise>> = load(EXERCISES, parser::parseExercises)
+
+    override suspend fun recipes(): SourceResult<List<Recipe>> = load(RECIPES, parser::parseRecipes)
 
     private suspend fun <T> load(fileName: String, parse: (String) -> T): SourceResult<T> = withContext(ioDispatcher) {
         try {
@@ -38,5 +43,6 @@ class AssetRoutineRepository @Inject constructor(
 
     private companion object {
         const val EXERCISES = "exercises.json"
+        const val RECIPES = "recipes.json"
     }
 }
