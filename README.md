@@ -122,7 +122,7 @@ midnight, Friday, Saturday and the late summer sunset.
 - **Plans by topic.** Plans for the next days are written in Google Calendar, one calendar per topic (for example
   Škola, Seberozvoj, Španělština). On **Plány** you mark which calendars are topics, and you can switch off reading
   any calendar of the account (birthdays, holidays): Elias then leaves it out everywhere, also from what goes to the
-  AI. The screen shows the next seven days, each split into the plans of every topic and the other events, and **Přidat do kalendáře** opens the calendar
+  AI. An event that is in several calendars is shown and read only once. The screen shows the next seven days, each split into the plans of every topic and the other events, and **Přidat do kalendáře** opens the calendar
   app on that day. Elias only reads the calendar.
 - **Briefings by topic.** The morning briefing reads today's events first, then the plans by topic. The evening
   briefing reads tomorrow's plans by topic and says in one sentence which topics have nothing planned yet.

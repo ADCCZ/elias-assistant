@@ -325,3 +325,11 @@ Format: **context** – what we had to decide, **decision**, **why**.
   picker stays at the top of the screen and collapses only on Hotovo, so a switch never moves under the finger.
 - **Why:** One filter makes the choice hold for the briefings, Plány, Data and the AI alike, with no place forgotten.
   Spec change recorded.
+
+## D46 – An event in several calendars is kept once (2026-10-29)
+- **Context:** The user's account has two family calendars, and the same event can be in both. The briefing would say
+  it twice.
+- **Decision:** `SelectedCalendars` keeps one event per title (ignoring case and extra spaces) and exact start and end.
+  The first copy keeps its place; a copy in a topic calendar takes it over, so a plan stays with its topic.
+- **Why:** The user's wish. Comparing the exact time keeps a repeated activity at another time (morning and evening
+  run) as two events, and doing it in the one filter applies it everywhere.

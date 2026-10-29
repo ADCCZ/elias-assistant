@@ -159,6 +159,8 @@ Plán je obecný a řízený rozsahy dat, aby šel později vyměnit za jiný. O
   V Eliasovi označím, které kalendáře jsou témata. Ostatní kalendáře jsou běžné události.
 - U každého kalendáře účtu jde v Plánech vypnout **čtení** (třeba Narozeniny nebo Svátky). Vypnutý kalendář Elias
   úplně vynechá: v souhrnech, v Plánech, na obrazovce Data i v datech pro AI. Nový kalendář se čte, dokud ho nevypnu.
+- Stejná událost ve více kalendářích (stejný název a čas, třeba ve dvou rodinných kalendářích) se ukáže a přečte jen
+  jednou. Když je jedna z kopií v kalendáři tématu, zůstane ta.
 - Obrazovka **Plány** ukáže sedm dní dopředu, každý den seskupený podle témat, a tlačítko, které otevře Google Kalendář
   s předvyplněným dnem. Elias do kalendáře sám nezapisuje (žádné oprávnění `WRITE_CALENDAR`).
 - Ranní souhrn: nejdřív události s časem, pak plány podle témat. Večerní souhrn: zítřek podle témat a jedna věcná věta,
@@ -243,3 +245,4 @@ krok, večer mi Elias připomene chybějící zápis a ráno včerejší krok.
   jen pole „na čem se zlepšit“ a téma týdne, a to jen po klepnutí na „Navrhni krok“.
 - **2026-10-29 (M4.5):** Výběr kalendářů ze sekce M7 je dřív: v Plánech jde u každého kalendáře vypnout čtení.
   Vypnutý kalendář Elias nikde nečte a nemůže být téma.
+- **2026-10-29 (M4.5):** Stejná událost ve více kalendářích se ukáže a přečte jen jednou (přání uživatele).
