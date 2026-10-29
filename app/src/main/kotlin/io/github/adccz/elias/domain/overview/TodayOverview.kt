@@ -7,6 +7,7 @@ import io.github.adccz.elias.domain.news.NewsFeed
 import io.github.adccz.elias.domain.plan.DayPlan
 import io.github.adccz.elias.domain.sun.SabbathWindow
 import io.github.adccz.elias.domain.sun.SunTimes
+import io.github.adccz.elias.domain.topics.Topic
 import io.github.adccz.elias.domain.weather.DayWeather
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -24,6 +25,8 @@ data class TodayOverview(
     val newsFeeds: Map<NewsFeed, SourceResult<List<Headline>>>,
     /** The headlines worth showing, picked from all feeds that loaded. */
     val headlines: List<Headline>,
+    /** The calendars the user marked as topics (M4.5), in speaking order. Empty when none are set. */
+    val topics: List<Topic> = emptyList(),
 )
 
 /** Today's part of the plan, with the plan's name, its validity and whether it is the fictional sample. */

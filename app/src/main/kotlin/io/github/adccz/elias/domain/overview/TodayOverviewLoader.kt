@@ -14,6 +14,9 @@ import io.github.adccz.elias.domain.plan.PlanRepository
 import io.github.adccz.elias.domain.plan.dayPlan
 import io.github.adccz.elias.domain.sun.SabbathCalculator
 import io.github.adccz.elias.domain.sun.SunCalculator
+import io.github.adccz.elias.domain.topics.Topic
+import io.github.adccz.elias.domain.topics.TopicSettingsRepository
+import io.github.adccz.elias.domain.topics.Topics
 import io.github.adccz.elias.domain.weather.WeatherRepository
 import io.github.adccz.elias.domain.weather.dayWeather
 import java.time.Clock
@@ -26,6 +29,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 
 /**
  * Loads all sources at the same time and puts the results together.
@@ -42,6 +46,7 @@ class TodayOverviewLoader @Inject constructor(
     private val sabbath: SabbathCalculator,
     private val runLog: RunLog,
     private val clock: Clock,
+    private val topicSettings: TopicSettingsRepository,
 ) {
     suspend fun load(): TodayOverview = coroutineScope {
         val now = ZonedDateTime.now(clock)
@@ -70,6 +75,7 @@ class TodayOverviewLoader @Inject constructor(
                 )
             }
         }
+        val topicsResult = async { loadTopics() }
         val newsResults = DefaultNewsFeeds.all.map { feed -> async { feed to guarded { news.headlines(feed) } } }
 
         val newsFeeds = newsResults.awaitAll().toMap()
@@ -89,7 +95,25 @@ class TodayOverviewLoader @Inject constructor(
                 now.toInstant(),
                 headlineWindow(lastBriefingAt(), now.toInstant()),
             ),
+            topics = topicsResult.await(),
         )
+    }
+
+    /**
+     * The calendars the user marked as topics, with their current names. Without topics, or when the calendars
+     * cannot be listed, the briefing simply has no plans by topic.
+     */
+    private suspend fun loadTopics(): List<Topic> {
+        val ids = try {
+            topicSettings.topicCalendarIds.first()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            emptySet()
+        }
+        if (ids.isEmpty()) return emptyList()
+        val calendars = guarded { calendar.calendars() } as? SourceResult.Success ?: return emptyList()
+        return Topics.resolve(calendars.data, ids)
     }
 
     /** When the last briefing played. A broken log only means the full day of headlines. */

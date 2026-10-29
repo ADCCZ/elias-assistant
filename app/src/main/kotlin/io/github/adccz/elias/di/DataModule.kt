@@ -7,10 +7,12 @@ import dagger.hilt.components.SingletonComponent
 import io.github.adccz.elias.data.calendar.ContentResolverCalendarRepository
 import io.github.adccz.elias.data.news.RssNewsRepository
 import io.github.adccz.elias.data.plan.AssetPlanRepository
+import io.github.adccz.elias.data.settings.DataStoreTopicSettingsRepository
 import io.github.adccz.elias.data.weather.OpenMeteoWeatherRepository
 import io.github.adccz.elias.domain.calendar.CalendarRepository
 import io.github.adccz.elias.domain.news.NewsRepository
 import io.github.adccz.elias.domain.plan.PlanRepository
+import io.github.adccz.elias.domain.topics.TopicSettingsRepository
 import io.github.adccz.elias.domain.weather.WeatherRepository
 
 /** Tells Hilt which data-layer class implements each domain interface. */
@@ -28,4 +30,7 @@ abstract class DataModule {
 
     @Binds
     abstract fun bindCalendarRepository(impl: ContentResolverCalendarRepository): CalendarRepository
+
+    @Binds
+    abstract fun bindTopicSettingsRepository(impl: DataStoreTopicSettingsRepository): TopicSettingsRepository
 }

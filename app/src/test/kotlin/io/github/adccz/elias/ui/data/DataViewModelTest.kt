@@ -18,6 +18,7 @@ import io.github.adccz.elias.domain.sun.SunCalculator
 import io.github.adccz.elias.domain.weather.WeatherForecast
 import io.github.adccz.elias.domain.weather.WeatherRepository
 import io.github.adccz.elias.testing.FakeRunLog
+import io.github.adccz.elias.testing.FakeTopicSettings
 import io.github.adccz.elias.testing.MainDispatcherExtension
 import java.time.Clock
 import java.time.Instant
@@ -78,6 +79,7 @@ class DataViewModelTest {
                 SabbathCalculator(sun),
                 FakeRunLog(),
                 clock,
+                FakeTopicSettings(),
             )
         return DataViewModel(loader)
     }

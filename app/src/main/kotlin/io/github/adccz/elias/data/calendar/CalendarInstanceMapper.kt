@@ -1,6 +1,7 @@
 package io.github.adccz.elias.data.calendar
 
 import io.github.adccz.elias.domain.calendar.CalendarEvent
+import io.github.adccz.elias.domain.calendar.PhoneCalendar
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -17,6 +18,17 @@ data class CalendarInstanceRow(
     val calendarName: String?,
     val isCanceled: Boolean,
     val isDeclinedByMe: Boolean,
+    val calendarId: Long? = null,
+)
+
+/** One row of `CalendarContract.Calendars`, copied out of the database cursor without any interpretation. */
+data class CalendarRow(
+    val id: Long,
+    val displayName: String?,
+    val accountName: String?,
+    val color: Int?,
+    val isVisible: Boolean,
+    val isSynced: Boolean,
 )
 
 /**
@@ -67,7 +79,25 @@ class CalendarInstanceMapper @Inject constructor() {
         isAllDay = isAllDay,
         location = location?.trim()?.ifEmpty { null },
         calendarName = calendarName,
+        calendarId = calendarId,
     )
+
+    /**
+     * Turns calendar rows into [PhoneCalendar]s. A calendar without a name is called after its account, and calendars
+     * whose events do not reach the phone (hidden or not synced) are kept but marked, so the user can be told why.
+     */
+    fun calendars(rows: List<CalendarRow>): List<PhoneCalendar> = rows.mapNotNull { row ->
+        val name = row.displayName?.trim()?.ifEmpty { null } ?: row.accountName?.trim()?.ifEmpty { null }
+        name?.let {
+            PhoneCalendar(
+                id = row.id,
+                name = it,
+                accountName = row.accountName,
+                color = row.color,
+                isShown = row.isVisible && row.isSynced,
+            )
+        }
+    }
 
     private fun utcDate(millis: Long): LocalDate = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
 }

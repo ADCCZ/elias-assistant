@@ -3,6 +3,7 @@ package io.github.adccz.elias.domain.overview
 import io.github.adccz.elias.core.time.PRAGUE_ZONE
 import io.github.adccz.elias.domain.calendar.CalendarEvent
 import io.github.adccz.elias.domain.calendar.CalendarRepository
+import io.github.adccz.elias.domain.calendar.PhoneCalendar
 import io.github.adccz.elias.domain.log.RunKind
 import io.github.adccz.elias.domain.log.RunOutcome
 import io.github.adccz.elias.domain.log.RunRecord
@@ -18,11 +19,13 @@ import io.github.adccz.elias.domain.plan.Plan
 import io.github.adccz.elias.domain.plan.PlanRepository
 import io.github.adccz.elias.domain.sun.SabbathCalculator
 import io.github.adccz.elias.domain.sun.SunCalculator
+import io.github.adccz.elias.domain.topics.Topic
 import io.github.adccz.elias.domain.weather.HourlyWeather
 import io.github.adccz.elias.domain.weather.WeatherCondition
 import io.github.adccz.elias.domain.weather.WeatherForecast
 import io.github.adccz.elias.domain.weather.WeatherRepository
 import io.github.adccz.elias.testing.FakeRunLog
+import io.github.adccz.elias.testing.FakeTopicSettings
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -119,7 +122,33 @@ class TodayOverviewLoaderTest {
         plans: PlanRepository = workingPlans,
         news: NewsRepository = workingNews,
         runLog: FakeRunLog = FakeRunLog(),
-    ) = TodayOverviewLoader(calendar, weather, plans, news, sun, SabbathCalculator(sun), runLog, clock)
+        topicSettings: FakeTopicSettings = FakeTopicSettings(),
+    ) = TodayOverviewLoader(calendar, weather, plans, news, sun, SabbathCalculator(sun), runLog, clock, topicSettings)
+
+    @Test
+    fun `names the topics from the phone's calendars`() = runTest {
+        val calendarWithTopics = object : CalendarRepository by workingCalendar {
+            override suspend fun calendars() = SourceResult.Success(
+                listOf(
+                    PhoneCalendar(1, "Osobní", "olda@example.com", null, isShown = true),
+                    PhoneCalendar(2, "Škola", "olda@example.com", null, isShown = true),
+                    PhoneCalendar(3, "Seberozvoj", "olda@example.com", null, isShown = true),
+                ),
+                clock.instant(),
+            )
+        }
+
+        val overview = loader(calendarWithTopics, topicSettings = FakeTopicSettings(setOf(2L, 3L, 99L))).load()
+
+        assertEquals(listOf(Topic(3, "Seberozvoj"), Topic(2, "Škola")), overview.topics)
+    }
+
+    @Test
+    fun `has no topics when the calendars cannot be listed`() = runTest {
+        val overview = loader(topicSettings = FakeTopicSettings(setOf(2L))).load()
+
+        assertEquals(emptyList<Topic>(), overview.topics)
+    }
 
     @Test
     fun `puts all sources together for today`() = runTest {
