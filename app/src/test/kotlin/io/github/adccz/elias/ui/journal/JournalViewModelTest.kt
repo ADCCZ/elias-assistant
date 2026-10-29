@@ -1,9 +1,17 @@
 package io.github.adccz.elias.ui.journal
 
 import io.github.adccz.elias.core.time.PRAGUE_ZONE
+import io.github.adccz.elias.domain.briefing.AiFailureReason
 import io.github.adccz.elias.domain.journal.Journal
 import io.github.adccz.elias.domain.journal.JournalEntry
 import io.github.adccz.elias.domain.journal.JournalText
+import io.github.adccz.elias.domain.journal.StepRequest
+import io.github.adccz.elias.domain.journal.StepResult
+import io.github.adccz.elias.domain.journal.StepSuggester
+import io.github.adccz.elias.domain.journal.SuggestStep
+import io.github.adccz.elias.domain.model.FailureReason
+import io.github.adccz.elias.domain.model.SourceResult
+import io.github.adccz.elias.domain.plan.PlanRepository
 import io.github.adccz.elias.testing.InMemoryJournal
 import io.github.adccz.elias.testing.MainDispatcherExtension
 import java.time.Clock
@@ -41,8 +49,21 @@ class JournalViewModelTest {
         JournalEntry(monday, JournalText(thought = "Pondělní myšlenka"), Instant.EPOCH),
     )
 
+    /** Answers every step request with [stepAnswer] and remembers what it was asked. */
+    private var stepAnswer: StepResult = StepResult.Success("Přečti si před spaním deset stran.")
+    private val stepRequests = mutableListOf<StepRequest>()
+    private val suggester = object : StepSuggester {
+        override suspend fun suggest(request: StepRequest): StepResult {
+            stepRequests += request
+            return stepAnswer
+        }
+    }
+    private val noPlan = object : PlanRepository {
+        override suspend fun loadPlan() = SourceResult.Failure(FailureReason.INVALID_DATA)
+    }
+
     private fun TestScope.viewModel(): JournalViewModel {
-        val viewModel = JournalViewModel(Journal(repository, clock), appScope = this)
+        val viewModel = JournalViewModel(Journal(repository, clock), SuggestStep(suggester, noPlan), appScope = this)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
         return viewModel
     }
@@ -102,5 +123,49 @@ class JournalViewModelTest {
         assertEquals(monday, state.editingDate)
         assertEquals("Pondělní myšlenka", state.entry?.text?.thought)
         assertEquals(listOf(thursday), state.history.map { it.date })
+    }
+
+    @Test
+    fun `suggests a step from what to improve and shows it without changing the entry`() = runTest {
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        viewModel.suggestStep(thursday, "Méně odkládat úkoly")
+        advanceUntilIdle()
+
+        assertEquals(
+            StepUiState.Suggested(thursday, "Přečti si před spaním deset stran."),
+            viewModel.uiState.value.step,
+        )
+        assertEquals(listOf(StepRequest("Méně odkládat úkoly", null, null)), stepRequests)
+        assertNull(repository.stored(thursday))
+
+        viewModel.dismissStep()
+        advanceUntilIdle()
+        assertEquals(StepUiState.Idle, viewModel.uiState.value.step)
+    }
+
+    @Test
+    fun `explains why no step came`() = runTest {
+        stepAnswer = StepResult.Failure(AiFailureReason.NO_CREDIT)
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        viewModel.suggestStep(thursday, "Číst víc")
+        advanceUntilIdle()
+
+        assertEquals(StepUiState.Failed(AiFailureReason.NO_CREDIT), viewModel.uiState.value.step)
+    }
+
+    @Test
+    fun `asks nothing without text to improve`() = runTest {
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        viewModel.suggestStep(thursday, "  ")
+        advanceUntilIdle()
+
+        assertEquals(StepUiState.Idle, viewModel.uiState.value.step)
+        assertEquals(emptyList<StepRequest>(), stepRequests)
     }
 }

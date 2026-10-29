@@ -246,4 +246,11 @@
     <string name="journal_back_to_today">Zpět na dnešek</string>
     <string name="journal_history">Starší zápisy</string>
     <string name="journal_history_empty">Zatím žádné starší zápisy.</string>
+    <string name="journal_suggest_step">Navrhni krok</string>
+    <string name="journal_suggest_note">Do AI (Claude) odejde jen pole „Na čem se zlepšit“ a téma týdne. Zbytek deníku zůstává v telefonu.</string>
+    <string name="journal_suggest_working">Vymýšlím krok…</string>
+    <string name="journal_suggestion">Návrh: %1$s</string>
+    <string name="journal_use_step">Použít</string>
+    <string name="journal_dismiss">Zavřít</string>
+    <string name="journal_step_failed">Krok se nepodařilo navrhnout: %1$s.</string>
 </resources>

@@ -2,14 +2,36 @@ package io.github.adccz.elias.data.ai
 
 import io.github.adccz.elias.domain.briefing.EveningInput
 import io.github.adccz.elias.domain.briefing.MorningInput
+import io.github.adccz.elias.domain.journal.StepRequest
 import kotlinx.serialization.json.Json
 
 /**
  * What Elias tells the model. The prompts are Czech because the output is Czech.
  *
  * Overnight messages (M5) are never part of these prompts: names of people stay on the phone.
+ * The journal is never part of the briefing prompts. Only "na čem se zlepšit" goes into the step prompt, and only when
+ * the user asks for a step.
  */
 internal object ClaudePrompts {
+    val STEP_SYSTEM = """
+        Jsi Elias, osobní asistent. Uživatel si vede deník a napsal, na čem se chce zlepšit.
+
+        Tvůj úkol: navrhni jeden konkrétní malý krok, který může udělat hned další den.
+
+        Pravidla:
+        1. Jeden krok, jedna věta, nejvýš pětadvacet slov. Piš ho jako pokyn v rozkazovacím způsobu, bez oslovení.
+        2. Krok musí jít udělat během jednoho dne a musí být jasné, kdy je hotový.
+        3. Vycházej jen ze vstupu. Nevymýšlej jména, místa ani okolnosti, které ve vstupu nejsou.
+        4. Když je ve vstupu téma týdne, můžeš krok s ním propojit, ale nemusíš.
+        5. Nechval, nemoralizuj, nehodnoť. Žádné odrážky, uvozovky, emoji ani vykřičníky.
+        6. Odpověz jen JSON objektem podle schématu.
+    """.trimIndent()
+
+    fun step(request: StepRequest): String {
+        val data = StepData(request.toImprove, request.themeTitle, request.themeTask)
+        return "Na čem se chci zlepšit a téma týdne:\n" + json.encodeToString(StepData.serializer(), data)
+    }
+
     val SYSTEM = """
         Jsi Elias, osobní hlasový asistent. Mluvíš s uživatelem jménem Olda a oslovuješ ho „Oldo“.
 

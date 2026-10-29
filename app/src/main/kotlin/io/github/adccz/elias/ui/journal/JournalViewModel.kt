@@ -4,9 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.adccz.elias.core.coroutines.ApplicationScope
+import io.github.adccz.elias.domain.briefing.AiFailureReason
 import io.github.adccz.elias.domain.journal.Journal
 import io.github.adccz.elias.domain.journal.JournalEntry
 import io.github.adccz.elias.domain.journal.JournalText
+import io.github.adccz.elias.domain.journal.StepResult
+import io.github.adccz.elias.domain.journal.SuggestStep
 import java.time.LocalDate
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -32,7 +35,19 @@ data class JournalUiState(
     val isLoaded: Boolean = false,
     val entry: JournalEntry? = null,
     val history: List<JournalEntry> = emptyList(),
+    val step: StepUiState = StepUiState.Idle,
 )
+
+/** The step the AI suggests. It is only shown: the user decides whether to use it. */
+sealed interface StepUiState {
+    data object Idle : StepUiState
+
+    data object Working : StepUiState
+
+    data class Suggested(val date: LocalDate, val step: String) : StepUiState
+
+    data class Failed(val reason: AiFailureReason) : StepUiState
+}
 
 /**
  * Lets the user write today's entry and open older ones. The text being typed stays in the screen (Compose state is
@@ -44,22 +59,26 @@ data class JournalUiState(
 @HiltViewModel
 class JournalViewModel @Inject constructor(
     private val journal: Journal,
+    private val stepSuggestion: SuggestStep,
     @param:ApplicationScope private val appScope: CoroutineScope,
 ) : ViewModel() {
     private val today = journal.today()
     private val editingDate = MutableStateFlow(today)
+    private val step = MutableStateFlow<StepUiState>(StepUiState.Idle)
 
     val uiState: StateFlow<JournalUiState> = combine(
         editingDate.flatMapLatest { date -> journal.entryOn(date).map { date to it } },
         journal.entries,
         editingDate,
-    ) { (loadedDate, entry), entries, editing ->
+        step,
+    ) { (loadedDate, entry), entries, editing, step ->
         JournalUiState(
             today = today,
             editingDate = editing,
             isLoaded = loadedDate == editing,
             entry = entry.takeIf { loadedDate == editing },
             history = entries.filter { it.date != editing },
+            step = step,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), JournalUiState(today, today))
 
@@ -87,7 +106,28 @@ class JournalViewModel @Inject constructor(
     /** Opens the entry of [date] (an older day from the history, or today again). */
     fun open(date: LocalDate) {
         saveNow()
+        step.value = StepUiState.Idle
         editingDate.value = date
+    }
+
+    /**
+     * Asks the AI for a step towards [toImprove]. Only this text and the weekly theme leave the phone, and only
+     * because the user tapped the button.
+     */
+    fun suggestStep(date: LocalDate, toImprove: String) {
+        if (step.value == StepUiState.Working || toImprove.isBlank()) return
+        step.value = StepUiState.Working
+        viewModelScope.launch {
+            step.value = when (val result = stepSuggestion(date, toImprove)) {
+                is StepResult.Success -> StepUiState.Suggested(date, result.step)
+                is StepResult.Failure -> StepUiState.Failed(result.reason)
+            }
+        }
+    }
+
+    /** The suggestion was used or closed. */
+    fun dismissStep() {
+        step.value = StepUiState.Idle
     }
 
     override fun onCleared() {

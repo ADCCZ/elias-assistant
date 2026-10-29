@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -43,6 +45,7 @@ import io.github.adccz.elias.core.time.PRAGUE_ZONE
 import io.github.adccz.elias.domain.journal.JournalEntry
 import io.github.adccz.elias.domain.journal.JournalText
 import io.github.adccz.elias.ui.common.CzechFormat
+import io.github.adccz.elias.ui.common.messageRes
 import io.github.adccz.elias.ui.theme.EliasTheme
 import java.time.Instant
 import java.time.LocalDate
@@ -60,6 +63,8 @@ fun JournalRoute(onBack: () -> Unit, viewModel: JournalViewModel = hiltViewModel
         },
         onTextChange = viewModel::onTextChange,
         onOpen = viewModel::open,
+        onSuggestStep = viewModel::suggestStep,
+        onDismissStep = viewModel::dismissStep,
     )
 }
 
@@ -71,8 +76,9 @@ fun JournalScreen(
     onBack: () -> Unit,
     onTextChange: (LocalDate, JournalText) -> Unit,
     onOpen: (LocalDate) -> Unit,
+    onSuggestStep: (LocalDate, String) -> Unit,
+    onDismissStep: () -> Unit,
     modifier: Modifier = Modifier,
-    stepTools: @Composable (date: LocalDate, text: JournalText, setStep: (String) -> Unit) -> Unit = { _, _, _ -> },
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -107,7 +113,14 @@ fun JournalScreen(
             }
             item(key = "editor-${uiState.editingDate}") {
                 if (uiState.isLoaded) {
-                    JournalEditor(uiState.editingDate, uiState.entry, onTextChange, stepTools)
+                    JournalEditor(
+                        date = uiState.editingDate,
+                        saved = uiState.entry,
+                        step = uiState.step,
+                        onTextChange = onTextChange,
+                        onSuggestStep = onSuggestStep,
+                        onDismissStep = onDismissStep,
+                    )
                 } else {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
@@ -145,8 +158,10 @@ private val JournalTextSaver = listSaver<JournalText, String>(
 private fun JournalEditor(
     date: LocalDate,
     saved: JournalEntry?,
+    step: StepUiState,
     onTextChange: (LocalDate, JournalText) -> Unit,
-    stepTools: @Composable (date: LocalDate, text: JournalText, setStep: (String) -> Unit) -> Unit,
+    onSuggestStep: (LocalDate, String) -> Unit,
+    onDismissStep: () -> Unit,
 ) {
     var text by rememberSaveable(date, stateSaver = JournalTextSaver) { mutableStateOf(saved?.text ?: JournalText()) }
     fun change(new: JournalText) {
@@ -158,12 +173,62 @@ private fun JournalEditor(
         JournalField(text.stuckWithMe, R.string.journal_stuck) { change(text.copy(stuckWithMe = it)) }
         JournalField(text.toImprove, R.string.journal_improve) { change(text.copy(toImprove = it)) }
         JournalField(text.step, R.string.journal_step) { change(text.copy(step = it)) }
-        stepTools(date, text) { step -> change(text.copy(step = step)) }
+        StepTools(
+            step = step,
+            canSuggest = text.toImprove.isNotBlank(),
+            onSuggest = { onSuggestStep(date, text.toImprove) },
+            onUse = { suggested ->
+                change(text.copy(step = suggested))
+                onDismissStep()
+            },
+            onDismiss = onDismissStep,
+        )
         saved?.let {
             Text(
                 savedText(it.updatedAt),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+/** "Navrhni krok", what leaves the phone, and the suggestion with Použít and Zavřít. */
+@Composable
+private fun StepTools(
+    step: StepUiState,
+    canSuggest: Boolean,
+    onSuggest: () -> Unit,
+    onUse: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        FilledTonalButton(onClick = onSuggest, enabled = canSuggest && step != StepUiState.Working) {
+            Text(stringResource(R.string.journal_suggest_step))
+        }
+        Text(
+            stringResource(R.string.journal_suggest_note),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        when (step) {
+            StepUiState.Idle -> Unit
+
+            StepUiState.Working -> Text(stringResource(R.string.journal_suggest_working))
+
+            is StepUiState.Suggested -> OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text(stringResource(R.string.journal_suggestion, step.step))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(onClick = onDismiss) { Text(stringResource(R.string.journal_dismiss)) }
+                        TextButton(onClick = { onUse(step.step) }) { Text(stringResource(R.string.journal_use_step)) }
+                    }
+                }
+            }
+
+            is StepUiState.Failed -> Text(
+                stringResource(R.string.journal_step_failed, stringResource(step.reason.messageRes())),
+                color = MaterialTheme.colorScheme.error,
             )
         }
     }
@@ -229,6 +294,7 @@ private fun JournalScreenPreview() {
                     JournalText(thought = "Ticho pomáhá víc než rychlá odpověď.", toImprove = "Méně odkládat úkoly"),
                     Instant.parse("2026-10-29T21:15:00Z"),
                 ),
+                step = StepUiState.Suggested(today, "Zítra začni nejtěžším úkolem hned ráno a dokonči ho do oběda."),
                 history = listOf(
                     JournalEntry(
                         today.minusDays(3),
@@ -240,6 +306,8 @@ private fun JournalScreenPreview() {
             onBack = {},
             onTextChange = { _, _ -> },
             onOpen = {},
+            onSuggestStep = { _, _ -> },
+            onDismissStep = {},
         )
     }
 }
