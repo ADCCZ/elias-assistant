@@ -15,8 +15,8 @@ what is still left to do and what is coming tomorrow. Then it goes quiet.
 | M0 – Foundation | Project, Compose, Hilt, CI, docs | Done |
 | M1 – Data sources | Calendar, weather, RSS, personal plan, sunset, Data screen | Done |
 | M2 – Briefing | Spoken Czech, template builder, Claude API builder with fallback, preview screen | Done |
-| M3 – Voice | Offline Czech speech, playback service with notification controls, audio focus, speech rate | In review |
-| M4 – Scheduling | Exact alarms, prefetch and cache, sabbath rules, status screen | Planned |
+| M3 – Voice | Offline Czech speech, playback service with notification controls, audio focus, speech rate | Done |
+| M4 – Scheduling | Times per day, evening briefing on its own, prefetch and cache, sabbath rules, status screen | In review |
 | M5 – Overnight messages | Notification listener (metadata only) | Planned |
 | M6 – Alarm clock | Alarm that always rings, then Elias speaks | Planned |
 | M7 – Polish | Settings, widget, demo mode, run log, screenshots | Planned |
@@ -76,15 +76,40 @@ written fresh from today's data) or from **Náhled textu** (**Přehrát** reads 
   for good (you start music), Elias stops. ExoPlayer's own audio focus handling would stop music for good, so
   E.L.I.A.S. requests transient focus itself (`AudioFocusPolicy`, unit-tested).
 - **Speech rate** from 0.7× to 1.5× on **Náhled textu**, stored with DataStore. The estimated duration follows it.
-- **No notification permission needed:** media notifications are exempt from Android 13's notification permission.
+- **No notification permission needed for playback:** media notifications are exempt from Android 13's
+  notification permission.
 
-Scheduled briefings (M4) will play on the alarm stream, the only one Android 17 lets an app play from the background
-without a tap.
+## Scheduling (M4)
 
-**Known limitation (Android 17):** the voice clips are prepared before the playback service starts. If you leave the
-app while it says **Připravuji…** (about five seconds), the service starts from the background without "while in use"
-access, and Android 17 would play the briefing muted. The phone test on Android 16 logged exactly this warning
-(`AudioHardening … would be muted`). M4 will start the service first and prepare the briefing inside it.
+E.L.I.A.S. now works on its own.
+
+- **Your times, for each day.** On **Časy** every day of the week has a morning and an evening time, or none
+  (7:00 and 22:00 at first). Weather and headlines are downloaded 30 minutes before the morning time (from M6 the
+  alarm will ring at it). At the evening time the evening briefing starts by itself.
+- **The evening briefing lights up the screen.** Like an alarm clock, a full-screen notification opens the evening
+  briefing screen over the lock screen and Elias starts speaking. The screen closes itself at the end. While you are
+  using the phone, or without the full-screen permission, the briefing plays as sound only.
+- **On time, also after a restart.** The evening briefing is an alarm clock alarm (`setAlarmClock`), the prefetch
+  and the sabbath reminder are exact alarms (`USE_EXACT_ALARM`). They are planned again after a restart, a change of
+  the time or the time zone and an app update, and nothing plays then. A briefing that would come more than
+  15 minutes late is skipped.
+- **Sabbath rules.** No evening briefing on Friday and no prefetch for Saturday morning. An hour before Friday's
+  sunset a quiet notification lists what to do before the sabbath. On Saturday the evening briefing never starts
+  before sunset and opens with "sabat skončil": a question about the day's study and tomorrow's review of goals.
+- **The playback service prepares the briefing itself.** A tap or an alarm starts it in the foreground at once. It
+  plays a silent loop titled **Připravuji…** while the briefing is written and spoken into clips. So a briefing keeps
+  going when you leave the app, which Android 17 would otherwise mute (found in the M3 phone test).
+- **Cache.** The last weather forecast and each RSS feed that worked are kept in a Room database. When a source fails,
+  the copy is used and the Data screen says from when.
+- **Headlines since the last briefing**, at least 6 and at most 24 hours back, so a replay still has news.
+- **Run log.** Every run records when it started, who started it, how each source did, who wrote the briefing and how
+  it ended. Never the briefing's text. The status screen shows the latest run, the Log screen comes with M7.
+- **Stav** shows what Elias needs: calendar access, notifications, exact alarms, no battery optimization, the
+  full-screen notification and the Czech voice, each problem with **Opravit**. It also lists the next runs, the last
+  run and a link to [dontkillmyapp.com/samsung](https://dontkillmyapp.com/samsung).
+
+All rules are pure Kotlin with unit tests, including the daylight saving changes of 25 October 2026 and 28 March 2027,
+midnight, Friday, Saturday and the late summer sunset.
 
 ## Planned features
 
@@ -105,8 +130,8 @@ access, and Android 17 would play the briefing muted. The phone test on Android 
 | Architecture | MVVM, layers `data` / `domain` / `ui` |
 | Dependency injection | Hilt (KSP) |
 | Networking | Ktor client (OkHttp engine) + kotlinx.serialization |
-| Storage | DataStore (settings, from M3), Room (from M4) |
-| Scheduling | AlarmManager `setAlarmClock()`, WorkManager (from M4) |
+| Storage | DataStore (speech rate, weekly schedule), Room 3 (source cache, run log) |
+| Scheduling | AlarmManager (`setAlarmClock()`, exact alarms), WorkManager with Hilt workers (prefetch) |
 | Voice | Android `TextToSpeech` (`cs-CZ`, offline voice), Media3 ExoPlayer and `MediaSessionService` |
 | Time | `java.time`, zone `Europe/Prague`, injected `Clock` |
 | Tests | JUnit 6, MockK, kotlinx-coroutines-test, Turbine, Ktor MockEngine |
@@ -121,11 +146,13 @@ ui      Compose screens + ViewModels (one StateFlow of UI state per screen)
  │
  ▼
 domain  pure Kotlin: models, plan rules, sun and sabbath, headline selection, the loader that combines sources,
-        spoken Czech, briefing inputs, template builder, AI-or-template choice, voice check and playlist
+        spoken Czech, briefing inputs, template builder, AI-or-template choice, voice check and playlist,
+        the briefing runner, schedule rules with the sabbath, the prefetch, the run log
  ▲
  │
 data    calendar provider, Open-Meteo, RSS, plan file (each returns a SourceResult: data or a failure reason),
-        Claude API client, text-to-speech, playback service with audio focus, settings in DataStore
+        Claude API client, text-to-speech, playback service with audio focus, settings in DataStore,
+        Room (cache, run log), alarms and their receivers, the prefetch worker, notifications
 ```
 
 `ui` and `data` both depend on `domain`, never the other way round. A full diagram comes with M7.
@@ -181,7 +208,11 @@ E.L.I.A.S. is built to keep personal data on the phone. This section grows with 
 - Speech is made on the phone with an offline voice. Elias never uses a voice that needs the network, so the
   briefing text does not go to a text-to-speech server.
 - The spoken audio files are in the app's cache (`cache/voice/`) while a briefing plays. They are deleted when
-  playback ends, at the latest before the next briefing. The speech rate is stored in the app's private storage.
+  playback ends, at the latest before the next briefing. The speech rate and the weekly schedule are stored in the
+  app's private storage.
+- The last weather forecast and RSS feeds that worked are kept in the app's database. They are public data.
+- The run log keeps, for 30 days, when each briefing or prefetch ran, how each source did and how it ended. It never
+  holds the briefing's text.
 - Android cloud backup and device-to-device transfer are disabled for this app.
 
 **Rules for later milestones:**
@@ -217,7 +248,9 @@ no unnecessary notifications, and silence on the sabbath.
 E.L.I.A.S. (čti „Elias“) je osobní hlasový asistent pro Android. Ráno a večer česky a stručně řekne, co je
 důležité: počasí, kalendář, plán dne, titulky ze světa a termíny. Jméno odkazuje na proroka Eliáše a „hlas
 tichého vánku“ (1 Kr 19,12), takže Elias mluví málo a jen když to má smysl. Souhrn čte nahlas offline českým
-hlasem, při hovoru se zastaví a ovládá se z oznámení (Znovu, Pauza, Stop). Podrobná specifikace je
+hlasem, při hovoru se zastaví a ovládá se z oznámení (Znovu, Pauza, Stop). Od M4 pracuje i sám: v čase, který si
+nastavíš pro každý den, rozsvítí obrazovku a přečte večerní souhrn, před ranním souhrnem stáhne data, v pátek hodinu
+před západem slunce připomene sabat a v sobotu večer začne slovy „sabat skončil“. Podrobná specifikace je
 v [docs/SPEC.md](docs/SPEC.md).
 
 ## License

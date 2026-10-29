@@ -191,3 +191,13 @@ Ke každému milníku: testy, aktualizace README a shrnutí pro mě.
 - **2026-10-27 (M2):** Výchozí model `claude-haiku-5-5` (Claude Haiku 5.5).
 - **2026-10-27 (M2):** Téma týdne v `plan.json` má nepovinné pole `reflectionQuestion` pro večerní otázku. Když chybí, otázku složí šablona.
 - **2026-10-27:** Jméno se na obrazovce a v README píše **E.L.I.A.S.**, aby bylo jasné, že jde o zkratku. Nahlas se vyslovuje „Elias“ (hlasová syntéza by tečkovanou podobu hláskovala). V kódu zůstává `Elias`.
+- **2026-10-29 (M4):** Ranní a večerní čas se nastavuje zvlášť pro každý den v týdnu (obrazovka Časy), výchozí 7:00
+  a 22:00, každý jde vypnout. Zvonící budík zůstává v M6.
+- **2026-10-29 (M4):** Předběžné stažení dat spouští přesný budík 30 minut před ranním souhrnem a práci dělá WorkManager
+  (expedited). Samotný WorkManager by v noci v režimu Doze mohl čekat hodiny.
+- **2026-10-29 (M4):** Automatický večerní souhrn rozsvítí obrazovku přes zamčený telefon (celoobrazovková notifikace jako
+  u budíku) a hned mluví. Když se telefon zrovna používá, zazní jen zvuk.
+- **2026-10-29 (M4):** Páteční připomínka sabatu je jen notifikace. „Sabat skončil“ je začátek sobotního večerního
+  souhrnu, nikdy před západem slunce, a nahrazuje v něm pozdrav s checklistem.
+- **2026-10-29 (M4):** Titulky „od posledního souhrnu“ znamenají od posledního přehraného souhrnu, nejméně 6 a nejvýš
+  24 hodin zpět.
