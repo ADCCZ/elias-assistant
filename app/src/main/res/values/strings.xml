@@ -339,4 +339,14 @@
         <item quantity="many">%d porce</item>
         <item quantity="other">%d porcí</item>
     </plurals>
+
+    <!-- Data screen: the morning routine (M5) -->
+    <string name="section_routine">Ranní rutina</string>
+    <string name="routine_reading_next">Čtení z pořadníku: %1$s</string>
+    <string name="routine_reading_done">Dnes už je něco přečteno.</string>
+    <string name="routine_reading_finished">Pořadník čtení je dočtený.</string>
+    <string name="routine_reading_plan">Pořadník je prázdný, platí ranní čtení z plánu.</string>
+    <string name="routine_reading_unknown">Pořadník čtení se nepodařilo načíst.</string>
+    <string name="routine_exercises">Cviky: %1$s</string>
+    <string name="routine_recipe">Recept dne: %1$s</string>
 </resources>

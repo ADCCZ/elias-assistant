@@ -16,6 +16,7 @@ import io.github.adccz.elias.domain.topics.TopicPlans
 import io.github.adccz.elias.domain.topics.Topics
 import io.github.adccz.elias.domain.weather.DayWeather
 import io.github.adccz.elias.domain.weather.WeatherCondition
+import java.time.DayOfWeek
 import kotlin.math.roundToInt
 
 /** Builds the briefing inputs from what Elias knows today ([TodayOverview]). */
@@ -44,7 +45,6 @@ object BriefingInputs {
                 PlanFacts(
                     phase = it.phase?.name,
                     dailyMinimum = it.dailyMinimum,
-                    morningReading = it.morningReading?.let(BibleReference::spoken),
                     saturdayStudy = it.saturdayStudy?.let(BibleReference::spoken),
                     items = it.items.map { item -> item.title },
                     theme = it.weeklyTheme?.toFacts(),
@@ -78,6 +78,43 @@ object BriefingInputs {
             theme = day?.takeIf { it.isPlanValid }?.weeklyTheme?.toFacts(),
         )
     }
+
+    /**
+     * The morning routine (M5). The reading comes from the queue; the plan's reading by date is used only when the
+     * queue is not used at all. When the queue could not be read, nothing is said about the reading.
+     */
+    fun routine(overview: TodayOverview): RoutineFacts {
+        val status = overview.routine
+        val reading = status.reading
+        val readingFact = when {
+            reading == null -> null
+            reading.readToday -> ReadingFact.DoneToday
+            reading.next != null -> ReadingFact.Next(BibleReference.spoken(reading.next))
+            reading.finished -> ReadingFact.Finished
+            else -> planReading(overview)?.let(ReadingFact::Next)
+        }
+        return RoutineFacts(
+            reading = readingFact,
+            exercises = status.exercises.orEmpty().map { it.name },
+            recipe = status.recipes?.today?.name,
+        )
+    }
+
+    /**
+     * Today's chapter for the evening reminder (M5), spoken: only when nothing was read today, never on Saturday
+     * (sabbath), and only from the queue (without it nobody knows whether the reading is done).
+     */
+    fun readingReminder(overview: TodayOverview): String? {
+        if (overview.loadedAt.dayOfWeek == DayOfWeek.SATURDAY) return null
+        val reading = overview.routine.reading ?: return null
+        if (reading.readToday) return null
+        return reading.next?.let(BibleReference::spoken)
+    }
+
+    private fun planReading(overview: TodayOverview): String? = (overview.plan as? SourceResult.Success)?.data?.day
+        ?.takeIf { it.isPlanValid }
+        ?.morningReading
+        ?.let(BibleReference::spoken)
 
     /** Today's sabbath study for "the sabbath has ended", spoken. Null without a valid plan or a study today. */
     fun sabbathStudy(overview: TodayOverview): String? = (overview.plan as? SourceResult.Success)?.data?.day

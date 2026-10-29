@@ -1,6 +1,8 @@
 package io.github.adccz.elias.testing
 
 import io.github.adccz.elias.core.time.PRAGUE_ZONE
+import io.github.adccz.elias.domain.bible.BibleBooks
+import io.github.adccz.elias.domain.bible.Chapter
 import io.github.adccz.elias.domain.calendar.CalendarEvent
 import io.github.adccz.elias.domain.model.FailureReason
 import io.github.adccz.elias.domain.model.GeoLocation
@@ -14,6 +16,9 @@ import io.github.adccz.elias.domain.plan.DayPlan
 import io.github.adccz.elias.domain.plan.Deadline
 import io.github.adccz.elias.domain.plan.Phase
 import io.github.adccz.elias.domain.plan.WeeklyTheme
+import io.github.adccz.elias.domain.reading.ReadingStatus
+import io.github.adccz.elias.domain.routine.DayRecipes
+import io.github.adccz.elias.domain.routine.RoutineStatus
 import io.github.adccz.elias.domain.sun.SabbathCalculator
 import io.github.adccz.elias.domain.sun.SunCalculator
 import io.github.adccz.elias.domain.topics.Topic
@@ -117,6 +122,17 @@ object TestOverviews {
         newsFeeds = DefaultNewsFeeds.all.associateWith { SourceResult.Success(emptyList<Headline>(), loadedAt) },
         headlines = headlines,
         topics = topics,
+    )
+
+    /** A morning routine (M5): the queue at Marek 3, today's exercises and recipes from [TestRoutine]. */
+    fun routine(
+        next: Chapter? = Chapter(BibleBooks.byAbbreviation("Mk")!!, 3),
+        readToday: Boolean = false,
+        finished: Boolean = false,
+    ) = RoutineStatus(
+        reading = ReadingStatus(next, readToday, finished),
+        exercises = TestRoutine.exercises,
+        recipes = DayRecipes(TestRoutine.recipes[0], TestRoutine.recipes[1]),
     )
 
     /** A day where every source failed. */

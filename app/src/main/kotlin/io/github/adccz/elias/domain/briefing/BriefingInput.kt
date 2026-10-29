@@ -69,11 +69,10 @@ data class TopicPlanFacts(val topic: String, val plans: List<PlanItemFacts>)
 /** One plan. [time] is spoken ("v půl třetí odpoledne"), null for a plan without a time (an all-day event). */
 data class PlanItemFacts(val title: String, val time: String?)
 
+/** Today's part of the plan. The morning reading is not here: it belongs to the routine ([RoutineFacts]). */
 data class PlanFacts(
     val phase: String?,
     val dailyMinimum: List<String>,
-    /** "Marek, první kapitola". */
-    val morningReading: String?,
     val saturdayStudy: String?,
     val items: List<String>,
     val theme: ThemeFacts?,
@@ -82,3 +81,21 @@ data class PlanFacts(
 data class ThemeFacts(val title: String, val task: String, val reflectionQuestion: String?)
 
 data class DeadlineFacts(val subject: String?, val title: String, val mandatory: Boolean)
+
+/** What the morning says about the Bible reading (M5). */
+sealed interface ReadingFact {
+    /** "Marek, třetí kapitola": the next chapter of the queue, or the plan's reading when the queue is not used. */
+    data class Next(val spoken: String) : ReadingFact
+
+    /** Something was marked as read today. */
+    data object DoneToday : ReadingFact
+
+    /** The queue was read to its end. */
+    data object Finished : ReadingFact
+}
+
+/**
+ * The morning routine (M5), spoken by the template after the AI answer, so the names stay exact and the reading is
+ * said also after the plan has expired. [reading] is null when nothing is to be said about it.
+ */
+data class RoutineFacts(val reading: ReadingFact?, val exercises: List<String>, val recipe: String?)

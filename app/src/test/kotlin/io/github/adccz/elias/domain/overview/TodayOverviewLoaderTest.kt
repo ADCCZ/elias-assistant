@@ -1,6 +1,8 @@
 package io.github.adccz.elias.domain.overview
 
 import io.github.adccz.elias.core.time.PRAGUE_ZONE
+import io.github.adccz.elias.domain.bible.BibleBooks
+import io.github.adccz.elias.domain.bible.Chapter
 import io.github.adccz.elias.domain.calendar.CalendarEvent
 import io.github.adccz.elias.domain.calendar.CalendarRepository
 import io.github.adccz.elias.domain.calendar.PhoneCalendar
@@ -22,6 +24,13 @@ import io.github.adccz.elias.domain.news.NewsRepository
 import io.github.adccz.elias.domain.plan.LoadedPlan
 import io.github.adccz.elias.domain.plan.Plan
 import io.github.adccz.elias.domain.plan.PlanRepository
+import io.github.adccz.elias.domain.reading.BibleReading
+import io.github.adccz.elias.domain.reading.ReadChapter
+import io.github.adccz.elias.domain.reading.ReadingLogRepository
+import io.github.adccz.elias.domain.reading.ReadingQueue
+import io.github.adccz.elias.domain.reading.ReadingStatus
+import io.github.adccz.elias.domain.routine.MorningRoutine
+import io.github.adccz.elias.domain.routine.Recipes
 import io.github.adccz.elias.domain.sun.SabbathCalculator
 import io.github.adccz.elias.domain.sun.SunCalculator
 import io.github.adccz.elias.domain.topics.Topic
@@ -31,15 +40,21 @@ import io.github.adccz.elias.domain.weather.WeatherForecast
 import io.github.adccz.elias.domain.weather.WeatherRepository
 import io.github.adccz.elias.testing.FakeCalendarSettings
 import io.github.adccz.elias.testing.FakeRunLog
+import io.github.adccz.elias.testing.FixedRoutineContent
 import io.github.adccz.elias.testing.InMemoryJournal
+import io.github.adccz.elias.testing.InMemoryReadingLog
+import io.github.adccz.elias.testing.InMemoryReadingQueue
+import io.github.adccz.elias.testing.TestRoutine
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -130,6 +145,9 @@ class TodayOverviewLoaderTest {
         runLog: FakeRunLog = FakeRunLog(),
         calendarSettings: FakeCalendarSettings = FakeCalendarSettings(),
         journal: InMemoryJournal = InMemoryJournal(),
+        readingQueue: InMemoryReadingQueue = InMemoryReadingQueue(),
+        readingLog: InMemoryReadingLog = InMemoryReadingLog(),
+        routineContent: FixedRoutineContent = FixedRoutineContent(),
     ) = TodayOverviewLoader(
         calendar,
         weather,
@@ -141,6 +159,8 @@ class TodayOverviewLoaderTest {
         clock,
         calendarSettings,
         Journal(journal, clock),
+        BibleReading(readingQueue, readingLog, plans, clock),
+        MorningRoutine(routineContent, routineContent, clock),
     )
 
     @Test
@@ -155,6 +175,36 @@ class TodayOverviewLoaderTest {
             JournalStatus(writtenToday = false, reminder = JournalReminder("Zeptej se na jednu věc.", true)),
             status,
         )
+    }
+
+    @Test
+    fun `knows the morning routine of the day`() = runTest {
+        val mark = BibleBooks.byAbbreviation("Mk")!!
+        val queue = InMemoryReadingQueue(ReadingQueue().add(mark, 3, 16))
+
+        val routine = loader(readingQueue = queue).load().routine
+
+        assertEquals(ReadingStatus(Chapter(mark, 3), readToday = false, finished = false), routine.reading)
+        assertEquals(TestRoutine.exercises, routine.exercises)
+        assertEquals(Recipes.forDay(TestRoutine.recipes, today), routine.recipes?.today)
+    }
+
+    @Test
+    fun `a broken routine part is only left out`() = runTest {
+        val broken = object : ReadingLogRepository by InMemoryReadingLog() {
+            override fun readOn(day: LocalDate): Flow<List<ReadChapter>> = error("Database closed")
+        }
+        val overview = TodayOverviewLoader(
+            workingCalendar, workingWeather, workingPlans, workingNews, sun, SabbathCalculator(sun), FakeRunLog(),
+            clock, FakeCalendarSettings(), Journal(InMemoryJournal(), clock),
+            BibleReading(InMemoryReadingQueue(), broken, workingPlans, clock),
+            FixedRoutineContent(exercises = null).let { MorningRoutine(it, it, clock) },
+        ).load()
+
+        assertNull(overview.routine.reading)
+        assertNull(overview.routine.exercises)
+        assertEquals(Recipes.forDay(TestRoutine.recipes, today), overview.routine.recipes?.today)
+        assertInstanceOf(SourceResult.Success::class.java, overview.weather)
     }
 
     @Test

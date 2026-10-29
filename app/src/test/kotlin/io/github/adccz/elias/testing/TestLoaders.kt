@@ -13,6 +13,8 @@ import io.github.adccz.elias.domain.news.NewsRepository
 import io.github.adccz.elias.domain.overview.TodayOverviewLoader
 import io.github.adccz.elias.domain.plan.LoadedPlan
 import io.github.adccz.elias.domain.plan.PlanRepository
+import io.github.adccz.elias.domain.reading.BibleReading
+import io.github.adccz.elias.domain.routine.MorningRoutine
 import io.github.adccz.elias.domain.sun.SabbathCalculator
 import io.github.adccz.elias.domain.sun.SunCalculator
 import io.github.adccz.elias.domain.weather.WeatherForecast
@@ -48,6 +50,8 @@ object TestLoaders {
             clock = clock,
             calendarSettings = FakeCalendarSettings(),
             journal = Journal(InMemoryJournal(), clock),
+            reading = BibleReading(InMemoryReadingQueue(), InMemoryReadingLog(), FixedPlans(null), clock),
+            routine = FixedRoutineContent(exercises = null, recipes = null).let { MorningRoutine(it, it, clock) },
         )
     }
 }

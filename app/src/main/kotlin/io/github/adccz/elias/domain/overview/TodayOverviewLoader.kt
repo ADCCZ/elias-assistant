@@ -16,6 +16,10 @@ import io.github.adccz.elias.domain.news.headlineWindow
 import io.github.adccz.elias.domain.news.selectHeadlines
 import io.github.adccz.elias.domain.plan.PlanRepository
 import io.github.adccz.elias.domain.plan.dayPlan
+import io.github.adccz.elias.domain.reading.BibleReading
+import io.github.adccz.elias.domain.reading.ReadingStatus
+import io.github.adccz.elias.domain.routine.MorningRoutine
+import io.github.adccz.elias.domain.routine.RoutineStatus
 import io.github.adccz.elias.domain.sun.SabbathCalculator
 import io.github.adccz.elias.domain.sun.SunCalculator
 import io.github.adccz.elias.domain.topics.Topic
@@ -51,6 +55,8 @@ class TodayOverviewLoader @Inject constructor(
     private val clock: Clock,
     private val calendarSettings: CalendarSettingsRepository,
     private val journal: Journal,
+    private val reading: BibleReading,
+    private val routine: MorningRoutine,
 ) {
     suspend fun load(): TodayOverview = coroutineScope {
         val now = ZonedDateTime.now(clock)
@@ -81,6 +87,7 @@ class TodayOverviewLoader @Inject constructor(
         }
         val topicsResult = async { loadTopics() }
         val journalResult = async { loadJournal(now) }
+        val routineResult = async { loadRoutine() }
         val newsResults = DefaultNewsFeeds.all.map { feed -> async { feed to guarded { news.headlines(feed) } } }
 
         val newsFeeds = newsResults.awaitAll().toMap()
@@ -102,7 +109,25 @@ class TodayOverviewLoader @Inject constructor(
             ),
             topics = topicsResult.await(),
             journal = journalResult.await(),
+            routine = routineResult.await(),
         )
+    }
+
+    /** The morning routine (M5). Each part on its own: a broken one is only left out of the briefing. */
+    private suspend fun loadRoutine(): RoutineStatus = coroutineScope {
+        val day = routine.today()
+        val readingStatus = async { readingStatus() }
+        val exercises = async { (guarded { routine.exercisesFor(day) } as? SourceResult.Success)?.data }
+        val recipes = async { (guarded { routine.recipesFor(day) } as? SourceResult.Success)?.data }
+        RoutineStatus(readingStatus.await(), exercises.await(), recipes.await())
+    }
+
+    private suspend fun readingStatus(): ReadingStatus? = try {
+        reading.status()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        null
     }
 
     /** Today's journal entry and yesterday's step. A broken journal only means the briefing leaves it out. */

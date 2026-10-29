@@ -12,6 +12,9 @@ enum class SectionKind {
     CALENDAR,
     PLAN,
 
+    /** The morning routine (M5): reading, exercises and the recipe. Written on the phone, never by the AI. */
+    ROUTINE,
+
     /** Yesterday's step from the journal (M4.5). Written on the phone, never by the AI. */
     JOURNAL_STEP,
     NEWS,
@@ -25,6 +28,9 @@ enum class SectionKind {
     CHECKLIST,
     TOMORROW,
     REFLECTION,
+
+    /** Today's chapter when nothing was read yet (M5), not on Saturday. Written on the phone. */
+    READING_REMINDER,
 
     /** A reminder to write today's journal entry when it is missing (M4.5). Written on the phone. */
     JOURNAL_REMINDER,
@@ -55,4 +61,10 @@ data class BriefingText(val kind: BriefingKind, val sections: List<BriefingSecti
 object BriefingLength {
     val MORNING = 120..180
     val EVENING = 60..100
+
+    /** About how long the morning routine is (M5). It is added after the AI answer. */
+    const val ROUTINE_WORDS = 25
+
+    /** What the AI writes in the morning: the whole briefing without the routine. */
+    val MORNING_AI = (MORNING.first - ROUTINE_WORDS)..(MORNING.last - ROUTINE_WORDS)
 }
