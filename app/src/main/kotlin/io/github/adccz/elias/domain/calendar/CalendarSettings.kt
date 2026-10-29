@@ -47,6 +47,8 @@ class SelectedCalendars(private val source: CalendarRepository, private val sett
 
     override suspend fun calendars(): SourceResult<List<PhoneCalendar>> = source.calendars()
 
+    override fun changes(): Flow<Unit> = source.changes()
+
     private class Choice(val hidden: Set<Long>, val topics: Set<Long>) {
         fun apply(events: List<CalendarEvent>): List<CalendarEvent> {
             val kept = LinkedHashMap<EventKey, CalendarEvent>()

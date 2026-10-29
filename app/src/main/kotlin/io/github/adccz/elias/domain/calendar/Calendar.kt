@@ -5,6 +5,8 @@ import io.github.adccz.elias.domain.model.SourceResult
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZonedDateTime
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 /**
  * One occurrence of a calendar event. For an all-day event, [start] and [end] are local midnights
@@ -102,4 +104,7 @@ interface CalendarRepository {
     /** The calendars on the phone, in the order the provider gives them. */
     suspend fun calendars(): SourceResult<List<PhoneCalendar>> =
         SourceResult.Failure(FailureReason.UNKNOWN, "This calendar source cannot list calendars")
+
+    /** Emits whenever the phone's calendar changes (a sync brought new events, the user edited one). */
+    fun changes(): Flow<Unit> = emptyFlow()
 }

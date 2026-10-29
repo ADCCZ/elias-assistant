@@ -235,6 +235,11 @@
         <item quantity="other">Nečte %d kalendářů</item>
     </plurals>
     <string name="plans_switch_read_all">Číst vše</string>
+    <string name="plans_sync">Synchronizovat</string>
+    <string name="plans_sync_asking">Žádám telefon o stažení kalendářů…</string>
+    <string name="plans_sync_sent">Telefon stahuje kalendáře z tvých účtů. Plány se obnoví samy, jakmile změny dorazí. Nový kalendář s vypnutou synchronizací zapni v aplikaci Google Kalendář.</string>
+    <string name="plans_sync_nothing">V telefonu není žádný online účet s kalendářem, není co stahovat.</string>
+    <string name="plans_sync_failed">Synchronizaci se nepodařilo spustit. Zkus „Synchronizovat nyní“ v nastavení účtu.</string>
     <string name="plans_account_phone">Jen v telefonu</string>
     <string name="plans_account_samsung">Účet Samsung</string>
     <string name="plans_main_calendar">Hlavní kalendář</string>

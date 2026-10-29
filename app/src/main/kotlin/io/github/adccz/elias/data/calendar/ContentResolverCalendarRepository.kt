@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.ContentUris
 import android.content.Context
 import android.content.pm.PackageManager
+import android.database.ContentObserver
+import android.provider.CalendarContract
 import android.provider.CalendarContract.Attendees
 import android.provider.CalendarContract.Calendars
 import android.provider.CalendarContract.Events
@@ -21,6 +23,9 @@ import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.withContext
 
 /**
@@ -57,6 +62,22 @@ class ContentResolverCalendarRepository @Inject constructor(
 
     override suspend fun calendars(): SourceResult<List<PhoneCalendar>> = readCalendar {
         mapper.calendars(queryCalendars())
+    }
+
+    /** Listens to the calendar provider while collected. Without the permission there is nothing to listen to. */
+    override fun changes(): Flow<Unit> = callbackFlow {
+        val observer = object : ContentObserver(null) {
+            override fun onChange(selfChange: Boolean) {
+                trySend(Unit)
+            }
+        }
+        val registered = hasPermission() && try {
+            context.contentResolver.registerContentObserver(CalendarContract.CONTENT_URI, true, observer)
+            true
+        } catch (e: SecurityException) {
+            false
+        }
+        awaitClose { if (registered) context.contentResolver.unregisterContentObserver(observer) }
     }
 
     private suspend fun <T> readCalendar(read: () -> T): SourceResult<T> = withContext(ioDispatcher) {

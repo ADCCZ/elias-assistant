@@ -52,6 +52,7 @@ import io.github.adccz.elias.core.time.PRAGUE_ZONE
 import io.github.adccz.elias.domain.calendar.CalendarAccount
 import io.github.adccz.elias.domain.calendar.CalendarEvent
 import io.github.adccz.elias.domain.calendar.PhoneCalendar
+import io.github.adccz.elias.domain.calendar.SyncRequest
 import io.github.adccz.elias.domain.model.FailureReason
 import io.github.adccz.elias.domain.topics.DayAgenda
 import io.github.adccz.elias.domain.topics.Topic
@@ -79,6 +80,7 @@ fun PlansRoute(onBack: () -> Unit, viewModel: PlansViewModel = hiltViewModel()) 
         onSetTopic = viewModel::setTopic,
         onSetRead = viewModel::setRead,
         onSetAccountRead = viewModel::setAccountRead,
+        onSync = viewModel::syncNow,
     )
 }
 
@@ -92,6 +94,7 @@ fun PlansScreen(
     onSetTopic: (Long, Boolean) -> Unit,
     onSetRead: (Long, Boolean) -> Unit,
     onSetAccountRead: (CalendarAccount, Boolean) -> Unit,
+    onSync: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -107,9 +110,15 @@ fun PlansScreen(
                         )
                     }
                 },
+                actions = {
+                    TextButton(onClick = onSync, enabled = uiState.sync != SyncState.Asking) {
+                        Text(stringResource(R.string.plans_sync))
+                    }
+                },
             )
         },
     ) { innerPadding ->
+        val syncText = syncText(uiState.sync)
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -118,6 +127,11 @@ fun PlansScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { Text(stringResource(R.string.plans_intro), style = MaterialTheme.typography.bodyMedium) }
+            syncText?.let { text ->
+                item(key = "sync") {
+                    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                }
+            }
             if (uiState.isLoading) item { LinearProgressIndicator(modifier = Modifier.fillMaxWidth()) }
             when (uiState.problem) {
                 null -> Unit
@@ -138,6 +152,20 @@ fun PlansScreen(
                 }
             }
         }
+    }
+}
+
+/** What the phone answered to "Synchronizovat", or null before the first tap. */
+@Composable
+private fun syncText(sync: SyncState): String? = when (sync) {
+    SyncState.Idle -> null
+
+    SyncState.Asking -> stringResource(R.string.plans_sync_asking)
+
+    is SyncState.Answered -> when (sync.request) {
+        is SyncRequest.Sent -> stringResource(R.string.plans_sync_sent)
+        SyncRequest.NothingToSync -> stringResource(R.string.plans_sync_nothing)
+        SyncRequest.Failed -> stringResource(R.string.plans_sync_failed)
     }
 }
 
@@ -414,6 +442,7 @@ private fun PlansScreenPreview() {
             onSetTopic = { _, _ -> },
             onSetRead = { _, _ -> },
             onSetAccountRead = { _, _ -> },
+            onSync = {},
         )
     }
 }

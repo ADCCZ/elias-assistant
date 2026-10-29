@@ -4,8 +4,10 @@ import io.github.adccz.elias.core.time.PRAGUE_ZONE
 import io.github.adccz.elias.domain.calendar.CalendarAccount
 import io.github.adccz.elias.domain.calendar.CalendarEvent
 import io.github.adccz.elias.domain.calendar.CalendarRepository
+import io.github.adccz.elias.domain.calendar.CalendarSync
 import io.github.adccz.elias.domain.calendar.PhoneCalendar
 import io.github.adccz.elias.domain.calendar.SelectedCalendars
+import io.github.adccz.elias.domain.calendar.SyncRequest
 import io.github.adccz.elias.domain.model.FailureReason
 import io.github.adccz.elias.domain.model.SourceResult
 import io.github.adccz.elias.domain.topics.Topic
@@ -16,10 +18,14 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -67,6 +73,11 @@ class PlansViewModelTest {
             return SourceResult.Success(events, Instant.EPOCH)
         }
 
+        /** Emitting here plays the phone's calendar changing, as after a sync. */
+        val changes = MutableSharedFlow<Unit>()
+
+        override fun changes(): Flow<Unit> = changes
+
         override suspend fun calendars(): SourceResult<List<PhoneCalendar>> = if (permissionGranted) {
             SourceResult.Success(calendars, Instant.EPOCH)
         } else {
@@ -75,12 +86,20 @@ class PlansViewModelTest {
     }
 
     private val calendar = FakeCalendar(today)
+    private var syncAnswer: SyncRequest = SyncRequest.Sent(accounts = 2)
+    private var syncCalls = 0
+    private val calendarSync = object : CalendarSync {
+        override suspend fun syncNow(): SyncRequest {
+            syncCalls++
+            return syncAnswer
+        }
+    }
     private val calendarSettings = FakeCalendarSettings(setOf(2L))
 
     // Created inside each test, after MainDispatcherExtension has set the main dispatcher.
     // Through SelectedCalendars, as in the app, so switching a calendar off really hides its events.
     private val viewModel by lazy {
-        PlansViewModel(SelectedCalendars(calendar, calendarSettings), calendarSettings, clock)
+        PlansViewModel(SelectedCalendars(calendar, calendarSettings), calendarSettings, calendarSync, clock)
     }
 
     private fun TestScope.collectState() =
@@ -177,5 +196,33 @@ class PlansViewModelTest {
         advanceUntilIdle()
         assertTrue(viewModel.uiState.value.accounts.single().allRead)
         assertEquals(listOf("Zubař"), viewModel.uiState.value.days.first().events.map { it.title })
+    }
+
+    @Test
+    fun `Synchronizovat asks the phone and shows its answer`() = runTest {
+        collectState()
+        advanceUntilIdle()
+
+        viewModel.syncNow()
+        advanceUntilIdle()
+
+        assertEquals(1, syncCalls)
+        assertEquals(SyncState.Answered(SyncRequest.Sent(accounts = 2)), viewModel.uiState.value.sync)
+    }
+
+    @Test
+    fun `the days are read again shortly after the phone's calendar changes`() = runTest {
+        collectState()
+        advanceUntilIdle()
+        assertEquals(null, viewModel.uiState.value.problem)
+
+        calendar.permissionGranted = false
+        calendar.changes.emit(Unit)
+        advanceTimeBy(PlansViewModel.CHANGE_QUIET_MILLIS / 2)
+        runCurrent()
+        assertEquals(null, viewModel.uiState.value.problem)
+
+        advanceUntilIdle()
+        assertEquals(FailureReason.NO_PERMISSION, viewModel.uiState.value.problem)
     }
 }

@@ -8,7 +8,9 @@ import io.github.adccz.elias.domain.calendar.CalendarAccounts
 import io.github.adccz.elias.domain.calendar.CalendarEvent
 import io.github.adccz.elias.domain.calendar.CalendarRepository
 import io.github.adccz.elias.domain.calendar.CalendarSettingsRepository
+import io.github.adccz.elias.domain.calendar.CalendarSync
 import io.github.adccz.elias.domain.calendar.PhoneCalendar
+import io.github.adccz.elias.domain.calendar.SyncRequest
 import io.github.adccz.elias.domain.model.FailureReason
 import io.github.adccz.elias.domain.model.SourceResult
 import io.github.adccz.elias.domain.topics.DayAgenda
@@ -16,10 +18,12 @@ import io.github.adccz.elias.domain.topics.Topics
 import java.time.Clock
 import java.time.LocalDate
 import javax.inject.Inject
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -43,20 +47,32 @@ data class PlansUiState(
     val days: List<DayAgenda> = emptyList(),
     val accounts: List<AccountChoices> = emptyList(),
     val calendarColors: Map<Long, Int> = emptyMap(),
+    val sync: SyncState = SyncState.Idle,
 ) {
     val calendars: List<CalendarChoice> get() = accounts.flatMap { it.calendars }
 
     val hasTopics: Boolean get() = calendars.any { it.isTopic && it.isRead }
 }
 
+/** The "Synchronizovat" button: nothing yet, asking the phone, or what the phone answered. */
+sealed interface SyncState {
+    data object Idle : SyncState
+
+    data object Asking : SyncState
+
+    data class Answered(val request: SyncRequest) : SyncState
+}
+
 /**
  * Shows the plans of the next [DAYS] days from Google Calendar, grouped by topic, and lets the user choose which
  * calendars Elias reads and which are topics. Elias only reads the calendar: plans are written in the calendar app.
  */
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class PlansViewModel @Inject constructor(
     private val calendar: CalendarRepository,
     private val calendarSettings: CalendarSettingsRepository,
+    private val calendarSync: CalendarSync,
     private val clock: Clock,
 ) : ViewModel() {
     private data class Loaded(
@@ -66,17 +82,28 @@ class PlansViewModel @Inject constructor(
     )
 
     private val loaded = MutableStateFlow<Loaded?>(null)
+    private val sync = MutableStateFlow<SyncState>(SyncState.Idle)
 
     val uiState: StateFlow<PlansUiState> = combine(
         calendarSettings.topicCalendarIds,
         calendarSettings.hiddenCalendarIds,
         loaded,
-    ) { topicIds, hiddenIds, loaded ->
-        loaded?.let { stateOf(it, topicIds, hiddenIds) } ?: PlansUiState()
+        sync,
+    ) { topicIds, hiddenIds, loaded, sync ->
+        (loaded?.let { stateOf(it, topicIds, hiddenIds) } ?: PlansUiState()).copy(sync = sync)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), PlansUiState())
 
     init {
         refresh()
+        // A sync brings its events in bursts: read the calendar once the burst is over, not on every row.
+        viewModelScope.launch { calendar.changes().debounce(CHANGE_QUIET_MILLIS).collect { refresh() } }
+    }
+
+    /** Asks the phone to download the calendars now. The screen updates by itself when the new events arrive. */
+    fun syncNow() {
+        if (sync.value == SyncState.Asking) return
+        sync.value = SyncState.Asking
+        viewModelScope.launch { sync.value = SyncState.Answered(calendarSync.syncNow()) }
     }
 
     /** Reads the calendar again, after the permission was granted or the user came back from the calendar app. */
@@ -134,5 +161,8 @@ class PlansViewModel @Inject constructor(
 
         /** Keeps the state through a screen rotation without reading the calendar again. */
         private const val STOP_TIMEOUT_MILLIS = 5_000L
+
+        /** How long the calendar must stay unchanged before the screen reads it again. */
+        const val CHANGE_QUIET_MILLIS = 1_000L
     }
 }
