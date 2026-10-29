@@ -232,4 +232,18 @@
     <string name="plans_add">Přidat do kalendáře</string>
     <string name="plans_calendar_app_missing">Kalendářová aplikace se nepodařila otevřít.</string>
     <string name="plans_item_timed">%1$s %2$s</string>
+
+    <!-- Journal screen (M4.5) -->
+    <string name="home_open_journal">Deník</string>
+    <string name="journal_title">Deník</string>
+    <string name="journal_note">Zápis před čtvrtou ráno patří ještě k předchozímu dni. Ukládá se sám a zůstává jen v telefonu.</string>
+    <string name="journal_today">Dnes, %1$s</string>
+    <string name="journal_thought">Myšlenka dne</string>
+    <string name="journal_stuck">Co mi utkvělo</string>
+    <string name="journal_improve">Na čem se zlepšit</string>
+    <string name="journal_step">Krok na další den</string>
+    <string name="journal_saved">Uloženo: %1$s v %2$s</string>
+    <string name="journal_back_to_today">Zpět na dnešek</string>
+    <string name="journal_history">Starší zápisy</string>
+    <string name="journal_history_empty">Zatím žádné starší zápisy.</string>
 </resources>
