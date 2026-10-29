@@ -345,3 +345,14 @@ Format: **context** – what we had to decide, **decision**, **why**.
   with a line between the topics and the other events.
 - **Why:** The user's choices after the phone test. The account explains the duplicates, and a whole work or school
   account can be switched off in one tap.
+
+## D48 – Synchronizovat asks Android, Plány follow the calendar (2026-10-29)
+- **Context:** Calendars made on the web reach the phone only when its Google account syncs. The user missed a sync
+  button in Plány, and the screen did not notice new events until it was opened again.
+- **Decision:** **Synchronizovat** calls `ContentResolver.requestSync` (manual, expedited) for every online account
+  that owns calendars on the phone, read from `CalendarContract.Calendars`; phone-only (`LOCAL`) calendars are
+  skipped. `CalendarRepository.changes()` listens to the calendar provider with a `ContentObserver`, and Plány read
+  the calendar again 1 s after the changes stop.
+- **Why:** A public API that calendar apps use for "refresh", no new permission and no change to any sync setting.
+  Whether a calendar syncs at all stays the user's choice in the calendar app. Whether Samsung honours the request
+  at once is checked on the phone.

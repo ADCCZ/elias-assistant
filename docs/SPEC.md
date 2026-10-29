@@ -166,6 +166,9 @@ Plán je obecný a řízený rozsahy dat, aby šel později vyměnit za jiný. O
 - Obrazovka **Plány** ukáže sedm dní dopředu, každý den seskupený podle témat. Každá položka má barvu svého kalendáře
   a čas ve vlastním sloupci, témata a další události odděluje čára. Plány se píšou rovnou v Google Kalendáři, Elias do
   kalendáře sám nezapisuje (žádné oprávnění `WRITE_CALENDAR`).
+- Tlačítko **Synchronizovat** požádá telefon, ať hned stáhne kalendáře z online účtů (jako „Synchronizovat nyní“
+  v nastavení účtu). Plány se obnoví samy, jakmile se kalendář v telefonu změní. Zapnout synchronizaci jednotlivého
+  kalendáře Elias neumí, to zůstává v aplikaci Google Kalendář.
 - Ranní souhrn: nejdřív události s časem, pak plány podle témat. Večerní souhrn: zítřek podle témat a jedna věcná věta,
   když některé téma na zítřek nemá nic.
 
@@ -251,3 +254,5 @@ krok, večer mi Elias připomene chybějící zápis a ráno včerejší krok.
 - **2026-10-29 (M4.5):** Stejná událost ve více kalendářích se ukáže a přečte jen jednou (přání uživatele).
 - **2026-10-29 (M4.5):** Po testu na telefonu: kalendáře v Plánech seskupené podle účtů s přepínačem „Číst vše“,
   položky dnů vizuálně oddělené a bez tlačítka „Přidat do kalendáře“ (bylo zbytečné).
+- **2026-10-29 (M4.5):** V Plánech tlačítko „Synchronizovat“ a samočinné obnovení po změně kalendáře v telefonu
+  (přání uživatele).

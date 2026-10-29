@@ -124,7 +124,9 @@ midnight, Friday, Saturday and the late summer sunset.
   Samsung, phone only). You mark which calendars are topics and can switch off reading any calendar, or a whole
   account with **Číst vše**: Elias then leaves it out everywhere, also from what goes to the AI. An event that is in
   several calendars is shown and read only once. The screen shows the next seven days, each split into the plans of
-  every topic and the other events, every item with its calendar's color and its time. Elias only reads the calendar.
+  every topic and the other events, every item with its calendar's color and its time. **Synchronizovat** asks the
+  phone to download the calendars of its online accounts now, and the screen updates by itself when they arrive.
+  Elias only reads the calendar.
 - **Briefings by topic.** The morning briefing reads today's events first, then the plans by topic. The evening
   briefing reads tomorrow's plans by topic and says in one sentence which topics have nothing planned yet.
 - **Journal.** On **Deník** you write one entry per day: the thought of the day, what stuck with you and what to
