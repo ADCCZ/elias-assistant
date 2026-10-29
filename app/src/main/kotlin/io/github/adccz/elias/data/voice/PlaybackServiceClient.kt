@@ -3,6 +3,7 @@ package io.github.adccz.elias.data.voice
 import android.content.Context
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.adccz.elias.domain.briefing.BriefingKind
 import io.github.adccz.elias.domain.voice.BriefingRequest
 import io.github.adccz.elias.domain.voice.SpeakResult
 import io.github.adccz.elias.domain.voice.SpeechState
@@ -32,6 +33,15 @@ class PlaybackServiceClient @Inject constructor(
         } catch (e: IllegalStateException) {
             // Android refused to start the service (the app was not in the foreground after all).
             status.set(SpeechState.Failed(request.kind, SpeakResult.PlaybackFailed))
+        }
+    }
+
+    override fun onBriefingScreenShown() {
+        // The screen is visible, so the app may start the service; it decides what to play.
+        try {
+            context.startService(PlaybackService.screenShownIntent(context))
+        } catch (e: IllegalStateException) {
+            status.set(SpeechState.Failed(BriefingKind.EVENING, SpeakResult.PlaybackFailed))
         }
     }
 

@@ -66,6 +66,12 @@ interface VoicePlayer {
 
     /** Stops preparing or speaking. The playback service and its notification end. */
     fun stop()
+
+    /**
+     * The scheduled briefing screen is visible: the evening briefing that waits for it starts speaking, and when none
+     * waits (the user opened the screen later), a new evening briefing starts.
+     */
+    fun onBriefingScreenShown()
 }
 
 /** Plays a ready playlist. The playback service implements it for the briefing it is preparing. */

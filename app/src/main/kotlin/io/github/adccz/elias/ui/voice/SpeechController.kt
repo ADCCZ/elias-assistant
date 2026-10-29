@@ -37,13 +37,8 @@ class SpeechController @Inject constructor(private val player: VoicePlayer) {
         }
     }
 
-    /** True while a briefing is being prepared or spoken. */
-    val isBusy: Boolean
-        get() = player.state.value.let { it is SpeechState.Preparing || it is SpeechState.Speaking }
-
-    /** The scheduled evening briefing, on the alarm stream like every briefing that starts on its own. */
-    fun speakScheduledEvening() =
-        player.speak(BriefingRequest.FromToday(BriefingKind.EVENING, PlaybackTrigger.SCHEDULE))
+    /** The scheduled briefing screen is visible: its briefing starts speaking (see [VoicePlayer.onBriefingScreenShown]). */
+    fun onBriefingScreenShown() = player.onBriefingScreenShown()
 
     /** Writes today's briefing of [kind] from fresh data and speaks it. */
     fun speakToday(kind: BriefingKind) = player.speak(BriefingRequest.FromToday(kind, PlaybackTrigger.USER))

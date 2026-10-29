@@ -63,6 +63,12 @@ class FakeVoicePlayer : VoicePlayer {
         stops++
         state.value = SpeechState.Idle
     }
+
+    var screensShown = 0
+
+    override fun onBriefingScreenShown() {
+        screensShown++
+    }
 }
 
 class FakeVoiceSettings(rate: SpeechRate = SpeechRate.NORMAL) : VoiceSettingsRepository {

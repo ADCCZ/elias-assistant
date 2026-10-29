@@ -10,7 +10,6 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -50,6 +49,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -61,6 +61,10 @@ import kotlinx.coroutines.withContext
  * plays a silent loop titled "Připravuji…" while [BriefingRunner] loads the data, writes the briefing and turns it
  * into speech, then it swaps the loop for the briefing. So the service is in the foreground before it asks for audio
  * focus, as Android 17 requires, and a briefing keeps going when the user leaves the app while it is prepared.
+ *
+ * The scheduled evening briefing on a sleeping phone is prepared silently instead, with the screen dark and no audio
+ * focus. When it is ready, the service shows the briefing screen, and the screen asks it to play ([screenShownIntent]):
+ * the first word comes with the lit screen, and a visible app may always play on Android 17.
  *
  * The service ends when the briefing is over, after Stop, on an error or when another app takes the sound for good,
  * and the briefing's clips are deleted then.
@@ -84,8 +88,12 @@ class PlaybackService : MediaSessionService() {
     private lateinit var player: FocusAwarePlayer
     private val scope = MainScope()
     private var preparation: Job? = null
+    private var screenFallback: Job? = null
 
-    /** What the player holds: nothing, the silent loop while a briefing is prepared, or the briefing itself. */
+    /**
+     * What the service is doing: nothing, preparing (with the silent loop, or silently for the screen), waiting with a
+     * ready briefing for its screen, or speaking.
+     */
     private var phase: Phase = Phase.Idle
 
     /** The files of the playlist being played, so exactly this briefing's clips are deleted at the end. */
@@ -95,6 +103,10 @@ class PlaybackService : MediaSessionService() {
         data object Idle : Phase
 
         data class Preparing(val kind: BriefingKind) : Phase
+
+        /** The briefing is ready and waits for its screen, so the first word comes with the lit screen. */
+        data class WaitingForScreen(val kind: BriefingKind, val items: List<MediaItem>, val stream: PlaybackStream) :
+            Phase
 
         data class Speaking(val kind: BriefingKind) : Phase
     }
@@ -154,7 +166,7 @@ class PlaybackService : MediaSessionService() {
                 when {
                     trusted && request != null -> {
                         startPreparingInForeground(request.kind)
-                        speak(request)
+                        speak(request, waitForScreen = intent.getBooleanExtra(EXTRA_WAIT_FOR_SCREEN, false))
                     }
 
                     // A foreign or broken request must not stop the briefing being spoken: Media3 posts its
@@ -174,6 +186,11 @@ class PlaybackService : MediaSessionService() {
                 START_NOT_STICKY
             }
 
+            ACTION_SCREEN_SHOWN -> {
+                if (trusted) onScreenShown()
+                START_NOT_STICKY
+            }
+
             else -> result
         }
     }
@@ -190,21 +207,73 @@ class PlaybackService : MediaSessionService() {
         super.onDestroy()
     }
 
-    /** Starts preparing [request], replacing whatever was being prepared or spoken. */
-    private fun speak(request: BriefingRequest) {
-        // The full-screen notification of a scheduled evening briefing has done its job.
-        if (request.trigger == PlaybackTrigger.SCHEDULE) {
-            NotificationManagerCompat.from(this).cancel(EveningBriefingStarter.NOTIFICATION_ID)
-        }
+    /**
+     * Starts preparing [request], replacing whatever was being prepared or spoken. With [waitForScreen] it prepares
+     * silently and then waits for the briefing screen (see the class comment).
+     */
+    private fun speak(request: BriefingRequest, waitForScreen: Boolean = false) {
         preparation?.cancel()
+        screenFallback?.cancel()
         phase = Phase.Preparing(request.kind)
         status.set(SpeechState.Preparing(request.kind))
-        player.setStream(request.trigger.stream)
-        playSilentLoop(request.kind)
+        if (!waitForScreen) {
+            player.setStream(request.trigger.stream)
+            playSilentLoop(request.kind)
+        }
         preparation = scope.launch {
-            val result = runner.run(request) { playlist, stream -> playBriefing(playlist, stream) }
+            val result = runner.run(request) { playlist, stream ->
+                if (waitForScreen) holdForScreen(playlist, stream) else playBriefing(playlist, stream)
+            }
             if (result is SpeakResult.Problem) fail(result)
         }
+    }
+
+    /**
+     * Keeps the ready briefing and lights up the screen with it. When the screen does not come (the phone is in use, or
+     * full-screen notifications were switched off), the briefing plays without it after [SCREEN_WAIT_MILLIS].
+     */
+    private suspend fun holdForScreen(playlist: VoicePlaylist, stream: PlaybackStream): Boolean {
+        val items = withContext(io) { playlist.toMediaItems() }
+        if (phase !is Phase.Preparing) return false
+        phase = Phase.WaitingForScreen(playlist.kind, items, stream)
+        if (EveningBriefingStarter.showScreen(this)) {
+            screenFallback = scope.launch {
+                delay(SCREEN_WAIT_MILLIS)
+                playWaitingBriefing()
+            }
+        } else {
+            playWaitingBriefing()
+        }
+        return true
+    }
+
+    /** The briefing screen is visible: play the briefing waiting for it, or start one when none waits. */
+    private fun onScreenShown() {
+        when (phase) {
+            is Phase.WaitingForScreen -> playWaitingBriefing()
+
+            Phase.Idle -> {
+                startPreparingInForeground(BriefingKind.EVENING)
+                speak(BriefingRequest.FromToday(BriefingKind.EVENING, PlaybackTrigger.SCHEDULE))
+            }
+
+            // Already preparing or speaking: the screen only shows it.
+            is Phase.Preparing, is Phase.Speaking -> Unit
+        }
+    }
+
+    private fun playWaitingBriefing() {
+        val waiting = phase as? Phase.WaitingForScreen ?: return
+        screenFallback?.cancel()
+        EveningBriefingStarter.hideScreenNotification(this)
+        player.setStream(waiting.stream)
+        playlistPaths = waiting.items.mapNotNull { it.localConfiguration?.uri?.path }
+        player.repeatMode = Player.REPEAT_MODE_OFF
+        player.setMediaItems(waiting.items, true)
+        player.prepare()
+        player.play()
+        phase = Phase.Speaking(waiting.kind)
+        publish()
     }
 
     /**
@@ -244,6 +313,7 @@ class PlaybackService : MediaSessionService() {
         when (val current = phase) {
             is Phase.Speaking -> status.set(SpeechState.Speaking(current.kind, isPaused = !player.playWhenReady))
             is Phase.Preparing -> status.set(SpeechState.Preparing(current.kind))
+            is Phase.WaitingForScreen -> status.set(SpeechState.Preparing(current.kind))
             Phase.Idle -> Unit
         }
     }
@@ -251,6 +321,7 @@ class PlaybackService : MediaSessionService() {
     private fun fail(problem: SpeakResult.Problem) {
         val kind = when (val current = phase) {
             is Phase.Preparing -> current.kind
+            is Phase.WaitingForScreen -> current.kind
             is Phase.Speaking -> current.kind
             Phase.Idle -> null
         }
@@ -262,6 +333,8 @@ class PlaybackService : MediaSessionService() {
     private fun stopSpeaking() {
         preparation?.cancel()
         preparation = null
+        screenFallback?.cancel()
+        EveningBriefingStarter.hideScreenNotification(this)
         phase = Phase.Idle
         status.set(SpeechState.Idle)
         session?.player?.run {
@@ -402,9 +475,14 @@ class PlaybackService : MediaSessionService() {
     companion object {
         private const val ACTION_SPEAK = "io.github.adccz.elias.SPEAK"
         private const val ACTION_STOP = "io.github.adccz.elias.STOP_SPEAKING"
+        private const val ACTION_SCREEN_SHOWN = "io.github.adccz.elias.SCREEN_SHOWN"
+        private const val EXTRA_WAIT_FOR_SCREEN = "io.github.adccz.elias.WAIT_FOR_SCREEN"
         private const val EXTRA_REQUEST = "io.github.adccz.elias.REQUEST"
         private const val EXTRA_TOKEN = "io.github.adccz.elias.TOKEN"
         private const val SILENT_LOOP_ID = "preparing"
+
+        /** How long a ready evening briefing waits for its screen before it plays without it. */
+        private const val SCREEN_WAIT_MILLIS = 15_000L
 
         /**
          * A secret of this app process. The service is exported (system media controls connect to it), so another
@@ -412,12 +490,21 @@ class PlaybackService : MediaSessionService() {
          */
         private val processToken = UUID.randomUUID().toString()
 
-        /** Starts preparing and speaking [request]. Use with startForegroundService(). */
-        fun speakIntent(context: Context, request: BriefingRequest): Intent =
+        /**
+         * Starts preparing and speaking [request]. Use with startForegroundService(). With [waitForScreen] the briefing
+         * is prepared silently and then shown on the briefing screen, which starts the first word.
+         */
+        fun speakIntent(context: Context, request: BriefingRequest, waitForScreen: Boolean = false): Intent =
             Intent(context, PlaybackService::class.java)
                 .setAction(ACTION_SPEAK)
                 .putExtra(EXTRA_REQUEST, BriefingRequestCodec.encode(request))
+                .putExtra(EXTRA_WAIT_FOR_SCREEN, waitForScreen)
                 .putExtra(EXTRA_TOKEN, processToken)
+
+        /** The briefing screen is visible. Use with startService() from the visible screen. */
+        fun screenShownIntent(context: Context): Intent = Intent(context, PlaybackService::class.java)
+            .setAction(ACTION_SCREEN_SHOWN)
+            .putExtra(EXTRA_TOKEN, processToken)
 
         /** Stops preparing or speaking. Use with startService() while the service runs. */
         fun stopIntent(context: Context): Intent = Intent(context, PlaybackService::class.java)

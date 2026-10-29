@@ -35,12 +35,10 @@ class ScheduledBriefingViewModel @Inject constructor(private val speech: SpeechC
         .stateIn(viewModelScope, SharingStarted.Eagerly, ScheduledBriefingUiState())
 
     /**
-     * Starts the evening briefing while this screen is visible: Android 17 always lets a visible app play sound.
-     * A briefing that is already running (the user opened the screen again) is left alone.
+     * The screen is visible: the evening briefing that waited for it starts speaking now (Android 17 always lets a
+     * visible app play sound). One that is already speaking is left alone.
      */
-    fun start() {
-        if (!speech.isBusy) speech.speakScheduledEvening()
-    }
+    fun start() = speech.onBriefingScreenShown()
 
     fun stop() = speech.stop()
 }

@@ -1,8 +1,6 @@
 package io.github.adccz.elias.ui.scheduled
 
 import io.github.adccz.elias.domain.briefing.BriefingKind
-import io.github.adccz.elias.domain.voice.BriefingRequest
-import io.github.adccz.elias.domain.voice.PlaybackTrigger
 import io.github.adccz.elias.domain.voice.SpeakResult
 import io.github.adccz.elias.domain.voice.SpeechState
 import io.github.adccz.elias.domain.voice.VoiceStatus
@@ -27,25 +25,15 @@ class ScheduledBriefingViewModelTest {
     private val player = FakeVoicePlayer()
 
     @Test
-    fun `starts the scheduled evening briefing on the alarm stream`() = runTest {
+    fun `tells the playback service that the screen is visible`() = runTest {
         ScheduledBriefingViewModel(SpeechController(player)).start()
 
-        assertEquals(listOf(BriefingRequest.FromToday(BriefingKind.EVENING, PlaybackTrigger.SCHEDULE)), player.requests)
-    }
-
-    @Test
-    fun `leaves a briefing that is already running alone`() = runTest {
-        player.state.value = SpeechState.Speaking(BriefingKind.EVENING, isPaused = false)
-
-        ScheduledBriefingViewModel(SpeechController(player)).start()
-
-        assertTrue(player.requests.isEmpty())
+        assertEquals(1, player.screensShown)
     }
 
     @Test
     fun `is over when the briefing ends`() = runTest {
         val viewModel = ScheduledBriefingViewModel(SpeechController(player))
-        viewModel.start()
         advanceUntilIdle()
         assertFalse(viewModel.uiState.value.isOver)
 
