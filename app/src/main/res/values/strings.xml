@@ -35,6 +35,10 @@
     <string name="voice_not_downloaded">Český hlas pro %1$s není stažený. Stáhni ho, aby fungoval bez internetu.</string>
     <string name="voice_online_only">%1$s má český hlas jen přes internet. E.L.I.A.S. mluví jen offline, aby text souhrnu neopustil telefon. Stáhni offline hlas.</string>
     <string name="voice_fix">Opravit</string>
+    <!-- The app's own male voice (the Piper voice "Jirka"). -->
+    <string name="voice_builtin_name">Oldřich 3.0</string>
+    <string name="voice_builtin_switch">Mužský hlas Oldřich 3.0 (jinak hlas telefonu)</string>
+    <string name="voice_builtin_crashed">Oldřich 3.0 minule shodil aplikaci, proto teď mluví hlas telefonu. Po aktualizaci aplikace to zkusí znovu.</string>
 
     <!-- Preview screen -->
     <string name="preview_title">Náhled textu</string>

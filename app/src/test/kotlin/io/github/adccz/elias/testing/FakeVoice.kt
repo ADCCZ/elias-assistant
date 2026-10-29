@@ -11,6 +11,7 @@ import io.github.adccz.elias.domain.voice.SpeechSynthesizer
 import io.github.adccz.elias.domain.voice.SynthesisResult
 import io.github.adccz.elias.domain.voice.TtsEngine
 import io.github.adccz.elias.domain.voice.VoiceChecker
+import io.github.adccz.elias.domain.voice.VoiceChoice
 import io.github.adccz.elias.domain.voice.VoicePlayer
 import io.github.adccz.elias.domain.voice.VoicePlaylist
 import io.github.adccz.elias.domain.voice.VoiceSettingsRepository
@@ -71,11 +72,18 @@ class FakeVoicePlayer : VoicePlayer {
     }
 }
 
-class FakeVoiceSettings(rate: SpeechRate = SpeechRate.NORMAL) : VoiceSettingsRepository {
+class FakeVoiceSettings(rate: SpeechRate = SpeechRate.NORMAL, choice: VoiceChoice = VoiceChoice.BUILT_IN) :
+    VoiceSettingsRepository {
     override val speechRate = MutableStateFlow(rate)
 
     override suspend fun setSpeechRate(rate: SpeechRate) {
         speechRate.value = rate
+    }
+
+    override val voice = MutableStateFlow(choice)
+
+    override suspend fun setVoice(choice: VoiceChoice) {
+        voice.value = choice
     }
 }
 
