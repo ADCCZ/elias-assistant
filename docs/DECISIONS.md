@@ -219,9 +219,11 @@ Format: **context** – what we had to decide, **decision**, **why**.
 - **Context:** A background service on the alarm stream played on the Android 17 emulator, but it logged
   `AudioHardening … would be muted … reason: 4` for it, with `USE_EXACT_ALARM` and even with `SCHEDULE_EXACT_ALARM`
   granted. The alarm waiver did not apply. The user also wanted to see something on the screen.
-- **Decision:** At the evening time a full-screen notification (`USE_FULL_SCREEN_INTENT`, channel of high importance)
-  opens `ScheduledBriefingActivity` over the lock screen, and the activity starts the briefing. While the phone is in
-  use, or without the full-screen permission, the service starts as sound only, as before.
+- **Decision:** At the evening time the service prepares the briefing silently, with the screen dark and no audio
+  focus. When it is ready, a full-screen notification (`USE_FULL_SCREEN_INTENT`, channel of high importance) opens
+  `ScheduledBriefingActivity` over the lock screen, and the activity starts the first word. The screen stays lit
+  while Elias speaks, not while it prepares (the user's wish). Without the screen within 15 seconds, or while the
+  phone is in use, the briefing plays as sound only.
 - **Why:** A visible app may always play sound on Android 17, and the user sees what is happening, like with an alarm
   clock. The decision is pure (`EveningStart.choose`) and unit-tested.
 

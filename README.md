@@ -86,9 +86,10 @@ E.L.I.A.S. now works on its own.
 - **Your times, for each day.** On **Časy** every day of the week has a morning and an evening time, or none
   (7:00 and 22:00 at first). Weather and headlines are downloaded 30 minutes before the morning time (from M6 the
   alarm will ring at it). At the evening time the evening briefing starts by itself.
-- **The evening briefing lights up the screen.** Like an alarm clock, a full-screen notification opens the evening
-  briefing screen over the lock screen and Elias starts speaking. The screen closes itself at the end. While you are
-  using the phone, or without the full-screen permission, the briefing plays as sound only.
+- **The evening briefing lights up the screen.** The briefing is prepared silently with the screen dark. When it is
+  ready, a full-screen notification opens the evening briefing screen over the lock screen, like an alarm clock, and
+  Elias starts speaking. The screen stays lit while Elias speaks and closes itself at the end. While you are using the
+  phone, or without the full-screen permission, the briefing plays as sound only.
 - **On time, also after a restart.** The evening briefing is an alarm clock alarm (`setAlarmClock`), the prefetch
   and the sabbath reminder are exact alarms (`USE_EXACT_ALARM`). They are planned again after a restart, a change of
   the time or the time zone and an app update, and nothing plays then. A briefing that would come more than
