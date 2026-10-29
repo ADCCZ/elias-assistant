@@ -157,12 +157,15 @@ Plán je obecný a řízený rozsahy dat, aby šel později vyměnit za jiný. O
 
 - Plány na další dny píšu do Google Kalendáře. Každé téma má vlastní kalendář (např. Škola, Seberozvoj, Španělština).
   V Eliasovi označím, které kalendáře jsou témata. Ostatní kalendáře jsou běžné události.
-- U každého kalendáře účtu jde v Plánech vypnout **čtení** (třeba Narozeniny nebo Svátky). Vypnutý kalendář Elias
-  úplně vynechá: v souhrnech, v Plánech, na obrazovce Data i v datech pro AI. Nový kalendář se čte, dokud ho nevypnu.
+- U každého kalendáře jde v Plánech vypnout **čtení** (třeba Narozeniny nebo Svátky), u každého účtu jedním
+  přepínačem **Číst vše**. Kalendáře jsou seskupené podle účtů v telefonu (Google účty, účet Samsung, jen v telefonu).
+  Vypnutý kalendář Elias úplně vynechá: v souhrnech, v Plánech, na obrazovce Data i v datech pro AI. Nový kalendář se
+  čte, dokud ho nevypnu.
 - Stejná událost ve více kalendářích (stejný název a čas, třeba ve dvou rodinných kalendářích) se ukáže a přečte jen
   jednou. Když je jedna z kopií v kalendáři tématu, zůstane ta.
-- Obrazovka **Plány** ukáže sedm dní dopředu, každý den seskupený podle témat, a tlačítko, které otevře Google Kalendář
-  s předvyplněným dnem. Elias do kalendáře sám nezapisuje (žádné oprávnění `WRITE_CALENDAR`).
+- Obrazovka **Plány** ukáže sedm dní dopředu, každý den seskupený podle témat. Každá položka má barvu svého kalendáře
+  a čas ve vlastním sloupci, témata a další události odděluje čára. Plány se píšou rovnou v Google Kalendáři, Elias do
+  kalendáře sám nezapisuje (žádné oprávnění `WRITE_CALENDAR`).
 - Ranní souhrn: nejdřív události s časem, pak plány podle témat. Večerní souhrn: zítřek podle témat a jedna věcná věta,
   když některé téma na zítřek nemá nic.
 
@@ -246,3 +249,5 @@ krok, večer mi Elias připomene chybějící zápis a ráno včerejší krok.
 - **2026-10-29 (M4.5):** Výběr kalendářů ze sekce M7 je dřív: v Plánech jde u každého kalendáře vypnout čtení.
   Vypnutý kalendář Elias nikde nečte a nemůže být téma.
 - **2026-10-29 (M4.5):** Stejná událost ve více kalendářích se ukáže a přečte jen jednou (přání uživatele).
+- **2026-10-29 (M4.5):** Po testu na telefonu: kalendáře v Plánech seskupené podle účtů s přepínačem „Číst vše“,
+  položky dnů vizuálně oddělené a bez tlačítka „Přidat do kalendáře“ (bylo zbytečné).

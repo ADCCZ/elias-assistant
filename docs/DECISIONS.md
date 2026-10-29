@@ -333,3 +333,15 @@ Format: **context** – what we had to decide, **decision**, **why**.
   The first copy keeps its place; a copy in a topic calendar takes it over, so a plan stays with its topic.
 - **Why:** The user's wish. Comparing the exact time keeps a repeated activity at another time (morning and evening
   run) as two events, and doing it in the one filter applies it everywhere.
+
+## D47 – Calendars by account, no add button (2026-10-29)
+- **Context:** On the user's phone Plány listed 31 calendars from three Google accounts, the Samsung account and the
+  phone itself, with names like "České státní svátky" three times. **Přidat do kalendáře** (D40) could not choose the
+  topic calendar, so it saved only picking the date, and the day items ran together.
+- **Decision:** `PhoneCalendar.account` (from `Calendars.ACCOUNT_TYPE`: Google and other online accounts by e-mail,
+  `LOCAL` as phone only, Samsung's sign-in as Samsung) and `CalendarAccounts.group` put the picker under account
+  headers, each with **Číst vše**; an account's main calendar shows as "Hlavní kalendář", unsynced calendars go faded
+  to the end. The add button is gone. Every day item shows its calendar's color and its time in a column of its own,
+  with a line between the topics and the other events.
+- **Why:** The user's choices after the phone test. The account explains the duplicates, and a whole work or school
+  account can be switched off in one tap.
