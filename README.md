@@ -120,8 +120,9 @@ midnight, Friday, Saturday and the late summer sunset.
 ## Plans and journal (M4.5)
 
 - **Plans by topic.** Plans for the next days are written in Google Calendar, one calendar per topic (for example
-  Škola, Seberozvoj, Španělština). On **Plány** you mark which calendars are topics. The screen shows the next seven
-  days, each split into the plans of every topic and the other events, and **Přidat do kalendáře** opens the calendar
+  Škola, Seberozvoj, Španělština). On **Plány** you mark which calendars are topics, and you can switch off reading
+  any calendar of the account (birthdays, holidays): Elias then leaves it out everywhere, also from what goes to the
+  AI. The screen shows the next seven days, each split into the plans of every topic and the other events, and **Přidat do kalendáře** opens the calendar
   app on that day. Elias only reads the calendar.
 - **Briefings by topic.** The morning briefing reads today's events first, then the plans by topic. The evening
   briefing reads tomorrow's plans by topic and says in one sentence which topics have nothing planned yet.
@@ -153,7 +154,7 @@ midnight, Friday, Saturday and the late summer sunset.
 | Architecture | MVVM, layers `data` / `domain` / `ui` |
 | Dependency injection | Hilt (KSP) |
 | Networking | Ktor client (OkHttp engine) + kotlinx.serialization |
-| Storage | DataStore (speech rate, weekly schedule, topic calendars), Room 3 (source cache, run log, journal) |
+| Storage | DataStore (speech rate, weekly schedule, calendar choices), Room 3 (source cache, run log, journal) |
 | Scheduling | AlarmManager (`setAlarmClock()`, exact alarms), WorkManager with Hilt workers (prefetch) |
 | Voice | Piper voice "Jirka" with sherpa-onnx (ONNX Runtime), Android `TextToSpeech` as the fallback, Media3 |
 | Time | `java.time`, zone `Europe/Prague`, injected `Clock` |
@@ -233,7 +234,8 @@ E.L.I.A.S. is built to keep personal data on the phone. This section grows with 
 
 **What stays on the phone:**
 
-- Calendar events are read on the device. Without an API key they never leave it. The app never writes to the calendar.
+- Calendar events are read on the device. Without an API key they never leave it, and calendars switched off on
+  Plány are never read at all. The app never writes to the calendar.
 - The personal plan is part of the app and is only read locally.
 - Speech is made on the phone: by the app's own voice (Oldřich 3.0) or by an offline voice of the phone. Elias never
   uses a voice that needs the network, so the briefing text does not go to a text-to-speech server. The voice model is
@@ -243,8 +245,8 @@ E.L.I.A.S. is built to keep personal data on the phone. This section grows with 
   app's private storage.
 - The last weather forecast and RSS feeds that worked are kept in the app's database. They are public data.
 - The journal is kept in the app's database and read out by the phone's offline voice. It is never part of a
-  briefing request to the AI and never written to the run log. Which calendars are topics is stored in the app's
-  private storage.
+  briefing request to the AI and never written to the run log. Which calendars are read and which are topics is stored
+  in the app's private storage.
 - The run log keeps, for 30 days, when each briefing or prefetch ran, how each source did and how it ended. It never
   holds the briefing's text.
 - Android cloud backup and device-to-device transfer are disabled for this app.

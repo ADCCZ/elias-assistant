@@ -315,3 +315,13 @@ Format: **context** – what we had to decide, **decision**, **why**.
 - **Decision:** `ClaudeClient` sends one structured request and turns every API or network problem into a reason
   (`ClaudeAnswer.Failed`). `ClaudeBriefingBuilder` and `ClaudeStepSuggester` only build the prompt and check the answer.
 - **Why:** One tested error path (no credit, bad key, timeouts...) instead of two copies.
+
+## D45 – Calendars can be switched off, in one place (2026-10-29)
+- **Context:** While testing Plány the user wanted to switch off any calendar of the account, not only mark topics.
+  The spec had the choice of calendars in M7.
+- **Decision:** Each calendar on Plány has **Číst** and **Téma**. Switched-off ids are stored in DataStore, so a new
+  calendar is read until the user switches it off. `SelectedCalendars` wraps the phone's calendar and drops those
+  events; Hilt gives it to everything that reads the calendar. A switched-off calendar cannot be a topic. The topic
+  picker stays at the top of the screen and collapses only on Hotovo, so a switch never moves under the finger.
+- **Why:** One filter makes the choice hold for the briefings, Plány, Data and the AI alike, with no place forgotten.
+  Spec change recorded.

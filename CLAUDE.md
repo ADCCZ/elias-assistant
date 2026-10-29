@@ -67,8 +67,9 @@ io/github/adccz/elias/
   update). Receivers get dependencies through `ScheduleEntryPoint`. The evening briefing opens
   `ScheduledBriefingActivity` with a full-screen notification (`EveningBriefingStarter`), which speaks while visible.
   Never play audio after `BOOT_COMPLETED`, only reschedule.
-- **Plans and journal (M4.5):** a topic is a phone calendar marked on Plány (`TopicSettingsRepository`, DataStore);
-  `Topics.agenda` splits a day into events and plans by topic. The journal (`Journal`, Room table `journal_entries`)
+- **Plans and journal (M4.5):** a topic is a phone calendar marked on Plány (`CalendarSettingsRepository`, DataStore);
+  `Topics.agenda` splits a day into events and plans by topic. Calendars switched off on Plány are dropped by
+  `SelectedCalendars`, which Hilt provides as the `CalendarRepository`: never read the phone's calendar around it. The journal (`Journal`, Room table `journal_entries`)
   stays on the phone: briefing prompts never contain it, `BriefingService` adds the journal sections after the AI
   answer, and only "na čem se zlepšit" with the weekly theme goes to the AI on a tap (`SuggestStep`).
 - **Room 3:** package `androidx.room3`, platform SQLite driver, schemas in `app/schemas/` (commit them). DAOs stay thin
