@@ -5,21 +5,12 @@ import io.github.adccz.elias.domain.calendar.PhoneCalendar
 import java.text.Collator
 import java.time.LocalDate
 import java.util.Locale
-import kotlinx.coroutines.flow.Flow
 
 /**
  * A topic of the user's plans ("Škola", "Seberozvoj", "Španělština"). Each topic is one calendar on the phone:
  * the user writes plans for the next days into that calendar in Google Calendar (spec, M4.5).
  */
 data class Topic(val calendarId: Long, val name: String)
-
-/** Which of the phone's calendars are topics. Stored on the phone. */
-interface TopicSettingsRepository {
-    /** Ids of the calendars marked as topics. Emits again on every change. */
-    val topicCalendarIds: Flow<Set<Long>>
-
-    suspend fun setTopic(calendarId: Long, isTopic: Boolean)
-}
 
 /** The plans of one topic on one day. [plans] may be empty: the topic has nothing planned for that day. */
 data class TopicPlans(val topic: Topic, val plans: List<CalendarEvent>)

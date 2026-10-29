@@ -18,8 +18,8 @@ import io.github.adccz.elias.domain.sun.SabbathCalculator
 import io.github.adccz.elias.domain.sun.SunCalculator
 import io.github.adccz.elias.domain.weather.WeatherForecast
 import io.github.adccz.elias.domain.weather.WeatherRepository
+import io.github.adccz.elias.testing.FakeCalendarSettings
 import io.github.adccz.elias.testing.FakeRunLog
-import io.github.adccz.elias.testing.FakeTopicSettings
 import io.github.adccz.elias.testing.InMemoryJournal
 import io.github.adccz.elias.testing.MainDispatcherExtension
 import java.time.Clock
@@ -81,7 +81,7 @@ class DataViewModelTest {
                 SabbathCalculator(sun),
                 FakeRunLog(),
                 clock,
-                FakeTopicSettings(),
+                FakeCalendarSettings(),
                 Journal(InMemoryJournal(), clock),
             )
         return DataViewModel(loader)

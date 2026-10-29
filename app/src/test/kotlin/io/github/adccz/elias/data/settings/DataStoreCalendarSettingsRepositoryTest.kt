@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class DataStoreTopicSettingsRepositoryTest {
+class DataStoreCalendarSettingsRepositoryTest {
     @TempDir
     lateinit var folder: File
 
@@ -31,12 +31,12 @@ class DataStoreTopicSettingsRepositoryTest {
 
     @Test
     fun `has no topics until the user marks one`() = runTest {
-        assertEquals(emptySet<Long>(), DataStoreTopicSettingsRepository(dataStore).topicCalendarIds.first())
+        assertEquals(emptySet<Long>(), DataStoreCalendarSettingsRepository(dataStore).topicCalendarIds.first())
     }
 
     @Test
     fun `adds and removes topic calendars`() = runTest {
-        val repository = DataStoreTopicSettingsRepository(dataStore)
+        val repository = DataStoreCalendarSettingsRepository(dataStore)
 
         repository.setTopic(2, isTopic = true)
         repository.setTopic(4, isTopic = true)
@@ -49,6 +49,19 @@ class DataStoreTopicSettingsRepositoryTest {
     fun `ignores a stored value that is not a calendar id`() = runTest {
         dataStore.edit { it[stringSetPreferencesKey("topic_calendar_ids")] = setOf("7", "nonsense") }
 
-        assertEquals(setOf(7L), DataStoreTopicSettingsRepository(dataStore).topicCalendarIds.first())
+        assertEquals(setOf(7L), DataStoreCalendarSettingsRepository(dataStore).topicCalendarIds.first())
+    }
+
+    @Test
+    fun `reads every calendar until one is switched off, and again after it is switched on`() = runTest {
+        val repository = DataStoreCalendarSettingsRepository(dataStore)
+        assertEquals(emptySet<Long>(), repository.hiddenCalendarIds.first())
+
+        repository.setRead(5, read = false)
+        assertEquals(setOf(5L), repository.hiddenCalendarIds.first())
+
+        repository.setRead(5, read = true)
+        assertEquals(emptySet<Long>(), repository.hiddenCalendarIds.first())
+        assertEquals(emptySet<Long>(), repository.topicCalendarIds.first())
     }
 }

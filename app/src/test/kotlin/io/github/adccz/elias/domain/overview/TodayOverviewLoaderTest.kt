@@ -29,8 +29,8 @@ import io.github.adccz.elias.domain.weather.HourlyWeather
 import io.github.adccz.elias.domain.weather.WeatherCondition
 import io.github.adccz.elias.domain.weather.WeatherForecast
 import io.github.adccz.elias.domain.weather.WeatherRepository
+import io.github.adccz.elias.testing.FakeCalendarSettings
 import io.github.adccz.elias.testing.FakeRunLog
-import io.github.adccz.elias.testing.FakeTopicSettings
 import io.github.adccz.elias.testing.InMemoryJournal
 import java.time.Clock
 import java.time.Instant
@@ -128,7 +128,7 @@ class TodayOverviewLoaderTest {
         plans: PlanRepository = workingPlans,
         news: NewsRepository = workingNews,
         runLog: FakeRunLog = FakeRunLog(),
-        topicSettings: FakeTopicSettings = FakeTopicSettings(),
+        calendarSettings: FakeCalendarSettings = FakeCalendarSettings(),
         journal: InMemoryJournal = InMemoryJournal(),
     ) = TodayOverviewLoader(
         calendar,
@@ -139,7 +139,7 @@ class TodayOverviewLoaderTest {
         SabbathCalculator(sun),
         runLog,
         clock,
-        topicSettings,
+        calendarSettings,
         Journal(journal, clock),
     )
 
@@ -170,14 +170,17 @@ class TodayOverviewLoaderTest {
             )
         }
 
-        val overview = loader(calendarWithTopics, topicSettings = FakeTopicSettings(setOf(2L, 3L, 99L))).load()
+        val overview = loader(calendarWithTopics, calendarSettings = FakeCalendarSettings(setOf(2L, 3L, 99L))).load()
+        val withHidden = loader(calendarWithTopics, calendarSettings = FakeCalendarSettings(setOf(2L, 3L), setOf(3L)))
+            .load()
 
         assertEquals(listOf(Topic(3, "Seberozvoj"), Topic(2, "Škola")), overview.topics)
+        assertEquals(listOf(Topic(2, "Škola")), withHidden.topics)
     }
 
     @Test
     fun `has no topics when the calendars cannot be listed`() = runTest {
-        val overview = loader(topicSettings = FakeTopicSettings(setOf(2L))).load()
+        val overview = loader(calendarSettings = FakeCalendarSettings(setOf(2L))).load()
 
         assertEquals(emptyList<Topic>(), overview.topics)
     }

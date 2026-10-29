@@ -4,10 +4,11 @@ import io.github.adccz.elias.core.time.PRAGUE_ZONE
 import io.github.adccz.elias.domain.calendar.CalendarEvent
 import io.github.adccz.elias.domain.calendar.CalendarRepository
 import io.github.adccz.elias.domain.calendar.PhoneCalendar
+import io.github.adccz.elias.domain.calendar.SelectedCalendars
 import io.github.adccz.elias.domain.model.FailureReason
 import io.github.adccz.elias.domain.model.SourceResult
 import io.github.adccz.elias.domain.topics.Topic
-import io.github.adccz.elias.testing.FakeTopicSettings
+import io.github.adccz.elias.testing.FakeCalendarSettings
 import io.github.adccz.elias.testing.MainDispatcherExtension
 import java.time.Clock
 import java.time.Instant
@@ -73,10 +74,13 @@ class PlansViewModelTest {
     }
 
     private val calendar = FakeCalendar(today)
-    private val topicSettings = FakeTopicSettings(setOf(2L))
+    private val calendarSettings = FakeCalendarSettings(setOf(2L))
 
     // Created inside each test, after MainDispatcherExtension has set the main dispatcher.
-    private val viewModel by lazy { PlansViewModel(calendar, topicSettings, clock) }
+    // Through SelectedCalendars, as in the app, so switching a calendar off really hides its events.
+    private val viewModel by lazy {
+        PlansViewModel(SelectedCalendars(calendar, calendarSettings), calendarSettings, clock)
+    }
 
     private fun TestScope.collectState() =
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
@@ -126,5 +130,25 @@ class PlansViewModelTest {
 
         assertEquals(null, viewModel.uiState.value.problem)
         assertEquals(PlansViewModel.DAYS, viewModel.uiState.value.days.size)
+    }
+
+    @Test
+    fun `a calendar switched off disappears from the days and can no longer be a topic`() = runTest {
+        collectState()
+        advanceUntilIdle()
+
+        viewModel.setRead(2, read = false)
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        val today = state.days.first()
+        assertEquals(listOf("Zubař"), today.events.map { it.title })
+        assertEquals(emptyList<Topic>(), today.topics.map { it.topic })
+        assertFalse(state.hasTopics)
+        assertEquals(listOf(true, false, true), state.calendars.map { it.isRead })
+
+        viewModel.setRead(2, read = true)
+        advanceUntilIdle()
+        assertEquals(listOf("Připravit referát"), viewModel.uiState.value.days.first().topics.single().plans.map { it.title })
     }
 }

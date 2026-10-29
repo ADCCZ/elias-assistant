@@ -35,6 +35,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -77,6 +80,7 @@ fun PlansRoute(onBack: () -> Unit, viewModel: PlansViewModel = hiltViewModel()) 
         onGrantPermission = { calendarPermission.launch(Manifest.permission.READ_CALENDAR) },
         onAddPlan = { date -> context.openNewPlan(date) },
         onSetTopic = viewModel::setTopic,
+        onSetRead = viewModel::setRead,
     )
 }
 
@@ -105,6 +109,7 @@ fun PlansScreen(
     onGrantPermission: () -> Unit,
     onAddPlan: (LocalDate) -> Unit,
     onSetTopic: (Long, Boolean) -> Unit,
+    onSetRead: (Long, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -138,14 +143,15 @@ fun PlansScreen(
                 else -> item { Text(stringResource(R.string.failure_unknown)) }
             }
             if (!uiState.isLoading && uiState.problem == null) {
+                // Always in the same place, so switching a topic on never moves the switches under the finger.
+                // The setup help goes below it for the same reason: it disappears with the first topic.
+                item(key = "topics") { TopicPicker(uiState.calendars, uiState.hasTopics, onSetTopic, onSetRead) }
                 if (!uiState.hasTopics) {
                     item { Text(stringResource(R.string.plans_setup), style = MaterialTheme.typography.bodyMedium) }
-                    item { TopicPicker(uiState.calendars, onSetTopic) }
                 }
                 items(uiState.days, key = { it.date.toEpochDay() }) { day ->
                     DayCard(day, uiState.today, uiState.topicColors, uiState.hasTopics, onAddPlan)
                 }
-                if (uiState.hasTopics) item { TopicPicker(uiState.calendars, onSetTopic) }
             }
         }
     }
@@ -214,20 +220,58 @@ private fun TopicBlock(plans: TopicPlans, color: Int?) {
     }
 }
 
+/**
+ * The topics. Open when the screen first shows no topics, otherwise one line with Upravit. It does not close by
+ * itself when a topic is switched on, only with Hotovo.
+ */
 @Composable
-private fun TopicPicker(calendars: List<CalendarChoice>, onSetTopic: (Long, Boolean) -> Unit) {
+private fun TopicPicker(
+    calendars: List<CalendarChoice>,
+    hasTopics: Boolean,
+    onSetTopic: (Long, Boolean) -> Unit,
+    onSetRead: (Long, Boolean) -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(!hasTopics) }
     OutlinedCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.plans_topics_title), style = MaterialTheme.typography.titleMedium)
-            Text(stringResource(R.string.plans_topics_hint), style = MaterialTheme.typography.bodySmall)
-            if (calendars.isEmpty()) Text(stringResource(R.string.plans_no_calendars))
-            calendars.forEach { choice -> CalendarRow(choice, onSetTopic) }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(R.string.plans_topics_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f),
+                )
+                if (hasTopics) {
+                    TextButton(onClick = { expanded = !expanded }) {
+                        Text(stringResource(if (expanded) R.string.plans_topics_done else R.string.plans_topics_edit))
+                    }
+                }
+            }
+            if (expanded || !hasTopics) {
+                Text(stringResource(R.string.plans_topics_hint), style = MaterialTheme.typography.bodySmall)
+                if (calendars.isEmpty()) Text(stringResource(R.string.plans_no_calendars))
+                calendars.forEach { choice -> CalendarRow(choice, onSetTopic, onSetRead) }
+            } else {
+                val topics = calendars.filter { it.isTopic && it.isRead }.joinToString(", ") { it.calendar.name }
+                Text(stringResource(R.string.plans_topics_summary, topics))
+                val hidden = calendars.filterNot { it.isRead }
+                if (hidden.isNotEmpty()) {
+                    Text(
+                        stringResource(R.string.plans_hidden_summary, hidden.joinToString(", ") { it.calendar.name }),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun CalendarRow(choice: CalendarChoice, onSetTopic: (Long, Boolean) -> Unit) {
+private fun CalendarRow(
+    choice: CalendarChoice,
+    onSetTopic: (Long, Boolean) -> Unit,
+    onSetRead: (Long, Boolean) -> Unit,
+) {
     val calendar = choice.calendar
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         ColorDot(calendar.color)
@@ -244,7 +288,19 @@ private fun CalendarRow(choice: CalendarChoice, onSetTopic: (Long, Boolean) -> U
                 )
             }
         }
-        Switch(checked = choice.isTopic, onCheckedChange = { onSetTopic(calendar.id, it) })
+        LabeledSwitch(R.string.plans_switch_read, choice.isRead) { onSetRead(calendar.id, it) }
+        // A calendar that is not read cannot be a topic.
+        LabeledSwitch(R.string.plans_switch_topic, choice.isTopic && choice.isRead, enabled = choice.isRead) {
+            onSetTopic(calendar.id, it)
+        }
+    }
+}
+
+@Composable
+private fun LabeledSwitch(label: Int, checked: Boolean, enabled: Boolean = true, onCheckedChange: (Boolean) -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(stringResource(label), style = MaterialTheme.typography.labelSmall)
+        Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
     }
 }
 
@@ -315,7 +371,11 @@ private fun PlansScreenPreview() {
                     DayAgenda(today.plusDays(1), emptyList(), listOf(TopicPlans(school, emptyList()))),
                 ),
                 calendars = listOf(
-                    CalendarChoice(PhoneCalendar(1, "Osobní", "olda@example.com", 0xFF8E24AA.toInt(), true), false),
+                    CalendarChoice(
+                        PhoneCalendar(1, "Narozeniny", "olda@example.com", 0xFF8E24AA.toInt(), true),
+                        false,
+                        false,
+                    ),
                     CalendarChoice(PhoneCalendar(2, "Škola", "olda@example.com", 0xFF3366CC.toInt(), true), true),
                     CalendarChoice(PhoneCalendar(4, "Španělština", "olda@example.com", null, false), true),
                 ),
@@ -325,6 +385,7 @@ private fun PlansScreenPreview() {
             onGrantPermission = {},
             onAddPlan = {},
             onSetTopic = { _, _ -> },
+            onSetRead = { _, _ -> },
         )
     }
 }

@@ -46,7 +46,7 @@ object TestLoaders {
             sabbath = SabbathCalculator(sun),
             runLog = FakeRunLog(),
             clock = clock,
-            topicSettings = FakeTopicSettings(),
+            calendarSettings = FakeCalendarSettings(),
             journal = Journal(InMemoryJournal(), clock),
         )
     }

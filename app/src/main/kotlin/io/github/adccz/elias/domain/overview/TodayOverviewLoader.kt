@@ -1,6 +1,7 @@
 package io.github.adccz.elias.domain.overview
 
 import io.github.adccz.elias.domain.calendar.CalendarRepository
+import io.github.adccz.elias.domain.calendar.CalendarSettingsRepository
 import io.github.adccz.elias.domain.journal.Journal
 import io.github.adccz.elias.domain.journal.JournalDay
 import io.github.adccz.elias.domain.journal.JournalStatus
@@ -18,7 +19,6 @@ import io.github.adccz.elias.domain.plan.dayPlan
 import io.github.adccz.elias.domain.sun.SabbathCalculator
 import io.github.adccz.elias.domain.sun.SunCalculator
 import io.github.adccz.elias.domain.topics.Topic
-import io.github.adccz.elias.domain.topics.TopicSettingsRepository
 import io.github.adccz.elias.domain.topics.Topics
 import io.github.adccz.elias.domain.weather.WeatherRepository
 import io.github.adccz.elias.domain.weather.dayWeather
@@ -49,7 +49,7 @@ class TodayOverviewLoader @Inject constructor(
     private val sabbath: SabbathCalculator,
     private val runLog: RunLog,
     private val clock: Clock,
-    private val topicSettings: TopicSettingsRepository,
+    private val calendarSettings: CalendarSettingsRepository,
     private val journal: Journal,
 ) {
     suspend fun load(): TodayOverview = coroutineScope {
@@ -121,7 +121,8 @@ class TodayOverviewLoader @Inject constructor(
      */
     private suspend fun loadTopics(): List<Topic> {
         val ids = try {
-            topicSettings.topicCalendarIds.first()
+            // A calendar that is switched off is not read, so it cannot be a topic either.
+            calendarSettings.topicCalendarIds.first() - calendarSettings.hiddenCalendarIds.first()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
