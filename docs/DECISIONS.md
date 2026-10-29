@@ -275,3 +275,43 @@ Format: **context** – what we had to decide, **decision**, **why**.
   switches the voice off until the app is updated, and Náhled textu says so.
 - **Why:** A new voice must never cost the user a briefing. The rule is pure and unit-tested; the marker covers what no
   try/catch can.
+
+## D40 – A topic is a calendar on the phone (2026-10-29)
+- **Context:** The user wants to plan the next days by topic (school, self-development, Spanish) in Google Calendar,
+  and Elias should read the plans grouped by topic.
+- **Decision:** Each topic is its own Google calendar. The **Plány** screen lists the phone's calendars and the user
+  marks the topics; their ids are kept in DataStore. `Topics.agenda` splits a day into ordinary events and the plans of
+  each topic, sorted by the Czech alphabet. Elias only reads the calendar; **Přidat do kalendáře** opens the calendar
+  app with the day filled in (the insert intent cannot choose a calendar, the user picks it there).
+- **Why:** The user's choice. No prefixes to type and no parsing, each topic keeps its color, and the calendar id is
+  already in `CalendarContract.Instances`. No new permission.
+
+## D41 – A journal day starts at 4:00 (2026-10-29)
+- **Context:** The journal is written in the evening, which often ends after midnight.
+- **Decision:** `JournalDay` counts anything written before 4:00 to the day before. One entry per day; an entry emptied
+  of all text is deleted instead of kept blank.
+- **Why:** A thought written at 0:30 belongs to the day it is about. The rule is pure and tested, including the night
+  the clocks go back.
+
+## D42 – Only "na čem se zlepšit" goes to the AI, and only on a tap (2026-10-29)
+- **Context:** The user wanted the AI to suggest a step from the journal. The journal is the most private data in the app.
+- **Decision:** **Navrhni krok** sends `StepRequest`: the text of "na čem se zlepšit" and the weekly theme (not the
+  theme of the fictional sample plan). The answer is one sentence of at most 40 words (`StepValidator`), shown as a
+  suggestion that the user may use or close. The briefing prompts never contain the journal: yesterday's step and the
+  evening reminder are template sections added after the AI answer, like the overnight messages (D21).
+- **Why:** The user's choice from three options. Sending data is an explicit act, the screen says what leaves the phone,
+  and the rest of the entry never does.
+
+## D43 – The journal text lives in the screen, saving in the app's scope (2026-10-29)
+- **Context:** Text fields lose characters or the cursor when their state comes through an asynchronous stream, which
+  matters for Czech letters typed through the keyboard's composition.
+- **Decision:** The editor keeps the typed text in Compose state (`rememberSaveable`, per day) and reports every change.
+  The ViewModel saves 0.8 s after typing stops, at once when the screen pauses or another day opens, and in its
+  `onCleared`. The save itself runs in the `@ApplicationScope`, so it finishes after the screen is gone.
+- **Why:** Google's advice for text field state, and nothing typed is lost when the user leaves the screen.
+
+## D44 – One Claude client for every request (2026-10-29)
+- **Context:** The step suggestion needs the same request, timeout and error handling as the briefings.
+- **Decision:** `ClaudeClient` sends one structured request and turns every API or network problem into a reason
+  (`ClaudeAnswer.Failed`). `ClaudeBriefingBuilder` and `ClaudeStepSuggester` only build the prompt and check the answer.
+- **Why:** One tested error path (no credit, bad key, timeouts...) instead of two copies.
