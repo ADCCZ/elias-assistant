@@ -1,6 +1,7 @@
 package io.github.adccz.elias.data.calendar
 
 import io.github.adccz.elias.core.time.PRAGUE_ZONE
+import io.github.adccz.elias.domain.calendar.CalendarAccount
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -141,5 +142,36 @@ class CalendarInstanceMapperTest {
         assertEquals(listOf("Škola", "Španělština", "Skryté", "olda@example.com"), calendars.map { it.name })
         assertEquals(listOf(true, false, false, true), calendars.map { it.isShown })
         assertEquals(0xFF3366CC.toInt(), calendars.first().color)
+    }
+
+    @Test
+    fun `tells Google, Samsung and the phone's own calendars apart`() {
+        val rows = listOf(
+            CalendarRow(1, "My calendar", "My calendar", null, true, true, accountType = "LOCAL"),
+            CalendarRow(
+                2,
+                "Samsung Calendar",
+                "olda@example.com",
+                null,
+                true,
+                true,
+                accountType = "com.osp.app.signin",
+            ),
+            CalendarRow(3, "olda@example.com", "olda@example.com", null, true, true, accountType = "com.google"),
+            CalendarRow(4, "Škola", "olda@example.com", null, true, true, accountType = "com.google"),
+        )
+
+        val calendars = mapper.calendars(rows)
+
+        assertEquals(
+            listOf(
+                CalendarAccount.Phone,
+                CalendarAccount.Samsung,
+                CalendarAccount.Online("olda@example.com"),
+                CalendarAccount.Online("olda@example.com"),
+            ),
+            calendars.map { it.account },
+        )
+        assertEquals(listOf(false, false, true, false), calendars.map { it.isMain })
     }
 }

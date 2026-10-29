@@ -110,6 +110,7 @@ class ContentResolverCalendarRepository @Inject constructor(
                     color = if (cursor.isNull(CALENDAR_COLUMN_COLOR)) null else cursor.getInt(CALENDAR_COLUMN_COLOR),
                     isVisible = cursor.getInt(CALENDAR_COLUMN_VISIBLE) == 1,
                     isSynced = cursor.getInt(CALENDAR_COLUMN_SYNC_EVENTS) == 1,
+                    accountType = cursor.getString(CALENDAR_COLUMN_ACCOUNT_TYPE),
                 )
             }
         }
@@ -145,6 +146,7 @@ class ContentResolverCalendarRepository @Inject constructor(
             Calendars.CALENDAR_COLOR,
             Calendars.VISIBLE,
             Calendars.SYNC_EVENTS,
+            Calendars.ACCOUNT_TYPE,
         )
         const val CALENDAR_COLUMN_ID = 0
         const val CALENDAR_COLUMN_NAME = 1
@@ -152,5 +154,6 @@ class ContentResolverCalendarRepository @Inject constructor(
         const val CALENDAR_COLUMN_COLOR = 3
         const val CALENDAR_COLUMN_VISIBLE = 4
         const val CALENDAR_COLUMN_SYNC_EVENTS = 5
+        const val CALENDAR_COLUMN_ACCOUNT_TYPE = 6
     }
 }

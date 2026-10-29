@@ -17,7 +17,8 @@ interface CalendarSettingsRepository {
 
     suspend fun setTopic(calendarId: Long, isTopic: Boolean)
 
-    suspend fun setRead(calendarId: Long, read: Boolean)
+    /** Switches reading all [calendarIds] on or off at once (one calendar, or a whole account). */
+    suspend fun setRead(calendarIds: Set<Long>, read: Boolean)
 }
 
 /**

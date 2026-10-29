@@ -19,7 +19,7 @@ class FakeCalendarSettings(topics: Set<Long> = emptySet(), hidden: Set<Long> = e
         topicIds.update { if (isTopic) it + calendarId else it - calendarId }
     }
 
-    override suspend fun setRead(calendarId: Long, read: Boolean) {
-        hiddenIds.update { if (read) it - calendarId else it + calendarId }
+    override suspend fun setRead(calendarIds: Set<Long>, read: Boolean) {
+        hiddenIds.update { if (read) it - calendarIds else it + calendarIds }
     }
 }

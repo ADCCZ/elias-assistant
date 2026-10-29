@@ -1,6 +1,7 @@
 package io.github.adccz.elias.ui.plans
 
 import io.github.adccz.elias.core.time.PRAGUE_ZONE
+import io.github.adccz.elias.domain.calendar.CalendarAccount
 import io.github.adccz.elias.domain.calendar.CalendarEvent
 import io.github.adccz.elias.domain.calendar.CalendarRepository
 import io.github.adccz.elias.domain.calendar.PhoneCalendar
@@ -98,7 +99,8 @@ class PlansViewModelTest {
         val school = state.days.first().topics.single()
         assertEquals(Topic(2, "Škola"), school.topic)
         assertEquals(listOf("Připravit referát"), school.plans.map { it.title })
-        assertEquals(mapOf(2L to 0xFF3366CC.toInt()), state.topicColors)
+        assertEquals(mapOf(2L to 0xFF3366CC.toInt(), 3L to 0xFF33AA66.toInt()), state.calendarColors)
+        assertEquals(listOf(CalendarAccount.Online("olda@example.com")), state.accounts.map { it.account })
         assertTrue(state.hasTopics)
     }
 
@@ -155,5 +157,25 @@ class PlansViewModelTest {
                 it.title
             },
         )
+    }
+
+    @Test
+    fun `Číst vše switches a whole account off and on`() = runTest {
+        collectState()
+        advanceUntilIdle()
+        val account = CalendarAccount.Online("olda@example.com")
+
+        viewModel.setAccountRead(account, read = false)
+        advanceUntilIdle()
+
+        val off = viewModel.uiState.value
+        assertFalse(off.accounts.single().allRead)
+        assertEquals(emptyList<String>(), off.days.first().events.map { it.title })
+        assertFalse(off.hasTopics)
+
+        viewModel.setAccountRead(account, read = true)
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.accounts.single().allRead)
+        assertEquals(listOf("Zubař"), viewModel.uiState.value.days.first().events.map { it.title })
     }
 }

@@ -67,7 +67,7 @@ class SelectedCalendarsTest {
 
             override suspend fun setTopic(calendarId: Long, isTopic: Boolean) = Unit
 
-            override suspend fun setRead(calendarId: Long, read: Boolean) = Unit
+            override suspend fun setRead(calendarIds: Set<Long>, read: Boolean) = Unit
         }
 
         assertEquals(3, SelectedCalendars(phone, broken).eventsOn(day).titles().size)

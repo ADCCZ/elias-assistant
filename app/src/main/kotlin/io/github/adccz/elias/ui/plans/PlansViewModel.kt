@@ -3,6 +3,8 @@ package io.github.adccz.elias.ui.plans
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.adccz.elias.domain.calendar.CalendarAccount
+import io.github.adccz.elias.domain.calendar.CalendarAccounts
 import io.github.adccz.elias.domain.calendar.CalendarEvent
 import io.github.adccz.elias.domain.calendar.CalendarRepository
 import io.github.adccz.elias.domain.calendar.CalendarSettingsRepository
@@ -24,24 +26,32 @@ import kotlinx.coroutines.launch
 /** One calendar in the picker: whether Elias reads it at all, and whether it is a topic. */
 data class CalendarChoice(val calendar: PhoneCalendar, val isTopic: Boolean, val isRead: Boolean = true)
 
+/** The calendars of one account in the picker. [allRead] drives the account's "Číst vše" switch. */
+data class AccountChoices(val account: CalendarAccount, val calendars: List<CalendarChoice>) {
+    val allRead: Boolean get() = calendars.all { it.isRead }
+}
+
 /**
  * The next days by topic. [problem] is set when the calendar could not be read (most often: no permission).
- * [topicColors] maps a topic's calendar id to its color in the calendar app.
+ * [accounts] has the phone's calendars grouped by account. [calendarColors] maps a calendar id to its color in the
+ * calendar app, so every event on the screen can show where it comes from.
  */
 data class PlansUiState(
     val isLoading: Boolean = true,
     val problem: FailureReason? = null,
     val today: LocalDate? = null,
     val days: List<DayAgenda> = emptyList(),
-    val calendars: List<CalendarChoice> = emptyList(),
-    val topicColors: Map<Long, Int> = emptyMap(),
+    val accounts: List<AccountChoices> = emptyList(),
+    val calendarColors: Map<Long, Int> = emptyMap(),
 ) {
+    val calendars: List<CalendarChoice> get() = accounts.flatMap { it.calendars }
+
     val hasTopics: Boolean get() = calendars.any { it.isTopic && it.isRead }
 }
 
 /**
  * Shows the plans of the next [DAYS] days from Google Calendar, grouped by topic, and lets the user choose which
- * calendars Elias reads and which are topics. Elias only reads the calendar: new plans are added in the calendar app.
+ * calendars Elias reads and which are topics. Elias only reads the calendar: plans are written in the calendar app.
  */
 @HiltViewModel
 class PlansViewModel @Inject constructor(
@@ -82,9 +92,17 @@ class PlansViewModel @Inject constructor(
     }
 
     /** Switches reading [calendarId] on or off, then reads the calendar again with the new choice. */
-    fun setRead(calendarId: Long, read: Boolean) {
+    fun setRead(calendarId: Long, read: Boolean) = setRead(setOf(calendarId), read)
+
+    /** Switches reading every calendar of [account] on or off at once ("Číst vše"). */
+    fun setAccountRead(account: CalendarAccount, read: Boolean) {
+        val ids = uiState.value.accounts.firstOrNull { it.account == account }?.calendars?.map { it.calendar.id }
+        if (!ids.isNullOrEmpty()) setRead(ids.toSet(), read)
+    }
+
+    private fun setRead(calendarIds: Set<Long>, read: Boolean) {
         viewModelScope.launch {
-            calendarSettings.setRead(calendarId, read)
+            calendarSettings.setRead(calendarIds, read)
             refresh()
         }
     }
@@ -99,10 +117,13 @@ class PlansViewModel @Inject constructor(
                 isLoading = false,
                 today = loaded.today,
                 days = events.data.map { (date, dayEvents) -> Topics.agenda(date, dayEvents, topics) },
-                calendars = calendars.map { CalendarChoice(it, it.id in topicIds, it.id !in hiddenIds) },
-                topicColors = topics.mapNotNull { topic ->
-                    calendars.firstOrNull { it.id == topic.calendarId }?.color?.let { topic.calendarId to it }
-                }.toMap(),
+                accounts = CalendarAccounts.group(calendars).map { group ->
+                    AccountChoices(
+                        group.account,
+                        group.calendars.map { CalendarChoice(it, it.id in topicIds, it.id !in hiddenIds) },
+                    )
+                },
+                calendarColors = calendars.mapNotNull { c -> c.color?.let { c.id to it } }.toMap(),
             )
         }
     }

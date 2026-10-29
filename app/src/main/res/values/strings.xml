@@ -228,17 +228,23 @@
     <string name="plans_switch_read">Číst</string>
     <string name="plans_switch_topic">Téma</string>
     <string name="plans_topics_summary">Témata: %1$s</string>
-    <string name="plans_hidden_summary">Nečte: %1$s</string>
-    <string name="plans_calendar_not_shown">Události se do telefonu nesynchronizují. Zapni kalendář v aplikaci Google Kalendář.</string>
+    <plurals name="plans_hidden_count">
+        <item quantity="one">Nečte %d kalendář</item>
+        <item quantity="few">Nečte %d kalendáře</item>
+        <item quantity="many">Nečte %d kalendáře</item>
+        <item quantity="other">Nečte %d kalendářů</item>
+    </plurals>
+    <string name="plans_switch_read_all">Číst vše</string>
+    <string name="plans_account_phone">Jen v telefonu</string>
+    <string name="plans_account_samsung">Účet Samsung</string>
+    <string name="plans_main_calendar">Hlavní kalendář</string>
+    <string name="plans_calendar_not_shown">Nesynchronizuje se do telefonu</string>
     <string name="plans_no_calendars">V telefonu není žádný kalendář.</string>
     <string name="plans_today">Dnes, %1$s</string>
     <string name="plans_tomorrow">Zítra, %1$s</string>
     <string name="plans_nothing">Nic naplánováno</string>
     <string name="plans_without_plan">Bez plánu: %1$s</string>
     <string name="plans_other_events">Další události</string>
-    <string name="plans_add">Přidat do kalendáře</string>
-    <string name="plans_calendar_app_missing">Kalendářová aplikace se nepodařila otevřít.</string>
-    <string name="plans_item_timed">%1$s %2$s</string>
 
     <!-- Journal screen (M4.5) -->
     <string name="home_open_journal">Deník</string>

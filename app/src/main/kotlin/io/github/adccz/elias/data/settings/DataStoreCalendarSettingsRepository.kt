@@ -23,20 +23,21 @@ class DataStoreCalendarSettingsRepository @Inject constructor(private val dataSt
 
     override val hiddenCalendarIds: Flow<Set<Long>> = ids(HIDDEN)
 
-    override suspend fun setTopic(calendarId: Long, isTopic: Boolean) = update(TOPICS, calendarId, isTopic)
+    override suspend fun setTopic(calendarId: Long, isTopic: Boolean) = update(TOPICS, setOf(calendarId), isTopic)
 
-    override suspend fun setRead(calendarId: Long, read: Boolean) = update(HIDDEN, calendarId, !read)
+    override suspend fun setRead(calendarIds: Set<Long>, read: Boolean) = update(HIDDEN, calendarIds, !read)
 
     private fun ids(key: Preferences.Key<Set<String>>): Flow<Set<Long>> = dataStore.data
         .catch { error -> if (error is IOException) emit(emptyPreferences()) else throw error }
         .map { preferences -> preferences[key].orEmpty().mapNotNull { it.toLongOrNull() }.toSet() }
         .distinctUntilChanged()
 
-    private suspend fun update(key: Preferences.Key<Set<String>>, calendarId: Long, include: Boolean) {
+    private suspend fun update(key: Preferences.Key<Set<String>>, calendarIds: Set<Long>, include: Boolean) {
+        val changed = calendarIds.map { it.toString() }.toSet()
         try {
             dataStore.edit { preferences ->
                 val ids = preferences[key].orEmpty()
-                preferences[key] = if (include) ids + calendarId.toString() else ids - calendarId.toString()
+                preferences[key] = if (include) ids + changed else ids - changed
             }
         } catch (e: IOException) {
             // The phone could not write the file (full storage). The old choice stays.

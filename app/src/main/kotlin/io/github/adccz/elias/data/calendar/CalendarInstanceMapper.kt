@@ -1,5 +1,6 @@
 package io.github.adccz.elias.data.calendar
 
+import io.github.adccz.elias.domain.calendar.CalendarAccount
 import io.github.adccz.elias.domain.calendar.CalendarEvent
 import io.github.adccz.elias.domain.calendar.PhoneCalendar
 import java.time.Instant
@@ -29,6 +30,7 @@ data class CalendarRow(
     val color: Int?,
     val isVisible: Boolean,
     val isSynced: Boolean,
+    val accountType: String? = null,
 )
 
 /**
@@ -95,8 +97,19 @@ class CalendarInstanceMapper @Inject constructor() {
                 accountName = row.accountName,
                 color = row.color,
                 isShown = row.isVisible && row.isSynced,
+                account = accountOf(row),
             )
         }
+    }
+
+    private fun accountOf(row: CalendarRow): CalendarAccount = when (row.accountType) {
+        // CalendarContract.ACCOUNT_TYPE_LOCAL: calendars that exist only on the phone.
+        "LOCAL" -> CalendarAccount.Phone
+
+        // The Samsung account's calendar (Samsung's sign-in service).
+        "com.osp.app.signin" -> CalendarAccount.Samsung
+
+        else -> row.accountName?.trim()?.ifEmpty { null }?.let { CalendarAccount.Online(it) } ?: CalendarAccount.Phone
     }
 
     private fun utcDate(millis: Long): LocalDate = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()

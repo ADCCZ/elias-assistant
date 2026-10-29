@@ -26,7 +26,7 @@ data class CalendarEvent(
  * One calendar on the phone, such as the Google calendar "Škola".
  *
  * [color] is the ARGB color the calendar app uses, null when unknown. [isShown] is false when the calendar is hidden
- * or not synced in the phone's calendar app: then its events never reach Elias.
+ * or not synced in the phone's calendar app: then its events never reach Elias. [account] says where it comes from.
  */
 data class PhoneCalendar(
     val id: Long,
@@ -34,7 +34,43 @@ data class PhoneCalendar(
     val accountName: String?,
     val color: Int?,
     val isShown: Boolean,
-)
+    val account: CalendarAccount = accountName?.let { CalendarAccount.Online(it) } ?: CalendarAccount.Phone,
+) {
+    /** The main calendar of an online account, which the phone names after the account ("someone@gmail.com"). */
+    val isMain: Boolean get() = account is CalendarAccount.Online && name == account.name
+}
+
+/** Where a calendar comes from. A phone can have several accounts, each with its own calendars. */
+sealed interface CalendarAccount {
+    /** An online account such as Google, named by its e-mail address. */
+    data class Online(val name: String) : CalendarAccount
+
+    /** The calendar of the Samsung account. */
+    data object Samsung : CalendarAccount
+
+    /** Calendars kept only on the phone, such as the phone's own calendar or birthdays from the contacts. */
+    data object Phone : CalendarAccount
+}
+
+/** The calendars of one account. */
+data class AccountCalendars(val account: CalendarAccount, val calendars: List<PhoneCalendar>)
+
+object CalendarAccounts {
+    /**
+     * Groups calendars by account: online accounts in the order the phone lists them, then Samsung, then the phone.
+     * Within an account the calendars that reach the phone come first, the hidden or unsynced ones at the end.
+     */
+    fun group(calendars: List<PhoneCalendar>): List<AccountCalendars> = calendars
+        .groupBy { it.account }
+        .map { (account, inAccount) -> AccountCalendars(account, inAccount.sortedByDescending { it.isShown }) }
+        .sortedBy {
+            when (it.account) {
+                is CalendarAccount.Online -> 0
+                CalendarAccount.Samsung -> 1
+                CalendarAccount.Phone -> 2
+            }
+        }
+}
 
 /** Reads events from the calendars synced to the phone. Implemented in the data layer. */
 interface CalendarRepository {

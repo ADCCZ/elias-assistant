@@ -1,11 +1,6 @@
 package io.github.adccz.elias.ui.plans
 
 import android.Manifest
-import android.content.ActivityNotFoundException
-import android.content.Context
-import android.content.Intent
-import android.provider.CalendarContract
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -18,11 +13,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -40,9 +37,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,6 +49,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.adccz.elias.R
 import io.github.adccz.elias.core.time.PRAGUE_ZONE
+import io.github.adccz.elias.domain.calendar.CalendarAccount
 import io.github.adccz.elias.domain.calendar.CalendarEvent
 import io.github.adccz.elias.domain.calendar.PhoneCalendar
 import io.github.adccz.elias.domain.model.FailureReason
@@ -61,11 +60,10 @@ import io.github.adccz.elias.ui.common.CzechFormat
 import io.github.adccz.elias.ui.theme.EliasTheme
 import java.time.LocalDate
 
-/** Connects the Plans screen to its ViewModel and to Android (calendar permission, the calendar app). */
+/** Connects the Plans screen to its ViewModel and to Android (the calendar permission). */
 @Composable
 fun PlansRoute(onBack: () -> Unit, viewModel: PlansViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
     val calendarPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         viewModel.refresh()
     }
@@ -78,38 +76,22 @@ fun PlansRoute(onBack: () -> Unit, viewModel: PlansViewModel = hiltViewModel()) 
         uiState = uiState,
         onBack = onBack,
         onGrantPermission = { calendarPermission.launch(Manifest.permission.READ_CALENDAR) },
-        onAddPlan = { date -> context.openNewPlan(date) },
         onSetTopic = viewModel::setTopic,
         onSetRead = viewModel::setRead,
+        onSetAccountRead = viewModel::setAccountRead,
     )
 }
 
-/** Opens the calendar app with a new all-day event on [date]. The user picks the topic calendar there. */
-private fun Context.openNewPlan(date: LocalDate) {
-    val intent = Intent(Intent.ACTION_INSERT, CalendarContract.Events.CONTENT_URI)
-        .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, date.atStartOfDay(PRAGUE_ZONE).toInstant().toEpochMilli())
-        .putExtra(
-            CalendarContract.EXTRA_EVENT_END_TIME,
-            date.plusDays(1).atStartOfDay(PRAGUE_ZONE).toInstant().toEpochMilli(),
-        )
-        .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, true)
-    try {
-        startActivity(intent)
-    } catch (e: ActivityNotFoundException) {
-        Toast.makeText(this, R.string.plans_calendar_app_missing, Toast.LENGTH_SHORT).show()
-    }
-}
-
-/** Stateless Plans screen: the next days by topic and the topic picker. */
+/** Stateless Plans screen: the calendar picker and the next days by topic. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlansScreen(
     uiState: PlansUiState,
     onBack: () -> Unit,
     onGrantPermission: () -> Unit,
-    onAddPlan: (LocalDate) -> Unit,
     onSetTopic: (Long, Boolean) -> Unit,
     onSetRead: (Long, Boolean) -> Unit,
+    onSetAccountRead: (CalendarAccount, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -145,12 +127,14 @@ fun PlansScreen(
             if (!uiState.isLoading && uiState.problem == null) {
                 // Always in the same place, so switching a topic on never moves the switches under the finger.
                 // The setup help goes below it for the same reason: it disappears with the first topic.
-                item(key = "topics") { TopicPicker(uiState.calendars, uiState.hasTopics, onSetTopic, onSetRead) }
+                item(key = "calendars") {
+                    CalendarPicker(uiState.accounts, uiState.hasTopics, onSetTopic, onSetRead, onSetAccountRead)
+                }
                 if (!uiState.hasTopics) {
                     item { Text(stringResource(R.string.plans_setup), style = MaterialTheme.typography.bodyMedium) }
                 }
                 items(uiState.days, key = { it.date.toEpochDay() }) { day ->
-                    DayCard(day, uiState.today, uiState.topicColors, uiState.hasTopics, onAddPlan)
+                    DayCard(day, uiState.today, uiState.calendarColors, uiState.hasTopics)
                 }
             }
         }
@@ -167,22 +151,20 @@ private fun PermissionCard(onGrantPermission: () -> Unit) {
     }
 }
 
+/**
+ * One day: the plans of each topic, then a line and the other events. Every item has its calendar's color and its
+ * time in a column of its own, so the items stay apart at a glance.
+ */
 @Composable
-private fun DayCard(
-    day: DayAgenda,
-    today: LocalDate?,
-    topicColors: Map<Long, Int>,
-    hasTopics: Boolean,
-    onAddPlan: (LocalDate) -> Unit,
-) {
+private fun DayCard(day: DayAgenda, today: LocalDate?, colors: Map<Long, Int>, hasTopics: Boolean) {
     OutlinedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(dayTitle(day.date, today), style = MaterialTheme.typography.titleMedium)
             val withPlans = day.topicsWithPlans
             if (withPlans.isEmpty() && day.events.isEmpty()) {
                 Text(stringResource(R.string.plans_nothing), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            withPlans.forEach { TopicBlock(it, topicColors[it.topic.calendarId]) }
+            withPlans.forEach { TopicBlock(it, colors) }
             if (hasTopics && day.topicsWithoutPlans.isNotEmpty()) {
                 Text(
                     stringResource(R.string.plans_without_plan, day.topicsWithoutPlans.joinToString(", ") { it.name }),
@@ -191,47 +173,61 @@ private fun DayCard(
                 )
             }
             if (day.events.isNotEmpty()) {
+                if (withPlans.isNotEmpty() || hasTopics) HorizontalDivider()
                 Text(
                     stringResource(R.string.plans_other_events),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                day.events.forEach { Text(itemText(it), style = MaterialTheme.typography.bodyMedium) }
+                day.events.forEach { EventRow(it, colors[it.calendarId]) }
             }
-            TextButton(onClick = { onAddPlan(day.date) }) { Text(stringResource(R.string.plans_add)) }
         }
     }
 }
 
 @Composable
-private fun TopicBlock(plans: TopicPlans, color: Int?) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ColorDot(color)
-            Text(plans.topic.name, style = MaterialTheme.typography.titleSmall)
-        }
-        plans.plans.forEach { plan ->
-            Text(
-                itemText(plan),
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(start = 18.dp),
-            )
-        }
+private fun TopicBlock(plans: TopicPlans, colors: Map<Long, Int>) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(plans.topic.name, style = MaterialTheme.typography.titleSmall)
+        plans.plans.forEach { EventRow(it, colors[plans.topic.calendarId]) }
     }
 }
+
+/** "● 8:30  Lekce" or "● celý den  Výlet". */
+@Composable
+private fun EventRow(event: CalendarEvent, color: Int?) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        ColorDot(color)
+        Text(
+            if (event.isAllDay) stringResource(R.string.calendar_all_day) else event.start.format(CzechFormat.time),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(TIME_COLUMN),
+        )
+        Text(
+            event.title.ifBlank { stringResource(R.string.calendar_untitled) },
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+private val TIME_COLUMN = 60.dp
 
 /**
- * The topics. Open when the screen first shows no topics, otherwise one line with Upravit. It does not close by
- * itself when a topic is switched on, only with Hotovo.
+ * The phone's calendars by account. Open when the screen first shows no topics, otherwise a short summary with
+ * Upravit. It does not close by itself when a switch changes, only with Hotovo.
  */
 @Composable
-private fun TopicPicker(
-    calendars: List<CalendarChoice>,
+private fun CalendarPicker(
+    accounts: List<AccountChoices>,
     hasTopics: Boolean,
     onSetTopic: (Long, Boolean) -> Unit,
     onSetRead: (Long, Boolean) -> Unit,
+    onSetAccountRead: (CalendarAccount, Boolean) -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(!hasTopics) }
+    val calendars = accounts.flatMap { it.calendars }
     OutlinedCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -248,15 +244,19 @@ private fun TopicPicker(
             }
             if (expanded || !hasTopics) {
                 Text(stringResource(R.string.plans_topics_hint), style = MaterialTheme.typography.bodySmall)
-                if (calendars.isEmpty()) Text(stringResource(R.string.plans_no_calendars))
-                calendars.forEach { choice -> CalendarRow(choice, onSetTopic, onSetRead) }
+                if (accounts.isEmpty()) Text(stringResource(R.string.plans_no_calendars))
+                accounts.forEach { group ->
+                    HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
+                    AccountHeader(group, onSetAccountRead)
+                    group.calendars.forEach { choice -> CalendarRow(choice, onSetTopic, onSetRead) }
+                }
             } else {
                 val topics = calendars.filter { it.isTopic && it.isRead }.joinToString(", ") { it.calendar.name }
                 Text(stringResource(R.string.plans_topics_summary, topics))
-                val hidden = calendars.filterNot { it.isRead }
-                if (hidden.isNotEmpty()) {
+                val hidden = calendars.count { !it.isRead }
+                if (hidden > 0) {
                     Text(
-                        stringResource(R.string.plans_hidden_summary, hidden.joinToString(", ") { it.calendar.name }),
+                        pluralStringResource(R.plurals.plans_hidden_count, hidden, hidden),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -266,6 +266,27 @@ private fun TopicPicker(
     }
 }
 
+/** The account's name with "Číst vše", which switches all its calendars at once. */
+@Composable
+private fun AccountHeader(group: AccountChoices, onSetAccountRead: (CalendarAccount, Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            accountLabel(group.account),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.weight(1f),
+        )
+        LabeledSwitch(R.string.plans_switch_read_all, group.allRead) { onSetAccountRead(group.account, it) }
+    }
+}
+
+@Composable
+private fun accountLabel(account: CalendarAccount): String = when (account) {
+    is CalendarAccount.Online -> account.name
+    CalendarAccount.Samsung -> stringResource(R.string.plans_account_samsung)
+    CalendarAccount.Phone -> stringResource(R.string.plans_account_phone)
+}
+
 @Composable
 private fun CalendarRow(
     choice: CalendarChoice,
@@ -273,18 +294,23 @@ private fun CalendarRow(
     onSetRead: (Long, Boolean) -> Unit,
 ) {
     val calendar = choice.calendar
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    // A calendar whose events never reach the phone is shown faded: it changes nothing until it is synced.
+    Row(
+        modifier = Modifier.alpha(if (calendar.isShown) 1f else FADED),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
         ColorDot(calendar.color)
         Column(modifier = Modifier.weight(1f)) {
-            Text(calendar.name, style = MaterialTheme.typography.bodyLarge)
-            calendar.accountName?.takeIf { it != calendar.name }?.let {
-                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            Text(
+                if (calendar.isMain) stringResource(R.string.plans_main_calendar) else calendar.name,
+                style = MaterialTheme.typography.bodyLarge,
+            )
             if (!calendar.isShown) {
                 Text(
                     stringResource(R.string.plans_calendar_not_shown),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -295,6 +321,8 @@ private fun CalendarRow(
         }
     }
 }
+
+private const val FADED = 0.55f
 
 @Composable
 private fun LabeledSwitch(label: Int, checked: Boolean, enabled: Boolean = true, onCheckedChange: (Boolean) -> Unit) {
@@ -324,22 +352,7 @@ private fun dayTitle(date: LocalDate, today: LocalDate?): String {
     }
 }
 
-/** "10:00 Připravit referát", or only the title for an all-day plan. */
-@Composable
-private fun itemText(event: CalendarEvent): String {
-    val title = event.title.ifBlank { stringResource(R.string.calendar_untitled) }
-    return if (event.isAllDay) {
-        title
-    } else {
-        stringResource(
-            R.string.plans_item_timed,
-            event.start.format(CzechFormat.time),
-            title,
-        )
-    }
-}
-
-@Preview(showBackground = true, locale = "cs")
+@Preview(showBackground = true, locale = "cs", heightDp = 1400)
 @Composable
 private fun PlansScreenPreview() {
     val today = LocalDate.of(2026, 10, 29)
@@ -354,6 +367,7 @@ private fun PlansScreenPreview() {
         calendarName = null,
         calendarId = calendarId,
     )
+    val account = CalendarAccount.Online("olda@example.com")
     EliasTheme {
         PlansScreen(
             uiState = PlansUiState(
@@ -362,30 +376,44 @@ private fun PlansScreenPreview() {
                 days = listOf(
                     DayAgenda(
                         today,
-                        events = listOf(event("Zubař", 8, 1)),
+                        events = listOf(event("Zubař", 8, 1), event("Výlet", null, 1)),
                         topics = listOf(
-                            TopicPlans(school, listOf(event("Připravit referát", null, 2))),
+                            TopicPlans(school, listOf(event("Připravit referát", null, 2), event("Seminář", 14, 2))),
                             TopicPlans(spanish, emptyList()),
                         ),
                     ),
                     DayAgenda(today.plusDays(1), emptyList(), listOf(TopicPlans(school, emptyList()))),
                 ),
-                calendars = listOf(
-                    CalendarChoice(
-                        PhoneCalendar(1, "Narozeniny", "olda@example.com", 0xFF8E24AA.toInt(), true),
-                        false,
-                        false,
+                accounts = listOf(
+                    AccountChoices(
+                        account,
+                        listOf(
+                            CalendarChoice(PhoneCalendar(5, "olda@example.com", "olda@example.com", null, true), false),
+                            CalendarChoice(
+                                PhoneCalendar(2, "Škola", "olda@example.com", 0xFF3366CC.toInt(), true),
+                                true,
+                            ),
+                            CalendarChoice(PhoneCalendar(4, "Španělština", "olda@example.com", null, false), true),
+                        ),
                     ),
-                    CalendarChoice(PhoneCalendar(2, "Škola", "olda@example.com", 0xFF3366CC.toInt(), true), true),
-                    CalendarChoice(PhoneCalendar(4, "Španělština", "olda@example.com", null, false), true),
+                    AccountChoices(
+                        CalendarAccount.Phone,
+                        listOf(
+                            CalendarChoice(
+                                PhoneCalendar(1, "My calendar", null, 0xFF8E24AA.toInt(), true),
+                                isTopic = false,
+                                isRead = false,
+                            ),
+                        ),
+                    ),
                 ),
-                topicColors = mapOf(2L to 0xFF3366CC.toInt()),
+                calendarColors = mapOf(1L to 0xFF8E24AA.toInt(), 2L to 0xFF3366CC.toInt()),
             ),
             onBack = {},
             onGrantPermission = {},
-            onAddPlan = {},
             onSetTopic = { _, _ -> },
             onSetRead = { _, _ -> },
+            onSetAccountRead = { _, _ -> },
         )
     }
 }

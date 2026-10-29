@@ -57,10 +57,13 @@ class DataStoreCalendarSettingsRepositoryTest {
         val repository = DataStoreCalendarSettingsRepository(dataStore)
         assertEquals(emptySet<Long>(), repository.hiddenCalendarIds.first())
 
-        repository.setRead(5, read = false)
-        assertEquals(setOf(5L), repository.hiddenCalendarIds.first())
+        repository.setRead(setOf(5, 6, 7), read = false)
+        assertEquals(setOf(5L, 6L, 7L), repository.hiddenCalendarIds.first())
 
-        repository.setRead(5, read = true)
+        repository.setRead(setOf(6), read = true)
+        assertEquals(setOf(5L, 7L), repository.hiddenCalendarIds.first())
+
+        repository.setRead(setOf(5, 7), read = true)
         assertEquals(emptySet<Long>(), repository.hiddenCalendarIds.first())
         assertEquals(emptySet<Long>(), repository.topicCalendarIds.first())
     }
