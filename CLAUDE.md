@@ -7,7 +7,7 @@ The name is **written E.L.I.A.S.** on screens and in docs, **spoken "Elias"**, a
 ## How we work
 
 - **Plan first, then code.** Propose a milestone plan and wait for approval.
-- **One milestone at a time** (M0–M7 in the spec). After each one, stop and report to the user **in Czech**:
+- **One milestone at a time** (M0–M7 and M4.5 in the spec). After each one, stop and report to the user **in Czech**:
   what was done and why (short, the user is learning Kotlin/Android), what to test on the phone and how,
   known limitations and debt. Do not start the next milestone until the user confirms it works.
 - **Commit after each logical step.** English messages, Conventional Commits style
