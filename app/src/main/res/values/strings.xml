@@ -271,4 +271,44 @@
     <string name="journal_use_step">Použít</string>
     <string name="journal_dismiss">Zavřít</string>
     <string name="journal_step_failed">Krok se nepodařilo navrhnout: %1$s.</string>
+
+    <!-- Reading screen (M5) -->
+    <string name="home_open_reading">Čtení</string>
+    <string name="reading_title">Čtení Bible</string>
+    <string name="reading_next">Dnešní čtení: %1$s</string>
+    <string name="reading_next_more">Další kapitola: %1$s</string>
+    <string name="reading_read_today">Dnes přečteno: %1$s</string>
+    <string name="reading_mark_read">Přečteno</string>
+    <string name="reading_marked">Přečteno: %1$s</string>
+    <string name="reading_undo">Vrátit</string>
+    <string name="reading_note">Přečteno posune pořadník o jednu kapitolu. Vynechaný den nic neposune. Čtení před čtvrtou ráno patří ještě k předchozímu dni.</string>
+    <string name="reading_queue">Pořadník</string>
+    <string name="reading_empty">Pořadník je prázdný. Přidej knihu, nebo převezmi ranní čtení z plánu.</string>
+    <string name="reading_finished">Pořadník je dočtený. Přidej další knihy.</string>
+    <string name="reading_take_over">Převzít z plánu</string>
+    <string name="reading_nothing_in_plan">V plánu už žádná ranní čtení nejsou.</string>
+    <string name="reading_add">Přidat úsek</string>
+    <string name="reading_book">Kniha</string>
+    <string name="reading_from">Od kapitoly</string>
+    <string name="reading_to">Do kapitoly</string>
+    <!-- %1$d: the number of chapters of the chosen book. -->
+    <string name="reading_range_error">Zadej kapitoly od 1 do %1$d, první nejvýš poslední.</string>
+    <string name="reading_continue_title">Pokračovat v úseku %1$s</string>
+    <string name="reading_continue_chapter">Kapitola</string>
+    <!-- %1$d: the last chapter of the section. -->
+    <string name="reading_continue_error">Zadej kapitolu od 1 do %1$d.</string>
+    <string name="reading_continue_note">Klepnutím na úsek zvolíš, kterou kapitolou pokračuješ.</string>
+    <string name="reading_move_up">Posunout výš</string>
+    <string name="reading_move_down">Posunout níž</string>
+    <string name="reading_delete">Smazat úsek</string>
+    <string name="reading_delete_confirm">Smazat úsek %1$s?</string>
+    <string name="action_delete">Smazat</string>
+    <string name="action_add">Přidat</string>
+    <string name="action_continue">Pokračovat</string>
+    <plurals name="reading_chapters_left">
+        <item quantity="one">Zbývá %d kapitola</item>
+        <item quantity="few">Zbývají %d kapitoly</item>
+        <item quantity="many">Zbývá %d kapitoly</item>
+        <item quantity="other">Zbývá %d kapitol</item>
+    </plurals>
 </resources>

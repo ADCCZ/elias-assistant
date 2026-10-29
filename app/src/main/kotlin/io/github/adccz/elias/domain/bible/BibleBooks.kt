@@ -20,6 +20,14 @@ data class Chapter(val book: BibleBook, val number: Int) {
     init {
         require(number in 1..book.chapters) { "${book.abbreviation} has no chapter $number" }
     }
+
+    /** As written on the screen: "Marek 3", "Žalm 23", "Judův" (a book with one chapter). */
+    val label: String
+        get() = when {
+            book.isPsalms -> "Žalm $number"
+            book.chapters == 1 -> book.name
+            else -> "${book.name} $number"
+        }
 }
 
 /**
