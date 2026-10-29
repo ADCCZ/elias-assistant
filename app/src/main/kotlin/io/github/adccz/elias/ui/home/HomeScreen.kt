@@ -76,6 +76,8 @@ fun HomeRoute(
     onOpenPlans: () -> Unit,
     onOpenJournal: () -> Unit,
     onOpenReading: () -> Unit,
+    onOpenExercises: () -> Unit,
+    onOpenRecipe: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -124,6 +126,8 @@ fun HomeRoute(
         onOpenPlans = onOpenPlans,
         onOpenJournal = onOpenJournal,
         onOpenReading = onOpenReading,
+        onOpenExercises = onOpenExercises,
+        onOpenRecipe = onOpenRecipe,
         onMarkRead = viewModel::markRead,
         onUndoRead = viewModel::undoRead,
         onReadingMessageShown = viewModel::readingMessageShown,
@@ -150,6 +154,8 @@ fun HomeScreen(
     onOpenPlans: () -> Unit,
     onOpenJournal: () -> Unit,
     onOpenReading: () -> Unit,
+    onOpenExercises: () -> Unit,
+    onOpenRecipe: () -> Unit,
     onMarkRead: () -> Unit,
     onUndoRead: (ReadMark) -> Unit,
     onReadingMessageShown: (ReadingMessage) -> Unit,
@@ -199,9 +205,15 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(24.dp))
                 TodayReadingCard(uiState.reading, onMarkRead)
                 Spacer(modifier = Modifier.height(24.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilledTonalButton(onClick = onOpenReading) {
                         Text(stringResource(R.string.home_open_reading))
+                    }
+                    FilledTonalButton(onClick = onOpenExercises) {
+                        Text(stringResource(R.string.home_open_exercises))
+                    }
+                    FilledTonalButton(onClick = onOpenRecipe) {
+                        Text(stringResource(R.string.home_open_recipe))
                     }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
@@ -300,6 +312,8 @@ private fun HomeScreenPreview() {
             onOpenPlans = {},
             onOpenJournal = {},
             onOpenReading = {},
+            onOpenExercises = {},
+            onOpenRecipe = {},
             onMarkRead = {},
             onUndoRead = {},
             onReadingMessageShown = {},

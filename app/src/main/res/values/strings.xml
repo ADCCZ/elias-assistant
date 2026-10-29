@@ -311,4 +311,32 @@
         <item quantity="many">Zbývá %d kapitoly</item>
         <item quantity="other">Zbývá %d kapitol</item>
     </plurals>
+
+    <!-- Exercises and recipe screens (M5) -->
+    <string name="home_open_exercises">Cviky</string>
+    <string name="home_open_recipe">Recept dne</string>
+    <string name="exercises_title">Cviky u počítače</string>
+    <string name="exercises_today">Cviky na dnešek</string>
+    <string name="exercises_note">Každý den čtyři cviky, z každé oblasti jeden. Zítra budou jiné.</string>
+    <!-- "10×": how many times. -->
+    <string name="exercises_times">%1$d×</string>
+    <!-- "20 s": how long. -->
+    <string name="exercises_seconds">%1$d s</string>
+    <string name="exercises_both_sides">na každou stranu</string>
+    <string name="exercises_failed">Cviky se nepodařilo načíst.</string>
+    <string name="recipe_title">Recept dne</string>
+    <!-- "25 min · 2 porce · bez masa" -->
+    <string name="recipe_minutes">%1$d min</string>
+    <string name="recipe_meatless">bez masa</string>
+    <string name="recipe_ingredients">Suroviny</string>
+    <string name="recipe_steps">Postup</string>
+    <string name="recipe_tomorrow">Zítra: %1$s</string>
+    <string name="recipe_tomorrow_note">Ať můžeš nakoupit dopředu.</string>
+    <string name="recipe_failed">Recepty se nepodařilo načíst.</string>
+    <plurals name="recipe_servings">
+        <item quantity="one">%d porce</item>
+        <item quantity="few">%d porce</item>
+        <item quantity="many">%d porce</item>
+        <item quantity="other">%d porcí</item>
+    </plurals>
 </resources>
