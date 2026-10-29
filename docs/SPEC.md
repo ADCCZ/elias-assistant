@@ -204,8 +204,8 @@ Plán je obecný a řízený rozsahy dat, aby šel později vyměnit za jiný. O
   stejně jako u deníku.
 - Pořadník zná 66 knih protestantského kánonu s českými zkratkami a počty kapitol podle Českého ekumenického překladu
   (Jóel má čtyři kapitoly, Malachiáš tři).
-- Pořadník nezávisí na platnosti plánu. Ranní čtení podle data z `plan.json` se použije, jen když je pořadník prázdný.
-  Sobotní studium zůstává v plánu beze změny.
+- Pořadník nezávisí na platnosti plánu. Ranní čtení podle data z `plan.json` se použije, jen když je pořadník prázdný
+  a nepoužívá se (dočtený pořadník místo toho řekne, že je dočtený). Sobotní studium zůstává v plánu beze změny.
 
 **Cviky u počítače**
 

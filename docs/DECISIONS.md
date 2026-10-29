@@ -365,3 +365,69 @@ Format: **context** – what we had to decide, **decision**, **why**.
   keep the numbers they had when they were written.
 - **Why:** The numbers follow the order of the work. Rewriting old records would make them say something they did not
   say at the time; this entry explains the shift.
+
+## D50 – Bible books from ČEP, chapter counts checked against the text (2026-10-29)
+- **Context:** The reading queue needs every book's chapter count. ČEP follows the Hebrew numbering, so some books
+  differ from English Bibles, and `BibleReference` did not know six books.
+- **Decision:** `BibleBooks` lists the 66 books of the Protestant canon with ČEP abbreviations, screen names and spoken
+  names. The counts were checked on obohu.cz's ČEP text: the last chapter of every book has verses and the next one
+  has none. That caught a wrong count in the site's own chapter menu (Malachi: three chapters in ČEP, not four);
+  Joel has four. 1189 chapters in total. `BibleReference` uses the same list, and "Ab" still means Habakkuk for older
+  plans.
+- **Why:** The queue must never point to a chapter that does not exist, and one list keeps the spoken names and the
+  counts consistent.
+
+## D51 – The queue holds what is left; a finished queue is not an unused one (2026-10-29)
+- **Context:** The user wanted sections that can be added, moved and removed without losing the next chapter, a way
+  to undo Přečteno, and the plan's reading only while the queue is empty.
+- **Decision:** `ReadingQueue` keeps only what is still to read: each section remembers its next chapter, a section
+  read to its end leaves the queue, and the first section's next chapter is today's. Vrátit puts the chapter back into
+  the first section, or as a new section at the top. Choosing the chapter to continue with moves that section to the
+  top. A `finished` flag tells a queue read to its end ("Pořadník čtení je dočtený") from one that was never used,
+  and only the unused queue falls back to the plan's reading by date. When the queue cannot be read, the briefing
+  says nothing about the reading.
+- **Why:** Edits never shift the position, the screen shows exactly what is left, and Vrátit needs no history. Reading
+  the plan's date after the queue was finished would name a chapter the user had already read.
+
+## D52 – The queue in DataStore, read chapters in Room (2026-10-29)
+- **Context:** The queue is a small ordered list that changes as a whole; the read chapters are a growing record with
+  a day each.
+- **Decision:** The queue is one JSON value in the settings DataStore, changed with one `edit` (`update` returns null
+  when the file cannot be written, and Přečteno then marks nothing). Each Přečteno adds a row to `read_chapters`
+  (database version 3, automatic migration, schema in git), which answers "already read today?" and lets Vrátit
+  remove exactly that row.
+- **Why:** An atomic edit of the whole queue keeps it consistent, and the dated rows are what the briefings need
+  without storing history in the settings.
+
+## D53 – The exercises and recipes are assets, picked by the date (2026-10-29)
+- **Context:** The user wanted about twenty exercises and forty recipes in our own words, no randomness, and no pork
+  or seafood.
+- **Decision:** `assets/exercises.json` and `assets/recipes.json` (schema version 1, read like the plan). Each day
+  takes the exercise of every area and the recipe at index "epoch day modulo count", so a day stays the same, the next
+  day differs and every recipe has its turn before any repeats. The routine day starts at 4:00 (`JournalDay`). Tests
+  read the shipped files: no digits, abbreviations or health claims in the exercises, and every word of every recipe
+  is checked against pork, seafood, fish without scales, rabbit and gelatin.
+- **Why:** Simple to edit by hand, works offline, and the rules that matter are enforced on the real content. Editing
+  in the app can come with the settings (M8).
+
+## D54 – The morning routine is a template section after the AI answer (2026-10-29)
+- **Context:** The reading must be said also after `plan.json` expires, and the names of exercises and recipes must
+  stay exact. The morning should stay about a minute.
+- **Decision:** The `ROUTINE` section (reading, exercises, recipe) is written by the template and added in
+  `BriefingService` after the AI answer, between the plan and the journal step. The AI no longer receives the morning
+  reading; its morning target is 95–155 words (`BriefingLength.MORNING_AI`) and the validator accepts 75–185. The
+  template shortens its own part so that it fits 180 words together with the routine. The evening's
+  `READING_REMINDER` comes before the journal reminder, only when nothing was read today, never on Saturday.
+- **Why:** The same pattern as the journal step (D42): exact local content, no extra data for the AI, and one place
+  that knows the whole morning's length.
+
+## D55 – Cvič se mnou plays like a briefing, with fixed pauses (2026-10-29)
+- **Context:** Leading the exercises needs speech with long pauses, Pause and Stop in the notification, audio focus
+  and playback that goes on when the app is left.
+- **Decision:** `BriefingRequest.Exercises` (`BriefingKind.EXERCISES`) goes through `PlaybackService` and
+  `BriefingRunner` like a briefing, on the media stream. `ExerciseScript` says the safety sentence, then each exercise
+  with its amount and "Začni", leaves the time as silence (a hold its seconds, a repetition three seconds) and says
+  "Druhá strana" for two-sided ones. Silences are cached WAV files like the pauses between sections. It is not written
+  to the run log, which is for briefings and their sources.
+- **Why:** One tested playback path instead of a second player, and the service already handles Android 17's
+  background audio rules. Fixed times keep it simple; adjustable pauses can come later.
