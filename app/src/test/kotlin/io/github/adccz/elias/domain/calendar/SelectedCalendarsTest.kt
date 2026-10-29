@@ -73,6 +73,56 @@ class SelectedCalendarsTest {
         assertEquals(3, SelectedCalendars(phone, broken).eventsOn(day).titles().size)
     }
 
+    private fun phoneWith(vararg events: CalendarEvent) = object : CalendarRepository {
+        override suspend fun eventsOn(date: LocalDate) = SourceResult.Success(events.toList(), Instant.EPOCH)
+    }
+
+    private fun event(title: String, calendarId: Long, hour: Int) = event(title, calendarId).copy(
+        start = day.atTime(hour, 0).atZone(PRAGUE_ZONE),
+        end = day.atTime(hour + 1, 0).atZone(PRAGUE_ZONE),
+    )
+
+    @Test
+    fun `an event in two calendars is kept only once`() = runTest {
+        val twoFamilyCalendars = phoneWith(
+            event("Oběd u babičky", 7, hour = 12),
+            event("Přednáška", 1, hour = 9),
+            event(" oběd  u Babičky ", 8, hour = 12),
+        )
+
+        val events = (
+            SelectedCalendars(
+                twoFamilyCalendars,
+                FakeCalendarSettings(),
+            ).eventsOn(day) as SourceResult.Success
+            )
+            .data
+
+        assertEquals(listOf("Oběd u babičky" to 7L, "Přednáška" to 1L), events.map { it.title to it.calendarId })
+    }
+
+    @Test
+    fun `the same title at another time is a different event`() = runTest {
+        val phone = phoneWith(event("Běh", 7, hour = 7), event("Běh", 8, hour = 18))
+
+        assertEquals(2, SelectedCalendars(phone, FakeCalendarSettings()).eventsOn(day).titles().size)
+    }
+
+    @Test
+    fun `the copy in a topic calendar wins`() = runTest {
+        val phone = phoneWith(event("Lekce", 1, hour = 18), event("Lekce", 3, hour = 18))
+
+        val kept = (
+            SelectedCalendars(
+                phone,
+                FakeCalendarSettings(topics = setOf(3)),
+            ).eventsOn(day) as SourceResult.Success
+            )
+            .data.single()
+
+        assertEquals(3L, kept.calendarId)
+    }
+
     @Test
     fun `passes a failure through`() = runTest {
         val noPermission = object : CalendarRepository {
