@@ -3,6 +3,10 @@ package io.github.adccz.elias.domain.overview
 import io.github.adccz.elias.core.time.PRAGUE_ZONE
 import io.github.adccz.elias.domain.calendar.CalendarEvent
 import io.github.adccz.elias.domain.calendar.CalendarRepository
+import io.github.adccz.elias.domain.log.RunKind
+import io.github.adccz.elias.domain.log.RunOutcome
+import io.github.adccz.elias.domain.log.RunRecord
+import io.github.adccz.elias.domain.log.RunTrigger
 import io.github.adccz.elias.domain.model.FailureReason
 import io.github.adccz.elias.domain.model.GeoLocation
 import io.github.adccz.elias.domain.model.SourceResult
@@ -18,6 +22,7 @@ import io.github.adccz.elias.domain.weather.HourlyWeather
 import io.github.adccz.elias.domain.weather.WeatherCondition
 import io.github.adccz.elias.domain.weather.WeatherForecast
 import io.github.adccz.elias.domain.weather.WeatherRepository
+import io.github.adccz.elias.testing.FakeRunLog
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -26,6 +31,7 @@ import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class TodayOverviewLoaderTest {
@@ -112,7 +118,8 @@ class TodayOverviewLoaderTest {
         weather: WeatherRepository = workingWeather,
         plans: PlanRepository = workingPlans,
         news: NewsRepository = workingNews,
-    ) = TodayOverviewLoader(calendar, weather, plans, news, sun, SabbathCalculator(sun), clock)
+        runLog: FakeRunLog = FakeRunLog(),
+    ) = TodayOverviewLoader(calendar, weather, plans, news, sun, SabbathCalculator(sun), runLog, clock)
 
     @Test
     fun `puts all sources together for today`() = runTest {
@@ -177,5 +184,48 @@ class TodayOverviewLoaderTest {
 
         assertEquals(setOf("ČT24", "iROZHLAS"), overview.headlines.map { it.source }.toSet())
         assertEquals(3, overview.newsFeeds.size)
+    }
+
+    @Test
+    fun `headlines go back only to the last briefing that played`() = runTest {
+        val twoHeadlines = object : NewsRepository {
+            override suspend fun headlines(feed: NewsFeed): SourceResult<List<Headline>> = SourceResult.Success(
+                listOf(
+                    Headline(
+                        "${feed.name}-old",
+                        "Starší zpráva ${feed.name}",
+                        feed.name,
+                        null,
+                        clock.instant().minusSeconds(10 * 3600),
+                    ),
+                    Headline(
+                        "${feed.name}-new",
+                        "Nová zpráva ${feed.name}",
+                        feed.name,
+                        null,
+                        clock.instant().minusSeconds(3600),
+                    ),
+                ),
+                clock.instant(),
+            )
+        }
+        val sevenHoursAgo = clock.instant().minusSeconds(7 * 3600)
+        val runLog = FakeRunLog().apply {
+            record(
+                RunRecord(
+                    RunKind.EVENING_BRIEFING,
+                    RunTrigger.SCHEDULE,
+                    sevenHoursAgo,
+                    sevenHoursAgo,
+                    RunOutcome.PLAYED,
+                ),
+            )
+        }
+
+        val sinceEvening = loader(news = twoHeadlines, runLog = runLog).load()
+        val noBriefingYet = loader(news = twoHeadlines).load()
+
+        assertTrue(sinceEvening.headlines.all { it.id.endsWith("-new") })
+        assertEquals(6, noBriefingYet.headlines.size)
     }
 }

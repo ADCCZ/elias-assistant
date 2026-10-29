@@ -1,6 +1,7 @@
 package io.github.adccz.elias.domain.briefing
 
 import io.github.adccz.elias.domain.overview.TodayOverview
+import io.github.adccz.elias.domain.overview.sabbathJustEnded
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 
@@ -31,9 +32,17 @@ class BriefingService @Inject constructor(
         return choose(template.morning(input), useAi) { ai.morning(input) }
     }
 
+    /**
+     * On Saturday after sunset the briefing opens with "the sabbath has ended" instead of the greeting and the daily
+     * checklist. That part is written here by the template, after the AI answer: it is fixed text with the study.
+     */
     suspend fun evening(overview: TodayOverview, useAi: Boolean = true): BriefingResult {
         val input = BriefingInputs.evening(overview)
-        return choose(template.evening(input), useAi) { ai.evening(input) }
+        val result = choose(template.evening(input), useAi) { ai.evening(input) }
+        if (!overview.sabbathJustEnded) return result
+        val sabbathEnded = template.sabbathEnded(BriefingInputs.sabbathStudy(overview))
+        val sections = result.briefing.sections.filter { it.kind != SectionKind.CHECKLIST } + sabbathEnded
+        return result.copy(briefing = result.briefing.copy(sections = sections))
     }
 
     private suspend fun choose(

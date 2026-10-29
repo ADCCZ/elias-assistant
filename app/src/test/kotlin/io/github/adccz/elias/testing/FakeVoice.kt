@@ -1,10 +1,12 @@
 package io.github.adccz.elias.testing
 
 import io.github.adccz.elias.domain.briefing.BriefingSection
-import io.github.adccz.elias.domain.voice.PlaybackState
+import io.github.adccz.elias.domain.voice.BriefingRequest
 import io.github.adccz.elias.domain.voice.PlaybackStream
+import io.github.adccz.elias.domain.voice.PlaylistPlayer
 import io.github.adccz.elias.domain.voice.SpeechClip
 import io.github.adccz.elias.domain.voice.SpeechRate
+import io.github.adccz.elias.domain.voice.SpeechState
 import io.github.adccz.elias.domain.voice.SpeechSynthesizer
 import io.github.adccz.elias.domain.voice.SynthesisResult
 import io.github.adccz.elias.domain.voice.TtsEngine
@@ -16,7 +18,7 @@ import io.github.adccz.elias.domain.voice.VoiceStatus
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 
-// Fakes for the voice interfaces, shared by the speaker and the ViewModel tests.
+// Fakes for the voice interfaces, shared by the runner and the ViewModel tests.
 
 val testEngine = TtsEngine("com.example.tts", "Převod textu na řeč")
 
@@ -37,20 +39,35 @@ class FakeSpeechSynthesizer : SpeechSynthesizer {
 }
 
 /** Records what it was asked to play. [accepts] decides whether playback starts. */
-class FakeVoicePlayer(var accepts: Boolean = true) : VoicePlayer {
-    override val state = MutableStateFlow<PlaybackState>(PlaybackState.Idle)
+class FakePlaylistPlayer(var accepts: Boolean = true) : PlaylistPlayer {
     val played = mutableListOf<Pair<VoicePlaylist, PlaybackStream>>()
-    var stops = 0
 
     override suspend fun play(playlist: VoicePlaylist, stream: PlaybackStream): Boolean {
         played += playlist to stream
-        if (accepts) state.value = PlaybackState.Speaking(playlist.kind, isPaused = false)
         return accepts
+    }
+}
+
+/** Stands in for the playback service: records the requests, and a test sets [state] as the service would. */
+class FakeVoicePlayer : VoicePlayer {
+    override val state = MutableStateFlow<SpeechState>(SpeechState.Idle)
+    val requests = mutableListOf<BriefingRequest>()
+    var stops = 0
+
+    override fun speak(request: BriefingRequest) {
+        requests += request
+        state.value = SpeechState.Preparing(request.kind)
     }
 
     override fun stop() {
         stops++
-        state.value = PlaybackState.Idle
+        state.value = SpeechState.Idle
+    }
+
+    var screensShown = 0
+
+    override fun onBriefingScreenShown() {
+        screensShown++
     }
 }
 

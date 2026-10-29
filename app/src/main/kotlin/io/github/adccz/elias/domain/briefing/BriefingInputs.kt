@@ -68,6 +68,12 @@ object BriefingInputs {
         )
     }
 
+    /** Today's sabbath study for "the sabbath has ended", spoken. Null without a valid plan or a study today. */
+    fun sabbathStudy(overview: TodayOverview): String? = (overview.plan as? SourceResult.Success)?.data?.day
+        ?.takeIf { it.isPlanValid }
+        ?.saturdayStudy
+        ?.let(BibleReference::spoken)
+
     private fun DayWeather.toFacts(): WeatherFacts {
         val gusts = maxGustKmh?.roundToInt()
         return WeatherFacts(

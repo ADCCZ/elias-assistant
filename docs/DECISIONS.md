@@ -175,3 +175,75 @@ Format: **context** – what we had to decide, **decision**, **why**.
   `DataStoreVoiceSettingsRepository`. Values are normalized when read (`SpeechRate.of`).
 - **Why:** The recommended replacement for SharedPreferences: asynchronous, observable as a Flow and testable on
   the JVM with a temporary file. Room is kept for the data cache and logs (M4).
+
+## D28 – Room 3 for the cache and the run log (2026-10-29)
+- **Context:** M4 needs a database. Room 3.0.3 has been stable since September 2026 (new package `androidx.room3`),
+  the last 2.x is 2.8.5.
+- **Decision:** Room 3 with the platform SQLite driver (`AndroidSQLiteDriver`), KSP, schemas exported to `app/schemas/`.
+- **Why:** There was no database yet, so the newest major version costs no migration. Its DAOs are coroutines-first,
+  which fits the code. The platform driver adds no native library.
+
+## D29 – USE_EXACT_ALARM for exact alarms (2026-10-29)
+- **Context:** `setAlarmClock()` needs the exact alarm permission. `SCHEDULE_EXACT_ALARM` is denied by default since
+  Android 14 and can be revoked. `USE_EXACT_ALARM` is granted at install, but Google Play allows it only for alarm and
+  calendar apps.
+- **Decision:** `USE_EXACT_ALARM`, plus `SCHEDULE_EXACT_ALARM` up to Android 12L (`maxSdkVersion="32"`).
+- **Why:** Elias is not on Google Play and becomes an alarm clock in M6. The briefing must not depend on a switch the
+  system can turn off. The status screen still checks `canScheduleExactAlarms()`.
+
+## D30 – The prefetch: an exact alarm starts expedited work (2026-10-29)
+- **Context:** The spec wants the data 30 minutes before the morning briefing, with WorkManager. At night the phone is in
+  Doze, and WorkManager alone can wait for hours.
+- **Decision:** An exact alarm (`setExactAndAllowWhileIdle`, no alarm icon) enqueues an expedited `PrefetchWorker` with a
+  network constraint. It retries up to three times when every source failed.
+- **Why:** The alarm wakes the app on time and lets it out of Doze for a moment, and WorkManager does the work with
+  network constraints and retries. Spec change recorded.
+
+## D31 – The playback service prepares the briefing (2026-10-29)
+- **Context:** The M3 phone test showed that Android 17 would mute a briefing when the user leaves the app during
+  "Připravuji…", because the service then starts from the background. Scheduled briefings have no screen at all.
+- **Decision:** A tap and an alarm both start `PlaybackService` with the request (`speakIntent`). It goes into the
+  foreground at once, plays a silent loop titled "Připravuji…", and `BriefingRunner` writes the briefing, speaks it into
+  clips and swaps the loop for them. Screens follow the state in the shared `SpeechStatus`; the app no longer connects
+  a `MediaController`. Only intents with the process's random token are obeyed, because the service is exported.
+- **Why:** One path for every briefing, in the foreground before the first audio focus request. Verified on the
+  Android 17 emulator: no hardening warnings for a briefing started just before leaving the app.
+
+## D32 – Run log from M4 (2026-10-29)
+- **Context:** The spec has a run log and a Log screen in M7. M4 adds runs nobody watches.
+- **Decision:** Record every run in Room now: start, end, trigger, each source's outcome, AI or template and the result.
+  Never the briefing's text. Runs are kept for 30 days. The status screen shows the latest one.
+- **Why:** Scheduled runs are exactly what needs a log for debugging, and the M7 screen only has to read it.
+
+## D33 – The evening briefing lights up the screen (2026-10-29)
+- **Context:** A background service on the alarm stream played on the Android 17 emulator, but it logged
+  `AudioHardening … would be muted … reason: 4` for it, with `USE_EXACT_ALARM` and even with `SCHEDULE_EXACT_ALARM`
+  granted. The alarm waiver did not apply. The user also wanted to see something on the screen.
+- **Decision:** At the evening time the service prepares the briefing silently, with the screen dark and no audio
+  focus. When it is ready, a full-screen notification (`USE_FULL_SCREEN_INTENT`, channel of high importance) opens
+  `ScheduledBriefingActivity` over the lock screen, and the activity starts the first word. The screen stays lit
+  while Elias speaks, not while it prepares (the user's wish). Without the screen within 15 seconds, or while the
+  phone is in use, the briefing plays as sound only.
+- **Why:** A visible app may always play sound on Android 17, and the user sees what is happening, like with an alarm
+  clock. The decision is pure (`EveningStart.choose`) and unit-tested.
+
+## D34 – Headlines since the last briefing, 6 to 24 hours (2026-10-29)
+- **Context:** The spec wants only headlines since the last briefing. Played again a minute later, a briefing would have
+  none.
+- **Decision:** Headlines go back to the start of the last briefing that played (from the run log), at least 6 and at
+  most 24 hours.
+- **Why:** The morning hears what happened since the evening, and a replay still has news.
+
+## D35 – A morning and an evening time for each day (2026-10-29)
+- **Context:** The user wants to set the times freely in the app, separately for each day.
+- **Decision:** `WeeklySchedule` with a morning and an evening time per day, each of them can be off, stored in DataStore
+  as minutes after midnight. The **Časy** screen edits it. The sabbath rules apply on top. Every run is computed from
+  its date and clock time in Prague, never by adding 24 hours.
+- **Why:** Free times without extra settings screens, and daylight saving changes cannot shift a run (tested).
+
+## D36 – "Sabat skončil" replaces the evening greeting on Saturday (2026-10-29)
+- **Context:** The user wanted "sabat skončil" as the start of Saturday's evening briefing. The evening greeting is part
+  of the checklist section (AI and template alike), and a checklist with expenses does not fit the end of the sabbath.
+- **Decision:** On Saturday from sunset on, the template's "sabat skončil" section (greeting, a question about the
+  study, tomorrow's review) takes the place of the checklist section, after the AI answer.
+- **Why:** One greeting, no work list on the sabbath, and the AI needs no special case.

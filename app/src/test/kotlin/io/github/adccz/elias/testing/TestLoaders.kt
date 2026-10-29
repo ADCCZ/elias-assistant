@@ -43,6 +43,7 @@ object TestLoaders {
             },
             sun = sun,
             sabbath = SabbathCalculator(sun),
+            runLog = FakeRunLog(),
             clock = clock,
         )
     }

@@ -37,6 +37,19 @@ class TemplateBriefingBuilder @Inject constructor() {
         ),
     )
 
+    /**
+     * The opening of Saturday's evening briefing (spec: "sabat skončil"): a question about the sabbath study and a
+     * reminder that tomorrow is for reviewing goals and planning the week. [study] is today's study, already spoken.
+     */
+    fun sabbathEnded(study: String?): BriefingSection {
+        val question = study?.let { "Dnešní studium: $it. Co si z něj odnášíš?" }
+            ?: "Co si odnášíš ze sobotního studia?"
+        return BriefingSection(
+            SectionKind.SABBATH_ENDED,
+            "Dobrý večer, Oldo. Sabat skončil. $question Zítra tě čeká revize cílů a plán na další týden.",
+        )
+    }
+
     private data class Budget(val events: Int, val headlines: Int, val withMinimum: Boolean)
 
     private fun morningWith(input: MorningInput, budget: Budget) = BriefingText(

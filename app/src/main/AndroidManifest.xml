@@ -11,6 +11,31 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <!-- Keeps the processor awake while Elias speaks with the screen off. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!--
+        Exact alarms for the evening briefing, the prefetch and the sabbath reminder (D29). USE_EXACT_ALARM is granted
+        at install and cannot be taken away. Google Play allows it only for alarm and calendar apps; Elias is not on
+        Google Play and has an alarm clock from M6. Android 12 and 12L know only SCHEDULE_EXACT_ALARM.
+    -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission
+        android:name="android.permission.SCHEDULE_EXACT_ALARM"
+        android:maxSdkVersion="32" />
+    <!-- The Friday sabbath reminder (Android 13+ asks the user; the media notification does not need it). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!--
+        Lets the status screen ask to leave Elias out of battery optimization, so the prefetch is not put to sleep at
+        night. Google Play limits this to some kinds of apps; Elias is not on Google Play.
+    -->
+    <uses-permission
+        android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"
+        tools:ignore="BatteryLife" />
+    <!--
+        Lights up the screen for the scheduled evening briefing, as alarm clocks do (D33). Android 14 and newer let
+        the user switch it off; the status screen then offers the fix.
+    -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- Plans the alarms again after the phone restarts (Android forgets them). -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- Since Android 11 an app sees only the apps it declares. Without this, TextToSpeech finds no engine. -->
     <queries>
@@ -44,6 +69,24 @@
         </activity>
 
         <!--
+            The scheduled evening briefing over the lock screen, like an alarm clock. Opened only by the app's own
+            full-screen notification, so it is not exported and stays out of the recent apps.
+        -->
+        <activity
+            android:name=".ui.scheduled.ScheduledBriefingActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:showWhenLocked="true"
+            android:taskAffinity=""
+            android:turnScreenOn="true">
+            <intent-filter>
+                <action android:name="io.github.adccz.elias.SHOW_SCHEDULED_BRIEFING" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!--
             Plays the spoken briefing (Media3 MediaSessionService). It is exported so the system media controls,
             the lock screen and Bluetooth devices can connect. Other apps only get read access (PlaybackService).
         -->
@@ -56,6 +99,35 @@
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
+
+        <!-- The app's own alarms (ScheduledRunReceiver). Not exported: nothing else may trigger a briefing. -->
+        <receiver
+            android:name=".data.schedule.ScheduledRunReceiver"
+            android:exported="false" />
+
+        <!-- System events after which the alarms are planned again. The system reaches unexported receivers too. -->
+        <receiver
+            android:name=".data.schedule.RescheduleReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- WorkManager starts on demand with Hilt's worker factory (EliasApp), not with its default initializer. -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
     </application>
 
 </manifest>

@@ -8,6 +8,7 @@ import io.github.adccz.elias.domain.plan.DayPlan
 import io.github.adccz.elias.domain.sun.SabbathWindow
 import io.github.adccz.elias.domain.sun.SunTimes
 import io.github.adccz.elias.domain.weather.DayWeather
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
@@ -33,3 +34,13 @@ data class TodayPlan(
     val isSample: Boolean,
     val day: DayPlan,
 )
+
+/**
+ * True on Saturday from sunset on: the sabbath has just ended. The evening briefing then opens with
+ * "the sabbath has ended" (spec, sabbath rules).
+ */
+val TodayOverview.sabbathJustEnded: Boolean
+    get() {
+        val sunset = sunTimes.sunset ?: return false
+        return loadedAt.dayOfWeek == DayOfWeek.SATURDAY && !loadedAt.isBefore(sunset)
+    }

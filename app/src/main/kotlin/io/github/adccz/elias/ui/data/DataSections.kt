@@ -244,10 +244,16 @@ private fun Hint(text: String) {
 
 @Composable
 private fun statusText(result: SourceResult<*>, zone: ZoneId): String = when (result) {
-    is SourceResult.Success -> stringResource(
-        R.string.status_loaded,
-        result.loadedAt.atZone(zone).format(CzechFormat.time),
-    )
+    is SourceResult.Success -> if (result.fromCache) {
+        val loadedAt = result.loadedAt.atZone(zone)
+        stringResource(
+            R.string.status_cached,
+            loadedAt.format(CzechFormat.dayAndDate),
+            loadedAt.format(CzechFormat.time),
+        )
+    } else {
+        stringResource(R.string.status_loaded, result.loadedAt.atZone(zone).format(CzechFormat.time))
+    }
 
     is SourceResult.Failure -> stringResource(R.string.status_failed, stringResource(result.reason.messageRes()))
 }

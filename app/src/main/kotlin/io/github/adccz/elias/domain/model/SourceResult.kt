@@ -7,7 +7,11 @@ import java.time.Instant
  * Sources never throw to their callers, so one failing source cannot break the briefing.
  */
 sealed interface SourceResult<out T> {
-    data class Success<T>(val data: T, val loadedAt: Instant) : SourceResult<T>
+    /**
+     * [loadedAt] is when the data came from the source. [fromCache] is true when the source failed just now and
+     * this is the last answer that worked, kept on the phone (weather and headlines only).
+     */
+    data class Success<T>(val data: T, val loadedAt: Instant, val fromCache: Boolean = false) : SourceResult<T>
 
     /** [detail] is a technical description for logs, never shown or spoken as is. */
     data class Failure(val reason: FailureReason, val detail: String? = null) : SourceResult<Nothing>

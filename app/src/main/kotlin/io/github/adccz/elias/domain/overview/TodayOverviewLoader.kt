@@ -1,11 +1,14 @@
 package io.github.adccz.elias.domain.overview
 
 import io.github.adccz.elias.domain.calendar.CalendarRepository
+import io.github.adccz.elias.domain.log.RunLog
 import io.github.adccz.elias.domain.model.FailureReason
 import io.github.adccz.elias.domain.model.SourceResult
+import io.github.adccz.elias.domain.model.loadGuarded
 import io.github.adccz.elias.domain.news.DefaultNewsFeeds
 import io.github.adccz.elias.domain.news.Headline
 import io.github.adccz.elias.domain.news.NewsRepository
+import io.github.adccz.elias.domain.news.headlineWindow
 import io.github.adccz.elias.domain.news.selectHeadlines
 import io.github.adccz.elias.domain.plan.PlanRepository
 import io.github.adccz.elias.domain.plan.dayPlan
@@ -14,6 +17,7 @@ import io.github.adccz.elias.domain.sun.SunCalculator
 import io.github.adccz.elias.domain.weather.WeatherRepository
 import io.github.adccz.elias.domain.weather.dayWeather
 import java.time.Clock
+import java.time.Instant
 import java.time.ZonedDateTime
 import javax.inject.Inject
 import kotlin.time.Duration
@@ -22,14 +26,12 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Loads all sources at the same time and puts the results together.
  *
- * Every source runs in its own [guarded] block: it gets a time limit, and an unexpected exception
- * becomes a failure of that source only. Without this, one crashing source would cancel the others,
- * because coroutines started in one scope fail together.
+ * Every source runs guarded ([loadGuarded]): it gets a time limit, and an unexpected exception
+ * becomes a failure of that source only.
  */
 class TodayOverviewLoader @Inject constructor(
     private val calendar: CalendarRepository,
@@ -38,6 +40,7 @@ class TodayOverviewLoader @Inject constructor(
     private val news: NewsRepository,
     private val sun: SunCalculator,
     private val sabbath: SabbathCalculator,
+    private val runLog: RunLog,
     private val clock: Clock,
 ) {
     suspend fun load(): TodayOverview = coroutineScope {
@@ -52,7 +55,7 @@ class TodayOverviewLoader @Inject constructor(
                 is SourceResult.Failure -> result
 
                 is SourceResult.Success -> result.data.dayWeather(today)
-                    ?.let { SourceResult.Success(it, result.loadedAt) }
+                    ?.let { SourceResult.Success(it, result.loadedAt, result.fromCache) }
                     ?: SourceResult.Failure(FailureReason.INVALID_DATA, "The forecast has no hours for $today")
             }
         }
@@ -81,21 +84,28 @@ class TodayOverviewLoader @Inject constructor(
             weather = weatherResult.await(),
             plan = planResult.await(),
             newsFeeds = newsFeeds,
-            headlines = selectHeadlines(allHeadlines, now.toInstant()),
+            headlines = selectHeadlines(
+                allHeadlines,
+                now.toInstant(),
+                headlineWindow(lastBriefingAt(), now.toInstant()),
+            ),
         )
     }
 
-    private suspend fun <T> guarded(block: suspend () -> SourceResult<T>): SourceResult<T> = try {
-        withTimeoutOrNull(SOURCE_TIMEOUT) { block() }
-            ?: SourceResult.Failure(FailureReason.TIMEOUT, "No answer within $SOURCE_TIMEOUT")
+    /** When the last briefing played. A broken log only means the full day of headlines. */
+    private suspend fun lastBriefingAt(): Instant? = try {
+        runLog.lastPlayedBriefingAt()
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        SourceResult.Failure(FailureReason.UNKNOWN, e.toString())
+        null
     }
 
+    private suspend fun <T> guarded(block: suspend () -> SourceResult<T>): SourceResult<T> =
+        loadGuarded(SOURCE_TIMEOUT, block)
+
     private inline fun <T, R> SourceResult<T>.map(transform: (T) -> R): SourceResult<R> = when (this) {
-        is SourceResult.Success -> SourceResult.Success(transform(data), loadedAt)
+        is SourceResult.Success -> SourceResult.Success(transform(data), loadedAt, fromCache)
         is SourceResult.Failure -> this
     }
 

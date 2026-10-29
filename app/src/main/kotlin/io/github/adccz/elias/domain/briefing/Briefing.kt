@@ -16,6 +16,9 @@ enum class SectionKind {
     CLOSING,
 
     // Evening
+
+    /** Saturday evening only: "the sabbath has ended", with the greeting. It takes the checklist's place. */
+    SABBATH_ENDED,
     CHECKLIST,
     TOMORROW,
     REFLECTION,

@@ -51,12 +51,22 @@ io/github/adccz/elias/
 - **Navigation 3:** screen keys are `@Serializable` objects implementing `NavKey` in `ui/navigation`.
 - **Briefings:** `BriefingInputs` turns the overview into spoken-Czech facts (`domain/speech`), `TemplateBriefingBuilder`
   and `ClaudeBriefingBuilder` write `BriefingText` sections, `BriefingService` picks AI or template.
-- **Voice:** `BriefingSpeaker` speaks a briefing: `AndroidTextToSpeech` writes one WAV clip per section with an
-  offline Czech voice only, `MediaControllerVoicePlayer` sends the playlist to `PlaybackService` (Media3
-  `MediaSessionService`, ExoPlayer). Audio focus is our own (`AudioFocusPolicy`), never ExoPlayer's
-  (`handleAudioFocus = false`), so music returns afterwards and `USAGE_ALARM` works. User-started playback uses
-  `PlaybackStream.MEDIA`, scheduled playback (M4) must use `PlaybackStream.ALARM` (Android 17 background audio rules).
-  Media3 APIs marked `@UnstableApi` need `@OptIn(UnstableApi::class)` (androidx.annotation), or lint fails.
+- **Voice:** a tap or an alarm starts `PlaybackService` (Media3 `MediaSessionService`, ExoPlayer) with
+  `PlaybackService.speakIntent(request)`. It goes into the foreground at once, plays a silent "Připravuji…" loop and
+  runs `BriefingRunner` (domain): write the briefing when needed, speak one WAV clip per section with
+  `AndroidTextToSpeech` (offline Czech voice only), swap the loop for the clips, record the run. Screens follow the
+  shared `SpeechStatus`; the app has no `MediaController`. Only intents with the process token are obeyed.
+  Audio focus is our own (`AudioFocusPolicy`), never ExoPlayer's (`handleAudioFocus = false`). User-started playback
+  uses `PlaybackStream.MEDIA`, scheduled playback `PlaybackStream.ALARM`. Media3 APIs marked `@UnstableApi` need
+  `@OptIn(UnstableApi::class)` (androidx.annotation), or lint fails.
+- **Scheduling:** `WeeklySchedule` (DataStore) and `ScheduleCalculator` (sabbath rules, computed from date and clock
+  time in Prague) are pure domain code. `ScheduleKeeper` keeps one alarm per task through `AndroidAlarmScheduler`;
+  it runs at app start, on schedule changes, after every alarm and in `RescheduleReceiver` (boot, time, time zone,
+  update). Receivers get dependencies through `ScheduleEntryPoint`. The evening briefing opens
+  `ScheduledBriefingActivity` with a full-screen notification (`EveningBriefingStarter`), which speaks while visible.
+  Never play audio after `BOOT_COMPLETED`, only reschedule.
+- **Room 3:** package `androidx.room3`, platform SQLite driver, schemas in `app/schemas/` (commit them). DAOs stay thin
+  and are not tested on the JVM; test the logic around them with fakes (`InMemorySourceCache`, `FakeRunLog`).
 - **Claude API:** `POST /v1/messages` via Ktor, header `anthropic-version: 2026-10-21`. Never send `temperature`,
   `top_p` or `top_k` (400 on that version). Prompts are Czech and live in `data/ai/ClaudePrompts.kt`.
   Never log or display the API key; `ClaudeConfig.toString()` hides it.
@@ -91,9 +101,11 @@ io/github/adccz/elias/
   our own interfaces.
 - Network clients are tested with Ktor `MockEngine` via `createHttpClient(engine, ..., maxRetries = 0)`.
   ViewModel tests register `MainDispatcherExtension`. Test fixtures (RSS, JSON) are fictional.
-- Voice tests use the shared fakes in `testing/FakeVoice.kt` and `TestLoaders.failing(clock)`. DataStore is tested
-  for real on a file in a JUnit `@TempDir`. The Android-only voice classes (TTS, service, controller) stay thin
-  and are checked on a device.
+- Voice tests use the shared fakes in `testing/FakeVoice.kt` (`FakeVoicePlayer`, `FakePlaylistPlayer`...),
+  `FakeRunLog` and `TestLoaders.failing(clock)`. DataStore is tested for real on a file in a JUnit `@TempDir`.
+  The Android-only classes (TTS, service, receivers, alarms, notifications) stay thin and are checked on a device.
+- ViewModels created as test properties must be `by lazy`, so they are built after `MainDispatcherExtension`
+  has set the main dispatcher.
 - Never call real services from committed tests. A one-off manual check is fine, but delete it afterwards.
 - Code with a real-time timeout around a `MockEngine` call (like `ClaudeBriefingBuilder`) is tested with
   `runBlocking`: in `runTest` virtual time the timeout would fire instantly.

@@ -17,6 +17,7 @@ import io.github.adccz.elias.domain.sun.SabbathCalculator
 import io.github.adccz.elias.domain.sun.SunCalculator
 import io.github.adccz.elias.domain.weather.WeatherForecast
 import io.github.adccz.elias.domain.weather.WeatherRepository
+import io.github.adccz.elias.testing.FakeRunLog
 import io.github.adccz.elias.testing.MainDispatcherExtension
 import java.time.Clock
 import java.time.Instant
@@ -68,7 +69,16 @@ class DataViewModelTest {
     private fun viewModel(calendar: CalendarRepository): DataViewModel {
         val sun = SunCalculator(GeoLocation.PILSEN, PRAGUE_ZONE)
         val loader =
-            TodayOverviewLoader(calendar, offlineWeather, missingPlan, offlineNews, sun, SabbathCalculator(sun), clock)
+            TodayOverviewLoader(
+                calendar,
+                offlineWeather,
+                missingPlan,
+                offlineNews,
+                sun,
+                SabbathCalculator(sun),
+                FakeRunLog(),
+                clock,
+            )
         return DataViewModel(loader)
     }
 
