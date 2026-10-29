@@ -53,8 +53,8 @@ class BibleReferenceTest {
 
     @Test
     fun `finds the chapters of a reference without the verses`() {
-        val chapters = BibleReference.chapters("Př 15,1–4 a 1 Pt 2,21–25 a Xy 3 a Mk 17")
+        val chapters = BibleReference.chapters("Ř 12,1–8 a 1 J 4,7–12 a Xy 3 a Mk 17")
 
-        assertEquals(listOf("Př 15", "1 Pt 2"), chapters.map { "${it.book.abbreviation} ${it.number}" })
+        assertEquals(listOf("Ř 12", "1 J 4"), chapters.map { "${it.book.abbreviation} ${it.number}" })
     }
 }

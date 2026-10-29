@@ -29,8 +29,8 @@ object BibleReference {
     }
 
     /**
-     * The chapters a reference points to, verses left out: "Jk 1,19–27" is James 1, "Př 15,1–4 a 1 Pt 2,21–25" is
-     * Proverbs 15 and 1 Peter 2. Parts that are not a known book and chapter are skipped.
+     * The chapters a reference points to, verses left out: "Ř 12,1–8" is Romans 12, "Ž 23 a 1 J 4,7–12" is Psalm 23
+     * and 1 John 4. Parts that are not a known book and chapter are skipped.
      */
     fun chapters(reference: String): List<Chapter> = reference
         .split(" a ")
