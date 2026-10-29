@@ -14,13 +14,19 @@ import io.github.adccz.elias.domain.news.NewsRepository
 import io.github.adccz.elias.domain.overview.TodayOverviewLoader
 import io.github.adccz.elias.domain.plan.LoadedPlan
 import io.github.adccz.elias.domain.plan.PlanRepository
+import io.github.adccz.elias.domain.reading.BibleReading
+import io.github.adccz.elias.domain.routine.MorningRoutine
 import io.github.adccz.elias.domain.sun.SabbathCalculator
 import io.github.adccz.elias.domain.sun.SunCalculator
 import io.github.adccz.elias.domain.weather.WeatherForecast
 import io.github.adccz.elias.domain.weather.WeatherRepository
 import io.github.adccz.elias.testing.FakeCalendarSettings
 import io.github.adccz.elias.testing.FakeRunLog
+import io.github.adccz.elias.testing.FixedPlans
+import io.github.adccz.elias.testing.FixedRoutineContent
 import io.github.adccz.elias.testing.InMemoryJournal
+import io.github.adccz.elias.testing.InMemoryReadingLog
+import io.github.adccz.elias.testing.InMemoryReadingQueue
 import io.github.adccz.elias.testing.MainDispatcherExtension
 import java.time.Clock
 import java.time.Instant
@@ -83,6 +89,8 @@ class DataViewModelTest {
                 clock,
                 FakeCalendarSettings(),
                 Journal(InMemoryJournal(), clock),
+                BibleReading(InMemoryReadingQueue(), InMemoryReadingLog(), FixedPlans(null), clock),
+                FixedRoutineContent().let { MorningRoutine(it, it, clock) },
             )
         return DataViewModel(loader)
     }

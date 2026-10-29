@@ -2,6 +2,7 @@ package io.github.adccz.elias.domain.briefing
 
 import io.github.adccz.elias.domain.news.Headline
 import io.github.adccz.elias.domain.news.pickForBriefing
+import io.github.adccz.elias.domain.routine.RoutineStatus
 import io.github.adccz.elias.testing.TestOverviews
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -23,7 +24,6 @@ class BriefingInputsTest {
         assertEquals("sedmdesát procent", input.weather?.precipitationProbability)
         assertEquals("pětapadesát kilometrů za hodinu", input.weather?.strongWindGusts)
         assertEquals(listOf("celý den", "ve čtvrt na deset"), input.events?.map { it.time })
-        assertEquals("Marek, první kapitola", input.plan?.morningReading)
         assertEquals("Odevzdat první úkol", input.deadlinesTomorrow.single().title)
     }
 
@@ -104,5 +104,65 @@ class BriefingInputsTest {
 
         assertEquals(listOf("Škola", "Španělština"), loaded.topicsWithoutPlansTomorrow)
         assertEquals(emptyList<String>(), failed.topicsWithoutPlansTomorrow)
+    }
+
+    // The morning routine (M5).
+
+    @Test
+    fun `the routine reads the next chapter of the queue, not the plan's reading`() {
+        val facts = BriefingInputs.routine(TestOverviews.rich().copy(routine = TestOverviews.routine()))
+
+        assertEquals(ReadingFact.Next("Marek, třetí kapitola"), facts.reading)
+        assertEquals(
+            listOf("Kroužení rameny", "Rotace trupu vsedě", "Pěst a prsty", "Pohled do dálky"),
+            facts.exercises,
+        )
+        assertEquals("Čočkový salát", facts.recipe)
+    }
+
+    @Test
+    fun `the routine says the reading is done or the queue finished`() {
+        fun reading(routine: RoutineStatus) =
+            BriefingInputs.routine(TestOverviews.rich().copy(routine = routine)).reading
+
+        assertEquals(ReadingFact.DoneToday, reading(TestOverviews.routine(readToday = true)))
+        assertEquals(
+            ReadingFact.DoneToday,
+            reading(TestOverviews.routine(next = null, readToday = true, finished = true)),
+        )
+        assertEquals(ReadingFact.Finished, reading(TestOverviews.routine(next = null, finished = true)))
+    }
+
+    @Test
+    fun `without a queue the plan's reading is used, without a valid plan nothing`() {
+        val unused = TestOverviews.routine(next = null)
+
+        val withPlan = BriefingInputs.routine(TestOverviews.rich().copy(routine = unused))
+        val withoutPlan = BriefingInputs.routine(TestOverviews.empty().copy(routine = unused))
+
+        assertEquals(ReadingFact.Next("Marek, první kapitola"), withPlan.reading)
+        assertNull(withoutPlan.reading)
+    }
+
+    @Test
+    fun `nothing is said about a queue that could not be read`() {
+        val facts = BriefingInputs.routine(TestOverviews.rich())
+
+        assertEquals(RoutineFacts(reading = null, exercises = emptyList(), recipe = null), facts)
+    }
+
+    @Test
+    fun `the evening reminds of today's chapter only when nothing was read and not on Saturday`() {
+        val tuesday = TestOverviews.rich()
+        val saturday = tuesday.copy(loadedAt = tuesday.loadedAt.plusDays(4))
+
+        assertEquals(
+            "Marek, třetí kapitola",
+            BriefingInputs.readingReminder(tuesday.copy(routine = TestOverviews.routine())),
+        )
+        assertNull(BriefingInputs.readingReminder(tuesday.copy(routine = TestOverviews.routine(readToday = true))))
+        assertNull(BriefingInputs.readingReminder(tuesday.copy(routine = TestOverviews.routine(next = null))))
+        assertNull(BriefingInputs.readingReminder(tuesday))
+        assertNull(BriefingInputs.readingReminder(saturday.copy(routine = TestOverviews.routine())))
     }
 }

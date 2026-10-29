@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "exercises": [
+    {
+      "id": "shoulder-circles",
+      "area": "NECK_AND_SHOULDERS",
+      "name": "Kroužení rameny",
+      "description": "Seď rovně a ruce nech volně podél těla. Krouž rameny pomalu dozadu, velkými a klidnými kruhy.",
+      "times": 10
+    },
+    {
+      "id": "chin-tuck",
+      "area": "NECK_AND_SHOULDERS",
+      "name": "Zasunutí brady",
+      "description": "Seď rovně a dívej se před sebe. Posuň bradu rovně dozadu, jako bys dělal dvojitou bradu, chvilku vydrž a povol. Hlavu přitom neskláněj.",
+      "times": 8
+    },
+    {
+      "id": "neck-side-bend",
+      "area": "NECK_AND_SHOULDERS",
+      "name": "Úklon hlavy",
+      "description": "Pomalu nakloň hlavu k jednomu rameni. Rameno zůstává dole a uvolněné, tah ucítíš na boku krku.",
+      "seconds": 20,
+      "bothSides": true
+    },
+    {
+      "id": "shoulder-shrug",
+      "area": "NECK_AND_SHOULDERS",
+      "name": "Zvednutí ramen",
+      "description": "Vytáhni ramena nahoru k uším, krátce vydrž a pak je pomalu spusť úplně dolů. Při spouštění vydechni.",
+      "times": 8
+    },
+    {
+      "id": "neck-turn",
+      "area": "NECK_AND_SHOULDERS",
+      "name": "Otočení hlavy",
+      "description": "Pomalu otoč hlavu, jako by ses chtěl podívat přes rameno. Brada zůstává pořád ve stejné výšce.",
+      "seconds": 15,
+      "bothSides": true
+    },
+    {
+      "id": "chest-opener",
+      "area": "BACK_AND_CHEST",
+      "name": "Otevření hrudníku",
+      "description": "Spoj ruce za zády, stáhni lopatky k sobě a lehce zvedni hrudník. Dýchej klidně a zhluboka.",
+      "seconds": 20
+    },
+    {
+      "id": "seated-twist",
+      "area": "BACK_AND_CHEST",
+      "name": "Rotace trupu vsedě",
+      "description": "Seď rovně, chodidla na zemi. Otoč trup na jednu stranu a chyť se opěradla nebo stehna. Hlava se otáčí s trupem.",
+      "seconds": 20,
+      "bothSides": true
+    },
+    {
+      "id": "seated-arch-and-round",
+      "area": "BACK_AND_CHEST",
+      "name": "Prohnutí a vyhrbení zad",
+      "description": "Seď na kraji židle a ruce si polož na kolena. S nádechem prohni záda a vypni hrudník, s výdechem záda vyhrb a bradu skloň k hrudníku.",
+      "times": 8
+    },
+    {
+      "id": "reach-up",
+      "area": "BACK_AND_CHEST",
+      "name": "Protažení vzhůru",
+      "description": "Propleť prsty, otoč dlaně ke stropu a natáhni ruce nad hlavu. Protahuj se nahoru celým tělem.",
+      "seconds": 15
+    },
+    {
+      "id": "seated-side-bend",
+      "area": "BACK_AND_CHEST",
+      "name": "Úklon trupu vsedě",
+      "description": "Zvedni jednu ruku nad hlavu a pomalu se ukloň na opačnou stranu. Druhou rukou se opírej o židli.",
+      "seconds": 15,
+      "bothSides": true
+    },
+    {
+      "id": "wrist-palm-up",
+      "area": "HANDS_AND_WRISTS",
+      "name": "Protažení zápěstí dlaní vzhůru",
+      "description": "Natáhni ruku před sebe dlaní ke stropu. Druhou rukou jemně přitáhni prsty dolů a k sobě.",
+      "seconds": 20,
+      "bothSides": true
+    },
+    {
+      "id": "wrist-palm-down",
+      "area": "HANDS_AND_WRISTS",
+      "name": "Protažení zápěstí dlaní dolů",
+      "description": "Natáhni ruku před sebe dlaní k zemi. Druhou rukou jemně přitáhni hřbet ruky k sobě.",
+      "seconds": 20,
+      "bothSides": true
+    },
+    {
+      "id": "fist-and-spread",
+      "area": "HANDS_AND_WRISTS",
+      "name": "Pěst a roztažené prsty",
+      "description": "Pevně sevři obě ruce v pěst a pak prsty co nejvíc roztáhni.",
+      "times": 10
+    },
+    {
+      "id": "wrist-circles",
+      "area": "HANDS_AND_WRISTS",
+      "name": "Kroužení zápěstími",
+      "description": "Ruce měj volně před sebou. Pomalu krouž zápěstími na jednu stranu a v polovině času na druhou.",
+      "seconds": 20
+    },
+    {
+      "id": "palms-together",
+      "area": "HANDS_AND_WRISTS",
+      "name": "Dlaně u sebe",
+      "description": "Přilož dlaně k sobě před hrudníkem, prsty míří nahoru. Pomalu je posouvej dolů, dokud v zápěstích neucítíš tah.",
+      "seconds": 20
+    },
+    {
+      "id": "calf-raises",
+      "area": "LEGS_AND_EYES",
+      "name": "Výpony na špičky",
+      "description": "Postav se za židli a lehce se jí přidrž. Pomalu se zvedni na špičky a zase se spusť na paty.",
+      "times": 15
+    },
+    {
+      "id": "distance-gaze",
+      "area": "LEGS_AND_EYES",
+      "name": "Pohled do dálky",
+      "description": "Odvrať oči od obrazovky a podívej se z okna nebo na nejvzdálenější místo v místnosti. Oči nech volně odpočívat.",
+      "seconds": 20
+    },
+    {
+      "id": "seated-leg-stretch",
+      "area": "LEGS_AND_EYES",
+      "name": "Natažení nohy vsedě",
+      "description": "Seď na kraji židle a natáhni jednu nohu před sebe, pata zůstává na zemi a špička míří vzhůru. S rovnými zády se mírně předkloň.",
+      "seconds": 20,
+      "bothSides": true
+    },
+    {
+      "id": "ankle-circles",
+      "area": "LEGS_AND_EYES",
+      "name": "Kroužení kotníkem",
+      "description": "Zvedni jednu nohu kousek nad zem a pomalu krouž kotníkem, nejdřív jedním a pak druhým směrem.",
+      "seconds": 15,
+      "bothSides": true
+    },
+    {
+      "id": "blink-and-rest",
+      "area": "LEGS_AND_EYES",
+      "name": "Mrkání a zavřené oči",
+      "description": "Několikrát rychle zamrkej. Pak zavři oči a nech je chvíli v klidu odpočinout.",
+      "seconds": 15
+    }
+  ]
+}

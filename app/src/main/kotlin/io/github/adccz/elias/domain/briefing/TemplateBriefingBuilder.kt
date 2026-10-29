@@ -12,7 +12,11 @@ import javax.inject.Inject
  * invent anything: every sentence comes from the input or says plainly that a source is missing.
  */
 class TemplateBriefingBuilder @Inject constructor() {
-    fun morning(input: MorningInput): BriefingText {
+    /**
+     * The morning briefing. [reservedWords] are said besides it (the morning routine, added after it), so the
+     * shortening keeps the whole morning within the target length.
+     */
+    fun morning(input: MorningInput, reservedWords: Int = 0): BriefingText {
         // Try the full version first, then drop the least important details until it fits the target length.
         val budgets = listOf(
             Budget(events = 4, headlines = 3, withMinimum = true, plansPerTopic = 3),
@@ -21,7 +25,7 @@ class TemplateBriefingBuilder @Inject constructor() {
             Budget(events = 2, headlines = 1, withMinimum = false, plansPerTopic = 1),
         )
         val versions = budgets.asSequence().map { morningWith(input, it) }
-        return versions.firstOrNull { it.wordCount <= BriefingLength.MORNING.last } ?: versions.last()
+        return versions.firstOrNull { it.wordCount + reservedWords <= BriefingLength.MORNING.last } ?: versions.last()
     }
 
     fun evening(input: EveningInput): BriefingText = BriefingText(
@@ -70,6 +74,29 @@ class TemplateBriefingBuilder @Inject constructor() {
         }
         return BriefingSection(SectionKind.JOURNAL_STEP, spoken)
     }
+
+    /**
+     * The morning routine (spec, M5): the reading, today's exercises and the recipe. It is said on the phone after the
+     * AI answer, like the journal step, so the names stay exact.
+     */
+    fun routine(facts: RoutineFacts): BriefingSection {
+        val sentences = mutableListOf<String>()
+        when (val reading = facts.reading) {
+            is ReadingFact.Next -> sentences += "Ranní čtení: ${reading.spoken}."
+            ReadingFact.DoneToday -> sentences += "Dnešní čtení máš hotové."
+            ReadingFact.Finished -> sentences += "Pořadník čtení je dočtený, další knihy si vyber v aplikaci."
+            null -> Unit
+        }
+        if (facts.exercises.isNotEmpty()) {
+            sentences += "Cviky na dnešek: ${joinCzech(facts.exercises.map { lowerFirst(withoutEndPunctuation(it)) })}."
+        }
+        facts.recipe?.let { sentences += "Recept dne: ${lowerFirst(withoutEndPunctuation(it))}." }
+        return BriefingSection(SectionKind.ROUTINE, sentences.joinToString(" "))
+    }
+
+    /** The evening reminder of today's chapter (spec, M5). [chapter] is spoken: "Marek, třetí kapitola". */
+    fun readingReminder(chapter: String): BriefingSection =
+        BriefingSection(SectionKind.READING_REMINDER, "Ještě tě čeká dnešní čtení: $chapter.")
 
     /** The evening reminder when today's journal entry is missing (spec, M4.5). */
     fun journalReminder(): BriefingSection = BriefingSection(
@@ -183,7 +210,6 @@ class TemplateBriefingBuilder @Inject constructor() {
         if (withMinimum && plan.dailyMinimum.isNotEmpty()) {
             sentences += "Minimum dne: ${joinCzech(plan.dailyMinimum.map(::lowerFirst))}."
         }
-        plan.morningReading?.let { sentences += "Ranní čtení: $it." }
         plan.saturdayStudy?.let { sentences += "Sobotní studium: $it." }
         if (plan.items.isNotEmpty()) sentences += "Na programu je ${joinCzech(plan.items.map(::lowerFirst))}."
         plan.theme?.let {

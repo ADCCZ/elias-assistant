@@ -179,6 +179,40 @@ internal fun PlanSection(overview: TodayOverview) {
     }
 }
 
+/** The morning routine (M5): the reading queue, today's exercises and the recipes. */
+@Composable
+internal fun RoutineSection(overview: TodayOverview) {
+    val routine = overview.routine
+    SectionCard(title = stringResource(R.string.section_routine)) {
+        val reading = routine.reading
+        val next = reading?.next
+        Text(
+            when {
+                reading == null -> stringResource(R.string.routine_reading_unknown)
+                next != null -> stringResource(R.string.routine_reading_next, next.label)
+                reading.finished -> stringResource(R.string.routine_reading_finished)
+                else -> stringResource(R.string.routine_reading_plan)
+            },
+        )
+        if (reading?.readToday == true) Hint(stringResource(R.string.routine_reading_done))
+        val exercises = routine.exercises
+        Text(
+            if (exercises == null) {
+                stringResource(R.string.exercises_failed)
+            } else {
+                stringResource(R.string.routine_exercises, exercises.joinToString(", ") { it.name })
+            },
+        )
+        val recipes = routine.recipes
+        if (recipes == null) {
+            Text(stringResource(R.string.recipe_failed))
+        } else {
+            Text(stringResource(R.string.routine_recipe, recipes.today.name))
+            Hint(stringResource(R.string.recipe_tomorrow, recipes.tomorrow.name))
+        }
+    }
+}
+
 @Composable
 private fun Deadline.describe(): String {
     val mandatoryNote = if (mandatory) " (${stringResource(R.string.plan_mandatory)})" else ""
@@ -229,7 +263,7 @@ private fun SectionCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = statusColor(status),
                 )
-                // The technical detail helps while developing. The Log screen (M7) will take this over.
+                // The technical detail helps while developing. The Log screen (M8) will take this over.
                 (status as? SourceResult.Failure)?.detail?.let { Hint(it) }
             }
             content()

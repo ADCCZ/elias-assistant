@@ -17,10 +17,11 @@ what is still left to do and what is coming tomorrow. Then it goes quiet.
 | M2 – Briefing | Spoken Czech, template builder, Claude API builder with fallback, preview screen | Done |
 | M3 – Voice | Offline Czech speech, playback service with notification controls, audio focus, speech rate | Done |
 | M4 – Scheduling | Times per day, evening briefing on its own, prefetch and cache, sabbath rules, status screen | Done |
-| M4.5 – Plans and journal | Plans by topic from Google Calendar, journal with an AI step, reminders in the briefings | In review |
-| M5 – Overnight messages | Notification listener (metadata only) | Planned |
-| M6 – Alarm clock | Alarm that always rings, then Elias speaks | Planned |
-| M7 – Polish | Settings, widget, demo mode, run log, screenshots | Planned |
+| M4.5 – Plans and journal | Plans by topic from Google Calendar, journal with an AI step, reminders in the briefings | Done |
+| M5 – Morning routine | Bible reading by a queue, exercises at the computer, recipe of the day | In review |
+| M6 – Overnight messages | Notification listener (metadata only) | Planned |
+| M7 – Alarm clock | Alarm that always rings, then Elias speaks | Planned |
+| M8 – Polish | Settings, widget, demo mode, run log, screenshots | Planned |
 
 The full specification is in [docs/SPEC.md](docs/SPEC.md) (Czech). Design decisions are recorded in
 [docs/DECISIONS.md](docs/DECISIONS.md).
@@ -36,6 +37,7 @@ source, each with its load status or the reason it failed:
 | Weather | [Open-Meteo](https://open-meteo.com) forecast for Pilsen | Unix timestamps, so DST days are correct |
 | News | RSS: ČT24, iROZHLAS, Root.cz | Last 24 hours, duplicates and repeated stories removed |
 | Personal plan | `plan.json` in the app's assets | Phases, weekly themes, readings, recurring items, deadlines |
+| Morning routine (M5) | Reading queue on the phone, exercises and recipes in the app's assets | The next chapter, today's exercises and recipe |
 | Sun and sabbath | NOAA solar formulas, computed on the phone | Within a minute of the US Naval Observatory |
 
 Sources load in parallel. Each has its own time limit, and one failing source never hides the others.
@@ -89,7 +91,7 @@ written fresh from today's data) or from **Náhled textu** (**Přehrát** reads 
 E.L.I.A.S. now works on its own.
 
 - **Your times, for each day.** On **Časy** every day of the week has a morning and an evening time, or none
-  (7:00 and 22:00 at first). Weather and headlines are downloaded 30 minutes before the morning time (from M6 the
+  (7:00 and 22:00 at first). Weather and headlines are downloaded 30 minutes before the morning time (from M7 the
   alarm will ring at it). At the evening time the evening briefing starts by itself.
 - **The evening briefing lights up the screen.** The briefing is prepared silently with the screen dark. When it is
   ready, a full-screen notification opens the evening briefing screen over the lock screen, like an alarm clock, and
@@ -109,7 +111,7 @@ E.L.I.A.S. now works on its own.
   the copy is used and the Data screen says from when.
 - **Headlines since the last briefing**, at least 6 and at most 24 hours back, so a replay still has news.
 - **Run log.** Every run records when it started, who started it, how each source did, who wrote the briefing and how
-  it ended. Never the briefing's text. The status screen shows the latest run, the Log screen comes with M7.
+  it ended. Never the briefing's text. The status screen shows the latest run, the Log screen comes with M8.
 - **Stav** shows what Elias needs: calendar access, notifications, exact alarms, no battery optimization, the
   full-screen notification and the Czech voice, each problem with **Opravit**. It also lists the next runs, the last
   run and a link to [dontkillmyapp.com/samsung](https://dontkillmyapp.com/samsung).
@@ -138,6 +140,34 @@ midnight, Friday, Saturday and the late summer sunset.
   has **Zapsat do deníku**. The next morning Elias reminds you of yesterday's step. Both parts are written on the phone
   and added after the AI answer, so the journal never goes to the AI that writes briefings.
 
+## Morning routine (M5)
+
+- **Bible reading by a queue.** On **Čtení** you keep a queue of what to read: a whole book ("Marek"), a range
+  ("Marek 3–16") or one chapter ("Jan 13"). Sections can be added, moved and removed, and a tap on a section chooses
+  the chapter to continue with. **Přečteno** (on Čtení and on the home screen) moves the queue one chapter on, and
+  **Vrátit** in the snackbar takes a mistake back. A skipped day moves nothing; more chapters mean more taps. An empty
+  queue offers **Převzít z plánu**, which turns the plan's morning readings from today on into sections, joining
+  chapters that follow each other. The queue knows the 66 books of the Protestant canon with the abbreviations and
+  chapter counts of the Czech ecumenical translation (ČEP numbers Joel and Malachi like the Hebrew Bible).
+- **Exercises at the computer.** Twenty gentle stretches in four areas (neck and shoulders, back and chest, hands and
+  wrists, legs and eyes), written for listening. Every day has four, one per area, picked by the date: the same all
+  day, others tomorrow. **Cvič se mnou** on **Cviky** has Elias lead them: it reads an exercise, leaves time to do it
+  and announces the other side, through the same playback service as the briefings (Pause and Stop in the
+  notification, music gets quieter, a call pauses it). No health claims, only "go slowly and skip what hurts".
+- **Recipe of the day.** Forty simple recipes, most within 30 minutes, about half of them meatless; meat is only
+  poultry, beef or fish with scales. **Recept dne** shows the ingredients, steps, time and servings, and the name of
+  tomorrow's recipe for shopping. The recipes take turns by the date, so none repeats before all have had their day.
+  A unit test reads every word of the shipped file and fails on pork, seafood and other forbidden food.
+- **In the briefings.** The morning briefing says the routine right after the plan: "Ranní čtení: Marek, třetí
+  kapitola." (or "Dnešní čtení máš hotové."), today's exercises and the recipe. The phone writes this part after the
+  AI answer, so the names stay exact and the reading goes on after the plan has expired; the AI no longer gets the
+  morning reading and aims 25 words shorter, so the morning stays at about a minute. The evening briefing adds one
+  sentence when nothing was read today, never on Saturday. The Data screen shows the routine too.
+- **The day starts at 4:00** for the reading, the exercises and the recipe, like for the journal.
+
+The exercises and the recipes are written for this project in our own words. Changing them means editing
+`assets/exercises.json` or `assets/recipes.json` and building the app again (the tests check the files).
+
 ## Planned features
 
 - **Morning briefing:** weather in Pilsen, today's calendar events, the daily plan, two or three world headlines
@@ -157,7 +187,7 @@ midnight, Friday, Saturday and the late summer sunset.
 | Architecture | MVVM, layers `data` / `domain` / `ui` |
 | Dependency injection | Hilt (KSP) |
 | Networking | Ktor client (OkHttp engine) + kotlinx.serialization |
-| Storage | DataStore (speech rate, weekly schedule, calendar choices), Room 3 (source cache, run log, journal) |
+| Storage | DataStore (speech rate, weekly schedule, calendar choices, reading queue), Room 3 (source cache, run log, journal, read chapters) |
 | Scheduling | AlarmManager (`setAlarmClock()`, exact alarms), WorkManager with Hilt workers (prefetch) |
 | Voice | Piper voice "Jirka" with sherpa-onnx (ONNX Runtime), Android `TextToSpeech` as the fallback, Media3 |
 | Time | `java.time`, zone `Europe/Prague`, injected `Clock` |
@@ -174,15 +204,17 @@ ui      Compose screens + ViewModels (one StateFlow of UI state per screen)
  ▼
 domain  pure Kotlin: models, plan rules, sun and sabbath, headline selection, the loader that combines sources,
         spoken Czech, briefing inputs, template builder, AI-or-template choice, voice check and playlist,
-        the briefing runner, schedule rules with the sabbath, the prefetch, the run log, topics, the journal
+        the briefing runner, schedule rules with the sabbath, the prefetch, the run log, topics, the journal,
+        the Bible books and the reading queue, the morning routine and "Cvič se mnou"
  ▲
  │
 data    calendar provider, Open-Meteo, RSS, plan file (each returns a SourceResult: data or a failure reason),
         Claude API client, text-to-speech, playback service with audio focus, settings in DataStore,
-        Room (cache, run log, journal), alarms and their receivers, the prefetch worker, notifications
+        Room (cache, run log, journal, read chapters), the routine files in the assets, alarms and their receivers,
+        the prefetch worker, notifications
 ```
 
-`ui` and `data` both depend on `domain`, never the other way round. A full diagram comes with M7.
+`ui` and `data` both depend on `domain`, never the other way round. A full diagram comes with M8.
 
 ## Getting started
 
@@ -230,8 +262,8 @@ E.L.I.A.S. is built to keep personal data on the phone. This section grows with 
 - Requests for the RSS feeds of ČT24, iROZHLAS and Root.cz. Like any web request, they reveal your IP address.
 - **Only if an API key is set:** the briefing data goes to the Claude API (Anthropic): the date, the weather
   summary, titles, times and places of today's and tomorrow's calendar events with the names of your topics, today's
-  part of the personal plan, the chosen headlines and upcoming deadlines. The key is sent only as the `x-api-key`
-  header and never logged.
+  part of the personal plan (without the morning reading), the chosen headlines and upcoming deadlines. The key is
+  sent only as the `x-api-key` header and never logged.
 - **Only when you tap Navrhni krok in the journal:** the text of "na čem se zlepšit" and the weekly theme go to the
   Claude API. Nothing else from the journal ever leaves the phone.
 
@@ -250,13 +282,16 @@ E.L.I.A.S. is built to keep personal data on the phone. This section grows with 
 - The journal is kept in the app's database and read out by the phone's offline voice. It is never part of a
   briefing request to the AI and never written to the run log. Which calendars are read and which are topics is stored
   in the app's private storage.
+- The reading queue is in the app's private storage, and the chapters marked as read are in its database with their
+  day. The morning routine (reading, exercises, recipe) is spoken by the phone and never sent to the AI. The exercises
+  and recipes are part of the app. "Cvič se mnou" is spoken by the phone's voice like a briefing.
 - The run log keeps, for 30 days, when each briefing or prefetch ran, how each source did and how it ended. It never
   holds the briefing's text.
 - Android cloud backup and device-to-device transfer are disabled for this app.
 
 **Rules for later milestones:**
 
-- **Overnight messages (M5):** only the app, the sender or conversation name and the time are stored, never the
+- **Overnight messages (M6):** only the app, the sender or conversation name and the time are stored, never the
   message content. Records are deleted after 48 hours. This data is **never sent to the AI**.
 - **Overnight messages and the AI:** the briefing is kept as separate sections, so the overnight messages will be
   inserted locally after the AI answer. Names of people from notifications never reach Anthropic.
@@ -270,6 +305,9 @@ sample data only.
 - Headlines from the public RSS feeds of [ČT24](https://ct24.ceskatelevize.cz), [iROZHLAS](https://www.irozhlas.cz)
   and [Root.cz](https://www.root.cz). Only titles are shown, with their source.
 - Sunrise and sunset follow the [NOAA Solar Calculator](https://gml.noaa.gov/grad/solcalc/) formulas.
+- The chapter counts of the Czech ecumenical translation (ČEP) were checked against its text on
+  [obohu.cz](https://www.obohu.cz/bible/). No Bible text is part of the app, only book names and chapter counts.
+- The exercises and recipes are written for this project. They are general and not medical advice.
 
 ## Third-party licenses
 
@@ -308,6 +346,12 @@ Od M4.5 čte plány na další dny podle témat z Google Kalendáře (každé t�
 Plány. V aplikaci je deník (myšlenka dne, co mi utkvělo, na čem se zlepšit). AI z něj na požádání navrhne jeden
 konkrétní krok a dostane jen pole „na čem se zlepšit“ a téma týdne. Večer Elias připomene chybějící zápis, ráno
 včerejší krok.
+
+Od M5 má ranní rutinu. Na obrazovce Čtení je pořadník čtení Bible (celé knihy, rozsahy nebo jednotlivé kapitoly
+podle Českého ekumenického překladu). Tlačítko Přečteno ho posune o kapitolu, Vrátit omyl vrátí a prázdný pořadník
+umí převzít ranní čtení z plánu. Obrazovka Cviky ukáže čtyři protahovací cviky na dnešek a Cvič se mnou je provede
+hlasem. Recept dne ukáže jednoduchý recept bez vepřového a plodů moře a název zítřejšího receptu kvůli nákupu. Ráno
+Elias za plánem řekne čtení, cviky a recept, večer připomene nepřečtenou kapitolu (v sobotu ne).
 
 ## License
 

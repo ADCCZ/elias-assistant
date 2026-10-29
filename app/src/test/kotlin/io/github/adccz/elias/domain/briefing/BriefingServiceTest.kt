@@ -135,4 +135,70 @@ class BriefingServiceTest {
 
         assertEquals("Včera sis do deníku zapsal, na čem se chceš zlepšit. Najdeš to v aplikaci.", section.text)
     }
+
+    // The morning routine (M5): added on the phone after the AI answer.
+
+    @Test
+    fun `the morning adds the routine after the plan, also to an AI text`() = runTest {
+        val service = BriefingService(template, FakeAi { AiBriefingResult.Success(aiText, usage) })
+
+        val result = service.morning(overview.copy(routine = TestOverviews.routine()))
+
+        assertEquals(
+            listOf(SectionKind.GREETING_AND_WEATHER, SectionKind.ROUTINE),
+            result.briefing.spokenSections.map { it.kind },
+        )
+        assertTrue(result.briefing.spokenSections[1].text.startsWith("Ranní čtení: Marek, třetí kapitola.")) {
+            result.briefing.text
+        }
+    }
+
+    @Test
+    fun `the routine comes between the plan and yesterday's step`() = runTest {
+        val journal = withJournal(true, JournalReminder("Méně odkládat úkoly", false))
+        val result = BriefingService(template, FakeAi { AiBriefingResult.Failure(AiFailureReason.DISABLED) })
+            .morning(journal.copy(routine = TestOverviews.routine()))
+
+        val kinds = result.briefing.spokenSections.map { it.kind }
+        assertEquals(kinds.indexOf(SectionKind.PLAN) + 1, kinds.indexOf(SectionKind.ROUTINE))
+        assertEquals(kinds.indexOf(SectionKind.ROUTINE) + 1, kinds.indexOf(SectionKind.JOURNAL_STEP))
+    }
+
+    @Test
+    fun `the whole template morning with the routine stays within the length`() = runTest {
+        val result = BriefingService(template, FakeAi { AiBriefingResult.Failure(AiFailureReason.DISABLED) })
+            .morning(overview.copy(routine = TestOverviews.routine()))
+
+        assertTrue(result.briefing.wordCount <= BriefingLength.MORNING.last) { result.briefing.text }
+    }
+
+    @Test
+    fun `the AI never gets the morning reading`() = runTest {
+        var asked: MorningInput? = null
+        val ai = object : AiBriefingBuilder {
+            override suspend fun morning(input: MorningInput): AiBriefingResult {
+                asked = input
+                return AiBriefingResult.Success(aiText, usage)
+            }
+
+            override suspend fun evening(input: EveningInput): AiBriefingResult = error("not used")
+        }
+
+        BriefingService(template, ai).morning(overview.copy(routine = TestOverviews.routine()))
+
+        assertFalse("Marek" in asked.toString()) { asked.toString() }
+    }
+
+    @Test
+    fun `the evening reminds of today's chapter before the journal`() = runTest {
+        val service = BriefingService(template, FakeAi { AiBriefingResult.Failure(AiFailureReason.DISABLED) })
+
+        val result = service.evening(withJournal(false).copy(routine = TestOverviews.routine()))
+        val read = service.evening(withJournal(false).copy(routine = TestOverviews.routine(readToday = true)))
+
+        val kinds = result.briefing.spokenSections.map { it.kind }
+        assertEquals(kinds.indexOf(SectionKind.JOURNAL_REMINDER) - 1, kinds.indexOf(SectionKind.READING_REMINDER))
+        assertTrue("Ještě tě čeká dnešní čtení: Marek, třetí kapitola." in result.briefing.text)
+        assertFalse(SectionKind.READING_REMINDER in read.briefing.spokenSections.map { it.kind })
+    }
 }

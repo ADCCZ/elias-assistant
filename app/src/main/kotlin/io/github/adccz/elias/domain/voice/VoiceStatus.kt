@@ -33,7 +33,7 @@ sealed interface VoiceStatus {
 
     /**
      * Czech works only with a network voice. Elias never uses one: the engine would send the whole briefing
-     * (calendar, plan and from M5 the names of people who wrote overnight) to a server.
+     * (calendar, plan and from M6 the names of people who wrote overnight) to a server.
      */
     data class OnlineOnly(val engine: TtsEngine) : VoiceStatus
 }

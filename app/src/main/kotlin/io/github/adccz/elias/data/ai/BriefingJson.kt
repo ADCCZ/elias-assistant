@@ -71,11 +71,11 @@ internal data class TopicPlanData(val topic: String, val plans: List<PlanItemDat
 @Serializable
 internal data class PlanItemData(val title: String, val time: String?)
 
+/** The morning reading is not sent: the morning routine (M5) says it on the phone. */
 @Serializable
 internal data class PlanData(
     val phase: String?,
     @SerialName("daily_minimum") val dailyMinimum: List<String>,
-    @SerialName("morning_reading") val morningReading: String?,
     @SerialName("saturday_study") val saturdayStudy: String?,
     val items: List<String>,
     @SerialName("weekly_theme") val weeklyTheme: ThemeData?,
@@ -99,7 +99,7 @@ internal fun MorningInput.toData() = MorningData(
     topicPlans = topicPlans.map { it.toData() },
     calendarUnavailable = events == null,
     plan = plan?.let {
-        PlanData(it.phase, it.dailyMinimum, it.morningReading, it.saturdayStudy, it.items, it.theme?.toData())
+        PlanData(it.phase, it.dailyMinimum, it.saturdayStudy, it.items, it.theme?.toData())
     },
     planUnavailable = planUnavailable,
     headlines = headlines,

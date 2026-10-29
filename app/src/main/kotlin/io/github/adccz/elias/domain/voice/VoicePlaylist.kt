@@ -2,6 +2,7 @@ package io.github.adccz.elias.domain.voice
 
 import io.github.adccz.elias.domain.briefing.BriefingKind
 import io.github.adccz.elias.domain.briefing.SectionKind
+import io.github.adccz.elias.domain.routine.ExerciseStep
 
 /** One spoken section, already turned into an audio file on the phone. */
 data class SpeechClip(val section: SectionKind, val path: String)
@@ -15,6 +16,21 @@ sealed interface PlaylistEntry {
 
 /** A briefing ready to be played. One clip per section lets pause and "Znovu" work on whole sections. */
 data class VoicePlaylist(val kind: BriefingKind, val entries: List<PlaylistEntry>)
+
+/** "Cvič se mnou": the spoken steps with the silent time to exercise between them (M5). */
+object ExercisePlaylist {
+    /** [clips] are the clips of the [ExerciseStep.Say] steps of [steps], in order. */
+    fun of(steps: List<ExerciseStep>, clips: List<SpeechClip>): VoicePlaylist {
+        val spoken = clips.iterator()
+        val entries = steps.map { step ->
+            when (step) {
+                is ExerciseStep.Say -> PlaylistEntry.Speech(spoken.next())
+                is ExerciseStep.Wait -> PlaylistEntry.Pause(step.millis)
+            }
+        }
+        return VoicePlaylist(BriefingKind.EXERCISES, entries)
+    }
+}
 
 object BriefingPlaylist {
     /** Silence between two sections: long enough to hear that a new part begins, too short to sound like the end. */

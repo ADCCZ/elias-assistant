@@ -137,6 +137,7 @@ fun DataScreen(
                     item { CalendarSection(overview, onRequestCalendarPermission, onOpenAppSettings) }
                     item { WeatherSection(overview) }
                     item { PlanSection(overview) }
+                    item { RoutineSection(overview) }
                     item { NewsSection(overview) }
                 }
             }

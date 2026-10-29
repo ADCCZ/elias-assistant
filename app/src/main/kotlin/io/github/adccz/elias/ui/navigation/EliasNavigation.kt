@@ -12,6 +12,9 @@ import io.github.adccz.elias.ui.home.HomeRoute
 import io.github.adccz.elias.ui.journal.JournalRoute
 import io.github.adccz.elias.ui.plans.PlansRoute
 import io.github.adccz.elias.ui.preview.PreviewRoute
+import io.github.adccz.elias.ui.reading.ReadingRoute
+import io.github.adccz.elias.ui.routine.ExercisesRoute
+import io.github.adccz.elias.ui.routine.RecipeRoute
 import io.github.adccz.elias.ui.schedule.ScheduleRoute
 import io.github.adccz.elias.ui.status.StatusRoute
 import kotlinx.serialization.Serializable
@@ -39,6 +42,15 @@ data object PlansKey : NavKey
 @Serializable
 data object JournalKey : NavKey
 
+@Serializable
+data object ReadingKey : NavKey
+
+@Serializable
+data object ExercisesKey : NavKey
+
+@Serializable
+data object RecipeKey : NavKey
+
 /**
  * The app's navigation with Navigation 3. The back stack is a plain list we own:
  * opening a screen adds its key, going back removes the last one.
@@ -65,6 +77,9 @@ fun EliasNavigation(openJournal: Boolean = false) {
                     onOpenStatus = { backStack.add(StatusKey) },
                     onOpenPlans = { backStack.add(PlansKey) },
                     onOpenJournal = { backStack.add(JournalKey) },
+                    onOpenReading = { backStack.add(ReadingKey) },
+                    onOpenExercises = { backStack.add(ExercisesKey) },
+                    onOpenRecipe = { backStack.add(RecipeKey) },
                 )
             }
             entry<DataKey> { DataRoute(onBack = { backStack.removeLastOrNull() }) }
@@ -73,6 +88,9 @@ fun EliasNavigation(openJournal: Boolean = false) {
             entry<StatusKey> { StatusRoute(onBack = { backStack.removeLastOrNull() }) }
             entry<PlansKey> { PlansRoute(onBack = { backStack.removeLastOrNull() }) }
             entry<JournalKey> { JournalRoute(onBack = { backStack.removeLastOrNull() }) }
+            entry<ReadingKey> { ReadingRoute(onBack = { backStack.removeLastOrNull() }) }
+            entry<ExercisesKey> { ExercisesRoute(onBack = { backStack.removeLastOrNull() }) }
+            entry<RecipeKey> { RecipeRoute(onBack = { backStack.removeLastOrNull() }) }
         },
     )
 }

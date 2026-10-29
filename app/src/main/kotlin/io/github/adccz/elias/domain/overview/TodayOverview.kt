@@ -6,6 +6,7 @@ import io.github.adccz.elias.domain.model.SourceResult
 import io.github.adccz.elias.domain.news.Headline
 import io.github.adccz.elias.domain.news.NewsFeed
 import io.github.adccz.elias.domain.plan.DayPlan
+import io.github.adccz.elias.domain.routine.RoutineStatus
 import io.github.adccz.elias.domain.sun.SabbathWindow
 import io.github.adccz.elias.domain.sun.SunTimes
 import io.github.adccz.elias.domain.topics.Topic
@@ -30,6 +31,8 @@ data class TodayOverview(
     val topics: List<Topic> = emptyList(),
     /** Whether today's journal entry exists and what to remind of from yesterday (M4.5). Stays on the phone. */
     val journal: JournalStatus = JournalStatus.UNKNOWN,
+    /** The reading queue, today's exercises and recipes (M5). Stays on the phone. */
+    val routine: RoutineStatus = RoutineStatus.UNKNOWN,
 )
 
 /** Today's part of the plan, with the plan's name, its validity and whether it is the fictional sample. */

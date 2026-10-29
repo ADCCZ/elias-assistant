@@ -1,5 +1,6 @@
 package io.github.adccz.elias.data.ai
 
+import io.github.adccz.elias.domain.briefing.BriefingLength
 import io.github.adccz.elias.domain.briefing.EveningInput
 import io.github.adccz.elias.domain.briefing.MorningInput
 import io.github.adccz.elias.domain.journal.StepRequest
@@ -8,7 +9,8 @@ import kotlinx.serialization.json.Json
 /**
  * What Elias tells the model. The prompts are Czech because the output is Czech.
  *
- * Overnight messages (M5) are never part of these prompts: names of people stay on the phone.
+ * Overnight messages (M6) are never part of these prompts: names of people stay on the phone. Neither is the morning
+ * routine (M5): the phone adds it after the answer, so the morning target is shorter by its length.
  * The journal is never part of the briefing prompts. Only "na čem se zlepšit" goes into the step prompt, and only when
  * the user asks for a step.
  */
@@ -44,7 +46,8 @@ internal object ClaudePrompts {
         2. Piš pro poslech: celé věty, žádné odrážky, seznamy, nadpisy, závorky, emoji ani zkratky.
            Časy, data, teploty a čísla jsou ve vstupu už slovy. Převezmi je přesně tak a nepiš číslice.
         3. Tón: věcný, přátelský a stručný. Nechval, nemoralizuj, nedramatizuj, nepoužívej vykřičníky.
-        4. Délka: ranní souhrn má celkem 120 až 180 slov, večerní 60 až 100 slov.
+        4. Délka: ranní souhrn má celkem ${BriefingLength.MORNING_AI.first} až ${BriefingLength.MORNING_AI.last} slov,
+           večerní ${BriefingLength.EVENING.first} až ${BriefingLength.EVENING.last} slov.
         5. Odpověz jen JSON objektem podle schématu. Každá položka je hotový mluvený text jedné části.
            Část, ke které nejsou data a pokyn neříká jinak, nech jako prázdný řetězec.
     """.trimIndent()
@@ -59,7 +62,7 @@ internal object ClaudePrompts {
         greeting_and_weather: pozdrav „Dobré ráno, Oldo“, den a datum, počasí v Plzni.
         calendar: dnešní události z kalendáře (events), pak plány podle témat (topic_plans): u každého tématu jeho
         název a plány, s časem jen tam, kde ho plán má. Když není nic, jedna věta, že dnes nic není.
-        plan: fáze, minimum dne, ranní čtení, dnešní body z plánu a téma týdne s úkolem.
+        plan: fáze, minimum dne, dnešní body z plánu a téma týdne s úkolem.
         news: dva až tři titulky ze světa. Převyprávěj jen samotné titulky, nic k nim nepřidávej.
         warnings: termíny dnes nebo zítra. Když žádné nejsou, prázdný řetězec.
         closing: jedna krátká závěrečná věta.

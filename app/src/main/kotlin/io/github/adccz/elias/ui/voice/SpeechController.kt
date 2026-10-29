@@ -43,6 +43,9 @@ class SpeechController @Inject constructor(private val player: VoicePlayer) {
     /** Writes today's briefing of [kind] from fresh data and speaks it. */
     fun speakToday(kind: BriefingKind) = player.speak(BriefingRequest.FromToday(kind, PlaybackTrigger.USER))
 
+    /** "Cvič se mnou": leads today's exercises (M5). */
+    fun exerciseWithMe() = player.speak(BriefingRequest.Exercises)
+
     /** Speaks exactly [briefing], as it is shown on the screen. */
     fun speak(briefing: BriefingText) = player.speak(BriefingRequest.Written(briefing))
 

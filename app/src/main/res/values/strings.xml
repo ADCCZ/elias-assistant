@@ -19,6 +19,8 @@
     <string name="speech_preparing_evening">Připravuji večerní souhrn…</string>
     <string name="speech_speaking_morning">E.L.I.A.S. čte ranní souhrn.</string>
     <string name="speech_speaking_evening">E.L.I.A.S. čte večerní souhrn.</string>
+    <string name="speech_preparing_exercises">Připravuji cviky…</string>
+    <string name="speech_speaking_exercises">E.L.I.A.S. vede cviky.</string>
     <string name="speech_paused">Pozastaveno. Pokračovat můžeš v oznámení.</string>
     <string name="speech_failed_nothing">Souhrn je prázdný, není co číst.</string>
     <string name="speech_failed_voice">Nemluvím. %1$s</string>
@@ -73,6 +75,7 @@
     <string name="playback_channel_name">Přehrávání souhrnu</string>
     <string name="playback_title_morning">Ranní souhrn</string>
     <string name="playback_title_evening">Večerní souhrn</string>
+    <string name="playback_title_exercises">Cviky u počítače</string>
     <string name="playback_replay">Znovu</string>
     <string name="playback_stop">Stop</string>
     <string name="playback_preparing">Připravuji…</string>
@@ -271,4 +274,84 @@
     <string name="journal_use_step">Použít</string>
     <string name="journal_dismiss">Zavřít</string>
     <string name="journal_step_failed">Krok se nepodařilo navrhnout: %1$s.</string>
+
+    <!-- Reading screen (M5) -->
+    <string name="home_open_reading">Čtení</string>
+    <string name="reading_title">Čtení Bible</string>
+    <string name="reading_next">Dnešní čtení: %1$s</string>
+    <string name="reading_next_more">Další kapitola: %1$s</string>
+    <string name="reading_read_today">Dnes přečteno: %1$s</string>
+    <string name="reading_mark_read">Přečteno</string>
+    <string name="reading_marked">Přečteno: %1$s</string>
+    <string name="reading_undo">Vrátit</string>
+    <string name="reading_note">Přečteno posune pořadník o jednu kapitolu. Vynechaný den nic neposune. Čtení před čtvrtou ráno patří ještě k předchozímu dni.</string>
+    <string name="reading_queue">Pořadník</string>
+    <string name="reading_empty">Pořadník je prázdný. Přidej knihu, nebo převezmi ranní čtení z plánu.</string>
+    <string name="reading_finished">Pořadník je dočtený. Přidej další knihy.</string>
+    <string name="reading_take_over">Převzít z plánu</string>
+    <string name="reading_nothing_in_plan">V plánu už žádná ranní čtení nejsou.</string>
+    <string name="reading_add">Přidat úsek</string>
+    <string name="reading_book">Kniha</string>
+    <string name="reading_from">Od kapitoly</string>
+    <string name="reading_to">Do kapitoly</string>
+    <!-- %1$d: the number of chapters of the chosen book. -->
+    <string name="reading_range_error">Zadej kapitoly od 1 do %1$d, první nejvýš poslední.</string>
+    <string name="reading_continue_title">Pokračovat v úseku %1$s</string>
+    <string name="reading_continue_chapter">Kapitola</string>
+    <!-- %1$d: the last chapter of the section. -->
+    <string name="reading_continue_error">Zadej kapitolu od 1 do %1$d.</string>
+    <string name="reading_continue_note">Klepnutím na úsek zvolíš, kterou kapitolou pokračuješ.</string>
+    <string name="reading_move_up">Posunout výš</string>
+    <string name="reading_move_down">Posunout níž</string>
+    <string name="reading_delete">Smazat úsek</string>
+    <string name="reading_delete_confirm">Smazat úsek %1$s?</string>
+    <string name="action_delete">Smazat</string>
+    <string name="action_add">Přidat</string>
+    <string name="action_continue">Pokračovat</string>
+    <plurals name="reading_chapters_left">
+        <item quantity="one">Zbývá %d kapitola</item>
+        <item quantity="few">Zbývají %d kapitoly</item>
+        <item quantity="many">Zbývá %d kapitoly</item>
+        <item quantity="other">Zbývá %d kapitol</item>
+    </plurals>
+
+    <!-- Exercises and recipe screens (M5) -->
+    <string name="home_open_exercises">Cviky</string>
+    <string name="home_open_recipe">Recept dne</string>
+    <string name="exercises_title">Cviky u počítače</string>
+    <string name="exercises_today">Cviky na dnešek</string>
+    <string name="exercises_note">Každý den čtyři cviky, z každé oblasti jeden. Zítra budou jiné.</string>
+    <!-- "10×": how many times. -->
+    <string name="exercises_times">%1$d×</string>
+    <!-- "20 s": how long. -->
+    <string name="exercises_seconds">%1$d s</string>
+    <string name="exercises_both_sides">na každou stranu</string>
+    <string name="exercises_failed">Cviky se nepodařilo načíst.</string>
+    <string name="exercises_with_me">Cvič se mnou</string>
+    <string name="exercises_with_me_note">E.L.I.A.S. přečte cvik po cviku a nechá ti čas na cvičení. Pauza a Stop jsou v oznámení.</string>
+    <string name="recipe_title">Recept dne</string>
+    <!-- "25 min · 2 porce · bez masa" -->
+    <string name="recipe_minutes">%1$d min</string>
+    <string name="recipe_meatless">bez masa</string>
+    <string name="recipe_ingredients">Suroviny</string>
+    <string name="recipe_steps">Postup</string>
+    <string name="recipe_tomorrow">Zítra: %1$s</string>
+    <string name="recipe_tomorrow_note">Ať můžeš nakoupit dopředu.</string>
+    <string name="recipe_failed">Recepty se nepodařilo načíst.</string>
+    <plurals name="recipe_servings">
+        <item quantity="one">%d porce</item>
+        <item quantity="few">%d porce</item>
+        <item quantity="many">%d porce</item>
+        <item quantity="other">%d porcí</item>
+    </plurals>
+
+    <!-- Data screen: the morning routine (M5) -->
+    <string name="section_routine">Ranní rutina</string>
+    <string name="routine_reading_next">Čtení z pořadníku: %1$s</string>
+    <string name="routine_reading_done">Dnes už je něco přečteno.</string>
+    <string name="routine_reading_finished">Pořadník čtení je dočtený.</string>
+    <string name="routine_reading_plan">Pořadník je prázdný, platí ranní čtení z plánu.</string>
+    <string name="routine_reading_unknown">Pořadník čtení se nepodařilo načíst.</string>
+    <string name="routine_exercises">Cviky: %1$s</string>
+    <string name="routine_recipe">Recept dne: %1$s</string>
 </resources>

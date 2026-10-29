@@ -1,6 +1,7 @@
 package io.github.adccz.elias.domain.briefing
 
 import io.github.adccz.elias.domain.news.Headline
+import io.github.adccz.elias.domain.speech.CzechNumbers
 import io.github.adccz.elias.testing.TestOverviews
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -26,6 +27,10 @@ class TemplateBriefingBuilderTest {
     @Test
     fun `a full morning has every part in the spec's order and fits the length`() {
         val briefing = morning()
+        val routine = builder.routine(
+            BriefingInputs.routine(TestOverviews.rich().copy(routine = TestOverviews.routine())),
+        )
+        val words = briefing.wordCount + CzechNumbers.wordCount(routine.text)
 
         assertEquals(
             listOf(
@@ -38,7 +43,7 @@ class TemplateBriefingBuilderTest {
             ),
             briefing.sections.filter { it.text.isNotBlank() }.map { it.kind },
         )
-        assertTrue(briefing.wordCount in BriefingLength.MORNING) { "${briefing.wordCount} words:\n${briefing.text}" }
+        assertTrue(words in BriefingLength.MORNING) { "$words words:\n${briefing.text}\n${routine.text}" }
         assertSpeakable(briefing.text)
     }
 
@@ -59,7 +64,7 @@ class TemplateBriefingBuilderTest {
         assertTrue("V kalendáři máš dnes dvě události. Celý den: Státní svátek." in text) { text }
         assertTrue("Ve čtvrt na deset: Přednáška z databází, UP-105." in text) { text }
         assertTrue("Minimum dne: vstát do sedmi a jeden hlavní úkol." in text) { text }
-        assertTrue("Ranní čtení: Marek, první kapitola." in text) { text }
+        assertFalse("Ranní čtení" in text) { text }
         assertTrue("Na programu je angličtina a běh." in text) { text }
         assertTrue("Téma týdne je trpělivost: nechat druhé dokončit myšlenku." in text) { text }
         assertTrue("Ze světa: Město otevřelo novou knihovnu. Silnice mezi dvěma vesnicemi" in text) { text }
@@ -99,6 +104,55 @@ class TemplateBriefingBuilderTest {
         }
         assertTrue("V kalendáři máš dnes deset událostí." in briefing.text) { briefing.text }
         assertTrue("Zbytek najdeš v kalendáři." in briefing.text) { briefing.text }
+    }
+
+    // The morning routine (M5)
+
+    @Test
+    fun `the routine says the reading, the exercises and the recipe`() {
+        val section = builder.routine(
+            RoutineFacts(
+                reading = ReadingFact.Next("Marek, třetí kapitola"),
+                exercises = listOf("Kroužení rameny", "Otevření hrudníku", "Dlaně u sebe", "Pohled do dálky"),
+                recipe = "Šakšuka, vejce v rajčatové omáčce",
+            ),
+        )
+
+        assertEquals(SectionKind.ROUTINE, section.kind)
+        assertEquals(
+            "Ranní čtení: Marek, třetí kapitola. " +
+                "Cviky na dnešek: kroužení rameny, otevření hrudníku, dlaně u sebe a pohled do dálky. " +
+                "Recept dne: šakšuka, vejce v rajčatové omáčce.",
+            section.text,
+        )
+        assertTrue(CzechNumbers.wordCount(section.text) <= BriefingLength.ROUTINE_WORDS + 5) { section.text }
+    }
+
+    @Test
+    fun `the routine says when the reading is done and leaves out what is missing`() {
+        fun text(reading: ReadingFact?) = builder.routine(RoutineFacts(reading, emptyList(), null)).text
+
+        assertEquals("Dnešní čtení máš hotové.", text(ReadingFact.DoneToday))
+        assertEquals("Pořadník čtení je dočtený, další knihy si vyber v aplikaci.", text(ReadingFact.Finished))
+        assertEquals("", text(null))
+    }
+
+    @Test
+    fun `the evening reading reminder is one sentence`() {
+        assertEquals(
+            BriefingSection(SectionKind.READING_REMINDER, "Ještě tě čeká dnešní čtení: Marek, třetí kapitola."),
+            builder.readingReminder("Marek, třetí kapitola"),
+        )
+    }
+
+    @Test
+    fun `the morning leaves room for the routine`() {
+        val input = BriefingInputs.morning(TestOverviews.rich())
+        val full = builder.morning(input)
+
+        val shorter = builder.morning(input, reservedWords = BriefingLength.MORNING.last - full.wordCount + 1)
+
+        assertTrue(shorter.wordCount < full.wordCount) { shorter.text }
     }
 
     @Test

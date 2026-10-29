@@ -1,0 +1,970 @@
+{
+  "schemaVersion": 1,
+  "recipes": [
+    {
+      "id": "lentil-salad",
+      "name": "Čočkový salát s balkánským sýrem",
+      "minutes": 20,
+      "servings": 2,
+      "meat": "NONE",
+      "ingredients": [
+        "1 plechovka čočky (asi 250 g po scezení)",
+        "2 rajčata",
+        "1 menší červená cibule",
+        "100 g balkánského sýra",
+        "hrst petrželky",
+        "2 lžíce olivového oleje",
+        "1 lžíce citronové šťávy",
+        "sůl, pepř"
+      ],
+      "steps": [
+        "Čočku sceď a propláchni studenou vodou.",
+        "Rajčata nakrájej na kostičky, cibuli najemno a petrželku nasekej.",
+        "V misce smíchej olej, citronovou šťávu, sůl a pepř.",
+        "Přidej čočku a zeleninu, promíchej a navrch rozdrob sýr."
+      ]
+    },
+    {
+      "id": "chicken-curry",
+      "name": "Kuřecí kari s rýží",
+      "minutes": 30,
+      "servings": 2,
+      "meat": "POULTRY",
+      "ingredients": [
+        "300 g kuřecích prsou",
+        "150 g rýže",
+        "1 cibule",
+        "2 stroužky česneku",
+        "1 lžíce kari koření",
+        "200 ml kokosového mléka",
+        "hrst baby špenátu",
+        "1 lžíce oleje",
+        "sůl"
+      ],
+      "steps": [
+        "Uvař rýži podle návodu na obalu.",
+        "Maso nakrájej na kostky, cibuli a česnek nasekej najemno.",
+        "Na oleji osmahni cibuli dosklovata, přidej maso a opékej, dokud nezbělá.",
+        "Přidej česnek a kari, chvíli míchej a pak zalij kokosovým mlékem.",
+        "Duš asi 10 minut, nakonec vmíchej špenát a osol.",
+        "Podávej s rýží."
+      ]
+    },
+    {
+      "id": "garlic-spaghetti",
+      "name": "Špagety s česnekem a olivovým olejem",
+      "minutes": 15,
+      "servings": 2,
+      "meat": "NONE",
+      "ingredients": [
+        "200 g špaget",
+        "4 stroužky česneku",
+        "4 lžíce olivového oleje",
+        "špetka chilli vloček",
+        "hrst petrželky",
+        "strouhaný tvrdý sýr podle chuti",
+        "sůl"
+      ],
+      "steps": [
+        "Špagety uvař v osolené vodě na skus a hrnek vody z vaření si odlij.",
+        "Česnek nakrájej na tenké plátky a na mírném ohni ho v oleji zahřívej, až lehce zezlátne.",
+        "Přidej chilli, scezené špagety a trochu odlité vody a promíchej, až se olej spojí s vodou.",
+        "Posyp nasekanou petrželkou a sýrem."
+      ]
+    },
+    {
+      "id": "salmon-potatoes",
+      "name": "Losos s citronem a vařeným bramborem",
+      "minutes": 25,
+      "servings": 2,
+      "meat": "FISH",
+      "ingredients": [
+        "2 kusy lososa s kůží (asi 300 g)",
+        "500 g brambor",
+        "1 citron",
+        "1 lžíce másla",
+        "1 lžíce oleje",
+        "kopr nebo petrželka",
+        "sůl, pepř"
+      ],
+      "steps": [
+        "Brambory oloupej, nakrájej na stejně velké kusy a uvař v osolené vodě doměkka.",
+        "Lososa osol a opepři.",
+        "Na rozehřátém oleji ho opékej kůží dolů asi 4 minuty, pak ho otoč a dopeč 2 až 3 minuty.",
+        "Na konec přidej máslo a šťávu z poloviny citronu a rybu jimi přelij.",
+        "Brambory posyp bylinkami a podávej s lososem a zbytkem citronu."
+      ]
+    },
+    {
+      "id": "spinach-omelette",
+      "name": "Omeleta se špenátem a sýrem",
+      "minutes": 10,
+      "servings": 1,
+      "meat": "NONE",
+      "ingredients": [
+        "3 vejce",
+        "hrst baby špenátu",
+        "30 g strouhaného sýra",
+        "1 lžička másla",
+        "sůl, pepř",
+        "krajíc chleba"
+      ],
+      "steps": [
+        "Vejce rozšlehej se solí a pepřem.",
+        "Na másle nech špenát krátce zavadnout.",
+        "Zalij ho vejci a na mírném ohni nech omeletu stáhnout.",
+        "Posyp sýrem, přelož napůl a podávej s chlebem."
+      ]
+    },
+    {
+      "id": "beef-bolognese",
+      "name": "Boloňské špagety s hovězím",
+      "minutes": 35,
+      "servings": 3,
+      "meat": "BEEF",
+      "ingredients": [
+        "250 g mletého hovězího",
+        "250 g špaget",
+        "1 cibule",
+        "1 mrkev",
+        "2 stroužky česneku",
+        "1 plechovka krájených rajčat (400 g)",
+        "1 lžíce rajčatového protlaku",
+        "1 lžička sušeného oregana",
+        "1 lžíce oleje",
+        "sůl, pepř",
+        "strouhaný tvrdý sýr"
+      ],
+      "steps": [
+        "Cibuli, mrkev a česnek nasekej najemno a osmahni je na oleji.",
+        "Přidej maso a opékej, dokud se nerozpadne a nezhnědne.",
+        "Vmíchej protlak, rajčata a oregano, osol a opepři.",
+        "Duš pod pokličkou asi 20 minut a občas promíchej.",
+        "Mezitím uvař špagety a podávej je s omáčkou a sýrem."
+      ]
+    },
+    {
+      "id": "shakshuka",
+      "name": "Šakšuka, vejce v rajčatové omáčce",
+      "minutes": 25,
+      "servings": 2,
+      "meat": "NONE",
+      "ingredients": [
+        "4 vejce",
+        "1 cibule",
+        "1 červená paprika",
+        "2 stroužky česneku",
+        "1 plechovka krájených rajčat (400 g)",
+        "1 lžička mleté sladké papriky",
+        "půl lžičky mletého kmínu",
+        "1 lžíce oleje",
+        "sůl",
+        "petrželka",
+        "chléb"
+      ],
+      "steps": [
+        "Na oleji osmahni nakrájenou cibuli a papriku.",
+        "Přidej česnek, koření a rajčata, osol a vař asi 10 minut, až omáčka zhoustne.",
+        "Lžící v ní udělej čtyři důlky a do každého rozklepni vejce.",
+        "Přikryj a na mírném ohni nech vejce 5 až 7 minut stáhnout.",
+        "Posyp petrželkou a podávej s chlebem."
+      ]
+    },
+    {
+      "id": "chicken-noodle-soup",
+      "name": "Kuřecí polévka s nudlemi",
+      "minutes": 30,
+      "servings": 4,
+      "meat": "POULTRY",
+      "ingredients": [
+        "2 kuřecí stehna bez kosti",
+        "2 mrkve",
+        "1 petržel",
+        "kousek celeru",
+        "1 cibule",
+        "1,5 l vody",
+        "80 g polévkových nudlí",
+        "sůl, pepř",
+        "petrželová nať"
+      ],
+      "steps": [
+        "Maso, oloupanou zeleninu a celou cibuli dej do hrnce, zalij vodou a osol.",
+        "Vař zvolna asi 20 minut, dokud maso nezměkne.",
+        "Cibuli vyndej, maso a zeleninu nakrájej na menší kousky a vrať je do hrnce.",
+        "Přidej nudle a vař je podle návodu na obalu.",
+        "Opepři a posyp nasekanou natí."
+      ]
+    },
+    {
+      "id": "bean-chili",
+      "name": "Fazolové chilli s rýží",
+      "minutes": 30,
+      "servings": 3,
+      "meat": "NONE",
+      "ingredients": [
+        "1 plechovka červených fazolí",
+        "1 plechovka kukuřice",
+        "1 plechovka krájených rajčat (400 g)",
+        "1 cibule",
+        "1 červená paprika",
+        "2 stroužky česneku",
+        "1 lžička mleté papriky",
+        "půl lžičky mletého kmínu",
+        "špetka chilli",
+        "150 g rýže",
+        "1 lžíce oleje",
+        "sůl"
+      ],
+      "steps": [
+        "Uvař rýži.",
+        "Na oleji osmahni nakrájenou cibuli a papriku, přidej česnek a koření.",
+        "Přidej rajčata, scezené fazole a kukuřici, osol.",
+        "Vař asi 15 minut, až omáčka zhoustne, a podávej s rýží."
+      ]
+    },
+    {
+      "id": "tuna-pasta",
+      "name": "Těstoviny s tuňákem a rajčaty",
+      "minutes": 15,
+      "servings": 2,
+      "meat": "FISH",
+      "ingredients": [
+        "200 g těstovin",
+        "1 plechovka tuňáka ve vlastní šťávě",
+        "250 g cherry rajčat",
+        "1 stroužek česneku",
+        "2 lžíce olivového oleje",
+        "hrst rukoly",
+        "sůl, pepř"
+      ],
+      "steps": [
+        "Uvař těstoviny v osolené vodě.",
+        "Na oleji krátce osmahni česnek a přidej rozpůlená rajčata.",
+        "Po pár minutách vmíchej scezeného tuňáka, osol a opepři.",
+        "Smíchej s těstovinami a navrch dej rukolu."
+      ]
+    },
+    {
+      "id": "pumpkin-soup",
+      "name": "Dýňová krémová polévka",
+      "minutes": 30,
+      "servings": 4,
+      "meat": "NONE",
+      "ingredients": [
+        "1 menší dýně hokaido (asi 800 g)",
+        "1 cibule",
+        "1 brambora",
+        "kousek zázvoru",
+        "1 l zeleninového vývaru",
+        "100 ml smetany na vaření",
+        "1 lžíce oleje",
+        "sůl, pepř",
+        "dýňová semínka"
+      ],
+      "steps": [
+        "Dýni rozpůl, vydlabej semínka a nakrájej ji i se slupkou na kostky.",
+        "Na oleji osmahni cibuli, přidej dýni, bramboru a nastrouhaný zázvor.",
+        "Zalij vývarem a vař asi 20 minut doměkka.",
+        "Rozmixuj, vmíchej smetanu, dochuť a posyp opraženými semínky."
+      ]
+    },
+    {
+      "id": "chicken-tortilla",
+      "name": "Kuřecí tortilla se zeleninou",
+      "minutes": 20,
+      "servings": 2,
+      "meat": "POULTRY",
+      "ingredients": [
+        "250 g kuřecích prsou",
+        "4 pšeničné tortilly",
+        "1 paprika",
+        "1 rajče",
+        "kus salátové okurky",
+        "hrst ledového salátu",
+        "4 lžíce bílého jogurtu",
+        "1 stroužek česneku",
+        "1 lžička mleté papriky",
+        "1 lžíce oleje",
+        "sůl"
+      ],
+      "steps": [
+        "Maso nakrájej na nudličky, osol, posyp paprikou a opeč na oleji dozlatova.",
+        "Jogurt smíchej s prolisovaným česnekem a špetkou soli.",
+        "Zeleninu nakrájej na proužky.",
+        "Tortilly krátce ohřej na suché pánvi, potři je jogurtem, přidej maso a zeleninu a zaroluj."
+      ]
+    },
+    {
+      "id": "potato-pancakes",
+      "name": "Bramboráky",
+      "minutes": 30,
+      "servings": 3,
+      "meat": "NONE",
+      "ingredients": [
+        "800 g brambor",
+        "1 vejce",
+        "3 lžíce hladké mouky",
+        "3 stroužky česneku",
+        "1 lžička majoránky",
+        "sůl, pepř",
+        "olej na smažení"
+      ],
+      "steps": [
+        "Brambory oloupej a najemno nastrouhej, vymačkej z nich vodu.",
+        "Přidej vejce, mouku, prolisovaný česnek, majoránku, sůl a pepř a promíchej.",
+        "Na rozpáleném oleji opékej tenké placky z obou stran dozlatova.",
+        "Nech je okapat na papírové utěrce a podávej teplé."
+      ]
+    },
+    {
+      "id": "beef-broccoli",
+      "name": "Hovězí nudličky s brokolicí a rýží",
+      "minutes": 25,
+      "servings": 2,
+      "meat": "BEEF",
+      "ingredients": [
+        "250 g hovězího masa na nudličky (třeba zadní)",
+        "1 brokolice",
+        "150 g rýže",
+        "2 stroužky česneku",
+        "kousek zázvoru",
+        "3 lžíce sójové omáčky",
+        "1 lžička kukuřičného škrobu",
+        "1 lžíce oleje"
+      ],
+      "steps": [
+        "Uvař rýži a brokolici rozeber na malé růžičky.",
+        "Maso nakrájej na tenké nudličky a promíchej se sójovou omáčkou a škrobem.",
+        "Na hodně rozpálené pánvi s olejem maso rychle opeč a vyndej.",
+        "Na stejné pánvi opeč brokolici s česnekem a zázvorem, podlij trochou vody a nech 3 minuty dusit.",
+        "Vrať maso, promíchej a podávej s rýží."
+      ]
+    },
+    {
+      "id": "pesto-pasta",
+      "name": "Těstoviny s pestem a cherry rajčaty",
+      "minutes": 15,
+      "servings": 2,
+      "meat": "NONE",
+      "ingredients": [
+        "200 g těstovin",
+        "3 lžíce bazalkového pesta",
+        "250 g cherry rajčat",
+        "hrst piniových nebo slunečnicových semínek",
+        "strouhaný tvrdý sýr",
+        "sůl"
+      ],
+      "steps": [
+        "Uvař těstoviny v osolené vodě.",
+        "Semínka nasucho opraž na pánvi.",
+        "Scezené těstoviny smíchej s pestem a rozpůlenými rajčaty.",
+        "Posyp semínky a sýrem."
+      ]
+    },
+    {
+      "id": "chicken-paprikash",
+      "name": "Kuře na paprice s těstovinami",
+      "minutes": 30,
+      "servings": 3,
+      "meat": "POULTRY",
+      "ingredients": [
+        "400 g kuřecích prsou nebo stehen bez kosti",
+        "250 g těstovin",
+        "1 velká cibule",
+        "1 lžíce sladké mleté papriky",
+        "200 ml vody",
+        "200 ml zakysané smetany",
+        "1 lžíce hladké mouky",
+        "1 lžíce oleje",
+        "sůl"
+      ],
+      "steps": [
+        "Cibuli nakrájej najemno a na oleji ji osmahni dozlatova.",
+        "Přidej maso na kostky, krátce opeč, odstav a vmíchej papriku.",
+        "Podlij vodou, osol a duš pod pokličkou asi 15 minut.",
+        "Smetanu rozmíchej s moukou, vlij k masu a ještě 3 minuty povař.",
+        "Mezitím uvař těstoviny a podávej s omáčkou."
+      ]
+    },
+    {
+      "id": "vegetable-couscous",
+      "name": "Kuskus se zeleninou a cizrnou",
+      "minutes": 15,
+      "servings": 2,
+      "meat": "NONE",
+      "ingredients": [
+        "150 g kuskusu",
+        "1 plechovka cizrny",
+        "1 cuketa",
+        "1 paprika",
+        "1 menší cibule",
+        "1 lžička mletého kmínu",
+        "2 lžíce olivového oleje",
+        "šťáva z půl citronu",
+        "hrst petrželky",
+        "sůl"
+      ],
+      "steps": [
+        "Kuskus zalij stejným objemem vroucí osolené vody, přikryj a nech 5 minut stát.",
+        "Na oleji opeč nakrájenou cibuli, cuketu a papriku, přidej kmín a scezenou cizrnu.",
+        "Kuskus načechrej vidličkou a smíchej se zeleninou.",
+        "Dochuť citronovou šťávou, solí a petrželkou."
+      ]
+    },
+    {
+      "id": "baked-cod",
+      "name": "Pečená treska s bylinkovou krustou",
+      "minutes": 25,
+      "servings": 2,
+      "meat": "FISH",
+      "ingredients": [
+        "2 filety z tresky (asi 300 g)",
+        "3 lžíce strouhanky",
+        "1 lžíce změklého másla",
+        "hrst petrželky",
+        "1 stroužek česneku",
+        "kůra a šťáva z půl citronu",
+        "400 g brambor nebo rýže k podávání",
+        "sůl, pepř"
+      ],
+      "steps": [
+        "Předehřej troubu na 200 °C a uvař přílohu.",
+        "Strouhanku smíchej s máslem, nasekanou petrželkou, česnekem a citronovou kůrou.",
+        "Rybu osol, opepři, polož do vymazaného pekáčku a navrch rozlož krustu.",
+        "Peč asi 15 minut, dokud krusta nezezlátne, a pokapej citronem."
+      ]
+    },
+    {
+      "id": "broccoli-pasta-bake",
+      "name": "Zapečené těstoviny s brokolicí a sýrem",
+      "minutes": 30,
+      "servings": 3,
+      "meat": "NONE",
+      "ingredients": [
+        "250 g těstovin",
+        "1 brokolice",
+        "200 ml smetany na vaření",
+        "2 vejce",
+        "150 g strouhaného sýra",
+        "špetka muškátového oříšku",
+        "sůl, pepř",
+        "máslo na vymazání"
+      ],
+      "steps": [
+        "Předehřej troubu na 200 °C.",
+        "Těstoviny vař v osolené vodě a 3 minuty před koncem k nim přidej růžičky brokolice. Sceď.",
+        "Smetanu rozšlehej s vejci, polovinou sýra, solí, pepřem a muškátem.",
+        "Těstoviny s brokolicí dej do vymazané zapékací mísy, zalij směsí a posyp zbytkem sýra.",
+        "Zapékej asi 15 minut dozlatova."
+      ]
+    },
+    {
+      "id": "turkey-mash",
+      "name": "Krůtí plátky s bramborovou kaší",
+      "minutes": 25,
+      "servings": 2,
+      "meat": "POULTRY",
+      "ingredients": [
+        "2 krůtí řízky (asi 300 g)",
+        "600 g brambor",
+        "100 ml mléka",
+        "1 lžíce másla",
+        "1 lžička sušeného tymiánu nebo majoránky",
+        "1 lžíce oleje",
+        "sůl, pepř"
+      ],
+      "steps": [
+        "Brambory oloupej a uvař v osolené vodě doměkka.",
+        "Maso lehce naklepej, osol, opepři a posyp bylinkami.",
+        "Na oleji ho opékej z každé strany 3 až 4 minuty.",
+        "Brambory sceď, rozšťouchej s teplým mlékem a máslem a osol.",
+        "Podávej plátky s kaší a s výpekem z pánve."
+      ]
+    },
+    {
+      "id": "lecho-eggs",
+      "name": "Lečo s vejci",
+      "minutes": 25,
+      "servings": 2,
+      "meat": "NONE",
+      "ingredients": [
+        "3 papriky",
+        "3 rajčata",
+        "1 cibule",
+        "4 vejce",
+        "1 lžička sladké mleté papriky",
+        "1 lžíce oleje",
+        "sůl, pepř",
+        "chléb"
+      ],
+      "steps": [
+        "Na oleji osmahni nakrájenou cibuli.",
+        "Přidej papriky na proužky a duš je asi 10 minut.",
+        "Přidej nakrájená rajčata a mletou papriku, osol a duš dalších 5 minut.",
+        "Vmíchej rozšlehaná vejce a míchej, dokud se nesrazí.",
+        "Opepři a podávej s chlebem."
+      ]
+    },
+    {
+      "id": "almond-trout",
+      "name": "Pstruh na másle s mandlemi",
+      "minutes": 25,
+      "servings": 2,
+      "meat": "FISH",
+      "ingredients": [
+        "2 filety ze pstruha",
+        "2 lžíce hladké mouky",
+        "2 lžíce másla",
+        "hrst plátků mandlí",
+        "půl citronu",
+        "petrželka",
+        "500 g brambor",
+        "sůl"
+      ],
+      "steps": [
+        "Uvař brambory v osolené vodě.",
+        "Filety osol a obal v mouce.",
+        "Na polovině másla je opékej z každé strany asi 3 minuty a přendej na talíř.",
+        "Na zbytku másla opraž mandle dozlatova, přidej citronovou šťávu a petrželku.",
+        "Přelij rybu mandlovým máslem a podávej s brambory."
+      ]
+    },
+    {
+      "id": "mushroom-risotto",
+      "name": "Houbové rizoto",
+      "minutes": 35,
+      "servings": 2,
+      "meat": "NONE",
+      "ingredients": [
+        "160 g rýže na rizoto",
+        "250 g žampionů",
+        "1 cibule",
+        "1 stroužek česneku",
+        "750 ml horkého zeleninového vývaru",
+        "1 lžíce másla",
+        "1 lžíce oleje",
+        "40 g strouhaného tvrdého sýra",
+        "sůl, pepř",
+        "petrželka"
+      ],
+      "steps": [
+        "Na oleji osmahni nasekanou cibuli a česnek, přidej nakrájené žampiony a opeč je.",
+        "Vsyp rýži a míchej, až zprůsvitní.",
+        "Postupně přilévej vývar po naběračce a míchej, vždy až se předchozí vsákne.",
+        "Asi po 18 minutách, když je rýže krémová a ještě lehce na skus, vmíchej máslo a sýr.",
+        "Dochuť a posyp petrželkou."
+      ]
+    },
+    {
+      "id": "beef-burger",
+      "name": "Hovězí burger se zeleninou",
+      "minutes": 25,
+      "servings": 2,
+      "meat": "BEEF",
+      "ingredients": [
+        "300 g mletého hovězího",
+        "2 bulky na burger",
+        "2 plátky sýra",
+        "1 rajče",
+        "listy salátu",
+        "1 menší červená cibule",
+        "kyselá okurka",
+        "hořčice nebo kečup",
+        "sůl, pepř"
+      ],
+      "steps": [
+        "Maso osol a opepři, rozděl na dva díly a vytvaruj ploché placky.",
+        "Opékej je na rozpálené pánvi z každé strany asi 3 až 4 minuty, na konec na ně polož sýr.",
+        "Bulky rozřízni a krátce opeč řeznou stranou na pánvi.",
+        "Do bulek dej salát, maso, rajče, cibuli, okurku a hořčici nebo kečup."
+      ]
+    },
+    {
+      "id": "tomato-soup",
+      "name": "Rajčatová polévka s bazalkou",
+      "minutes": 25,
+      "servings": 3,
+      "meat": "NONE",
+      "ingredients": [
+        "2 plechovky krájených rajčat (800 g)",
+        "1 cibule",
+        "2 stroužky česneku",
+        "500 ml zeleninového vývaru",
+        "1 lžička cukru",
+        "hrst bazalky",
+        "2 lžíce olivového oleje",
+        "sůl, pepř",
+        "opečený chléb"
+      ],
+      "steps": [
+        "Na oleji osmahni nakrájenou cibuli a česnek.",
+        "Přidej rajčata, vývar a cukr a vař asi 15 minut.",
+        "Přidej část bazalky, rozmixuj a dochuť solí a pepřem.",
+        "Podávej se zbytkem bazalky a s opečeným chlebem."
+      ]
+    },
+    {
+      "id": "chicken-salad",
+      "name": "Kuřecí salát s krutony",
+      "minutes": 20,
+      "servings": 2,
+      "meat": "POULTRY",
+      "ingredients": [
+        "250 g kuřecích prsou",
+        "1 hlávka římského salátu",
+        "2 krajíce chleba",
+        "3 lžíce bílého jogurtu",
+        "1 lžíce majonézy",
+        "1 lžička hořčice",
+        "šťáva z půl citronu",
+        "strouhaný tvrdý sýr",
+        "1 lžíce oleje",
+        "sůl, pepř"
+      ],
+      "steps": [
+        "Maso osol, opepři a opeč na oleji, pak ho nakrájej na plátky.",
+        "Chléb nakrájej na kostičky a na suché pánvi ho opraž dokřupava.",
+        "Jogurt smíchej s majonézou, hořčicí, citronovou šťávou a špetkou soli.",
+        "Natrhaný salát promíchej se zálivkou a navrch dej maso, krutony a sýr."
+      ]
+    },
+    {
+      "id": "quark-pancakes",
+      "name": "Tvarohové lívance s ovocem",
+      "minutes": 25,
+      "servings": 2,
+      "meat": "NONE",
+      "ingredients": [
+        "250 g měkkého tvarohu",
+        "2 vejce",
+        "4 lžíce polohrubé mouky",
+        "1 lžíce cukru",
+        "špetka soli",
+        "olej na pánev",
+        "ovoce podle sezóny",
+        "med nebo javorový sirup"
+      ],
+      "steps": [
+        "Tvaroh smíchej s vejci, moukou, cukrem a solí na husté těsto.",
+        "Na lehce potřené pánvi peč malé lívance z obou stran dozlatova.",
+        "Podávej s ovocem a medem."
+      ]
+    },
+    {
+      "id": "tofu-noodles",
+      "name": "Nudle se zeleninou a tofu",
+      "minutes": 20,
+      "servings": 2,
+      "meat": "NONE",
+      "ingredients": [
+        "150 g nudlí (vaječných nebo rýžových)",
+        "200 g tofu",
+        "1 mrkev",
+        "1 paprika",
+        "hrst fazolových klíčků nebo zelí",
+        "2 jarní cibulky",
+        "1 stroužek česneku",
+        "3 lžíce sójové omáčky",
+        "1 lžíce oleje"
+      ],
+      "steps": [
+        "Nudle připrav podle návodu na obalu a sceď.",
+        "Tofu nakrájej na kostky a na oleji ho opeč dozlatova.",
+        "Přidej zeleninu nakrájenou na nudličky a česnek a 3 minuty opékej za stálého míchání.",
+        "Přidej nudle a sójovou omáčku, promíchej a posyp jarní cibulkou."
+      ]
+    },
+    {
+      "id": "fish-tacos",
+      "name": "Tortilly s treskou a zelím",
+      "minutes": 25,
+      "servings": 2,
+      "meat": "FISH",
+      "ingredients": [
+        "300 g filetu z tresky",
+        "4 malé tortilly",
+        "čtvrt hlávky červeného zelí",
+        "1 limetka nebo citron",
+        "4 lžíce bílého jogurtu",
+        "1 lžička mleté papriky",
+        "koriandr nebo petrželka",
+        "1 lžíce oleje",
+        "sůl"
+      ],
+      "steps": [
+        "Zelí nakrouhej najemno a promíchej se solí a šťávou z poloviny limetky.",
+        "Rybu osol, posyp paprikou a opeč na oleji asi 3 minuty z každé strany. Pak ji rozeber vidličkou.",
+        "Jogurt smíchej se zbytkem limetkové šťávy.",
+        "Tortilly ohřej a naplň je zelím, rybou, jogurtem a bylinkami."
+      ]
+    },
+    {
+      "id": "greek-salad",
+      "name": "Řecký salát s chlebem",
+      "minutes": 10,
+      "servings": 2,
+      "meat": "NONE",
+      "ingredients": [
+        "3 rajčata",
+        "1 salátová okurka",
+        "1 zelená paprika",
+        "1 menší červená cibule",
+        "hrst černých oliv",
+        "150 g balkánského sýra",
+        "3 lžíce olivového oleje",
+        "1 lžička sušeného oregana",
+        "sůl",
+        "chléb"
+      ],
+      "steps": [
+        "Rajčata, okurku a papriku nakrájej na větší kousky, cibuli na tenká kolečka.",
+        "Přidej olivy, osol, polij olejem a promíchej.",
+        "Navrch dej kus sýra, posyp oreganem a podávej s chlebem."
+      ]
+    },
+    {
+      "id": "chicken-risotto",
+      "name": "Kuřecí rizoto s hráškem",
+      "minutes": 30,
+      "servings": 3,
+      "meat": "POULTRY",
+      "ingredients": [
+        "300 g kuřecích prsou",
+        "200 g rýže",
+        "1 cibule",
+        "1 mrkev",
+        "150 g mraženého hrášku",
+        "500 ml kuřecího nebo zeleninového vývaru",
+        "1 lžíce oleje",
+        "strouhaný tvrdý sýr",
+        "sůl, pepř"
+      ],
+      "steps": [
+        "Na oleji osmahni nasekanou cibuli a nastrouhanou mrkev.",
+        "Přidej maso na kostičky a opékej, dokud nezbělá.",
+        "Vsyp rýži, krátce promíchej a zalij vývarem. Osol.",
+        "Duš pod pokličkou asi 15 minut, pak přidej hrášek a nech ještě 5 minut.",
+        "Podávej posypané sýrem."
+      ]
+    },
+    {
+      "id": "fried-cheese",
+      "name": "Smažený sýr s vařeným bramborem",
+      "minutes": 25,
+      "servings": 2,
+      "meat": "NONE",
+      "ingredients": [
+        "2 plátky eidamu silné asi 1,5 cm",
+        "2 lžíce hladké mouky",
+        "1 vejce",
+        "4 lžíce strouhanky",
+        "olej na smažení",
+        "500 g brambor",
+        "tatarská omáčka",
+        "sůl"
+      ],
+      "steps": [
+        "Brambory oloupej a uvař v osolené vodě.",
+        "Sýr obal v mouce, pak v rozšlehaném vejci a ve strouhance. Pro jistotu ještě jednou ve vejci a strouhance.",
+        "Smaž na rozpáleném oleji z každé strany asi 1 až 2 minuty dozlatova, než se sýr začne roztékat.",
+        "Podávej s brambory a tatarskou omáčkou."
+      ]
+    },
+    {
+      "id": "chili-con-carne",
+      "name": "Chilli con carne",
+      "minutes": 40,
+      "servings": 4,
+      "meat": "BEEF",
+      "ingredients": [
+        "400 g mletého hovězího",
+        "1 plechovka červených fazolí",
+        "1 plechovka krájených rajčat (400 g)",
+        "1 cibule",
+        "1 paprika",
+        "2 stroužky česneku",
+        "1 lžíce rajčatového protlaku",
+        "1 lžička mletého kmínu",
+        "1 lžička mleté papriky",
+        "chilli podle chuti",
+        "1 lžíce oleje",
+        "sůl",
+        "rýže nebo chléb k podávání"
+      ],
+      "steps": [
+        "Na oleji osmahni nakrájenou cibuli a papriku, přidej česnek.",
+        "Přidej maso a opékej, dokud nezhnědne.",
+        "Vmíchej protlak a koření, přidej rajčata a osol.",
+        "Duš asi 20 minut, pak přidej scezené fazole a vař ještě 5 minut.",
+        "Podávej s rýží nebo s chlebem."
+      ]
+    },
+    {
+      "id": "millet-porridge",
+      "name": "Jáhlová kaše s jablkem a skořicí",
+      "minutes": 20,
+      "servings": 2,
+      "meat": "NONE",
+      "ingredients": [
+        "100 g jáhel",
+        "400 ml mléka nebo rostlinného nápoje",
+        "1 jablko",
+        "1 lžička skořice",
+        "1 lžíce medu",
+        "hrst vlašských ořechů",
+        "špetka soli"
+      ],
+      "steps": [
+        "Jáhly propláchni horkou vodou.",
+        "Vař je v mléku se solí na mírném ohni asi 15 minut a občas zamíchej.",
+        "Jablko nastrouhej a vmíchej ho do kaše se skořicí.",
+        "Oslaď medem a posyp nasekanými ořechy."
+      ]
+    },
+    {
+      "id": "roast-chicken-legs",
+      "name": "Pečená kuřecí stehna se zeleninou",
+      "minutes": 50,
+      "servings": 2,
+      "meat": "POULTRY",
+      "ingredients": [
+        "2 kuřecí stehna",
+        "500 g brambor",
+        "2 mrkve",
+        "1 cibule",
+        "2 lžíce oleje",
+        "1 lžička sladké mleté papriky",
+        "1 lžička sušeného rozmarýnu nebo tymiánu",
+        "sůl, pepř"
+      ],
+      "steps": [
+        "Předehřej troubu na 200 °C.",
+        "Brambory a mrkev nakrájej na větší kusy a cibuli na měsíčky.",
+        "Zeleninu promíchej na plechu s polovinou oleje, solí a bylinkami.",
+        "Stehna potři zbytkem oleje, osol, posyp paprikou a polož na zeleninu.",
+        "Peč asi 40 minut, až je kůže zlatá a zelenina měkká."
+      ]
+    },
+    {
+      "id": "spinach-eggs",
+      "name": "Špenát s vejcem a bramborem",
+      "minutes": 25,
+      "servings": 2,
+      "meat": "NONE",
+      "ingredients": [
+        "450 g mraženého listového nebo protlačeného špenátu",
+        "500 g brambor",
+        "4 vejce",
+        "2 stroužky česneku",
+        "100 ml mléka",
+        "1 lžíce hladké mouky",
+        "1 lžíce másla",
+        "sůl, pepř"
+      ],
+      "steps": [
+        "Uvař brambory v osolené vodě a vejce natvrdo asi 9 minut.",
+        "Na másle krátce osmahni česnek, přidej špenát a nech ho rozmrazit.",
+        "Mouku rozmíchej v mléce, vlij do špenátu a za stálého míchání 3 minuty povař. Osol a opepři.",
+        "Podávej špenát s brambory a rozpůlenými vejci."
+      ]
+    },
+    {
+      "id": "mackerel-potato-salad",
+      "name": "Uzená makrela s bramborovým salátem",
+      "minutes": 30,
+      "servings": 2,
+      "meat": "FISH",
+      "ingredients": [
+        "1 uzená makrela",
+        "500 g brambor vhodných do salátu",
+        "2 kyselé okurky",
+        "1 menší cibule",
+        "3 lžíce bílého jogurtu",
+        "1 lžíce majonézy",
+        "1 lžička hořčice",
+        "pažitka",
+        "sůl, pepř"
+      ],
+      "steps": [
+        "Brambory uvař ve slupce, oloupej a nech trochu vychladnout.",
+        "Nakrájej je na kostky, přidej nakrájené okurky a nasekanou cibuli.",
+        "Jogurt smíchej s majonézou, hořčicí, solí a pepřem a promíchej se salátem.",
+        "Makrelu zbav kůže a kostí, rozeber ji na kousky a podávej se salátem posypaným pažitkou."
+      ]
+    },
+    {
+      "id": "sweet-potato-chickpeas",
+      "name": "Pečené batáty s cizrnou a jogurtem",
+      "minutes": 35,
+      "servings": 2,
+      "meat": "NONE",
+      "ingredients": [
+        "2 batáty",
+        "1 plechovka cizrny",
+        "2 lžíce olivového oleje",
+        "1 lžička mleté papriky",
+        "půl lžičky mletého kmínu",
+        "150 g bílého jogurtu",
+        "1 stroužek česneku",
+        "hrst rukoly",
+        "sůl"
+      ],
+      "steps": [
+        "Předehřej troubu na 200 °C.",
+        "Batáty nakrájej na kostky, cizrnu sceď a osuš.",
+        "Obojí promíchej s olejem, kořením a solí a rozlož na plech s papírem na pečení.",
+        "Peč asi 25 minut, v polovině promíchej.",
+        "Jogurt smíchej s prolisovaným česnekem a solí a podávej s batáty a rukolou."
+      ]
+    },
+    {
+      "id": "beef-stroganoff",
+      "name": "Hovězí Stroganov s rýží",
+      "minutes": 30,
+      "servings": 2,
+      "meat": "BEEF",
+      "ingredients": [
+        "300 g hovězího masa na nudličky (třeba svíčková nebo zadní)",
+        "200 g žampionů",
+        "1 cibule",
+        "1 lžíce hořčice",
+        "150 ml zakysané smetany",
+        "100 ml vody",
+        "150 g rýže",
+        "1 lžíce oleje",
+        "sůl, pepř",
+        "petrželka"
+      ],
+      "steps": [
+        "Uvař rýži.",
+        "Maso nakrájej na tenké nudličky a na hodně rozpáleném oleji ho rychle opeč. Vyndej ho.",
+        "Na stejné pánvi osmahni cibuli a nakrájené žampiony.",
+        "Přidej hořčici a vodu, krátce povař a stáhni z ohně.",
+        "Vmíchej smetanu a maso, prohřej, ale už nevař. Dochuť a podávej s rýží a petrželkou."
+      ]
+    },
+    {
+      "id": "gnocchi-peas",
+      "name": "Bramborové noky se smetanou a hráškem",
+      "minutes": 20,
+      "servings": 2,
+      "meat": "NONE",
+      "ingredients": [
+        "500 g bramborových noků (gnocchi)",
+        "150 g mraženého hrášku",
+        "150 ml smetany na vaření",
+        "1 stroužek česneku",
+        "1 lžíce másla",
+        "50 g strouhaného tvrdého sýra",
+        "kůra z půl citronu",
+        "sůl, pepř"
+      ],
+      "steps": [
+        "Noky uvař podle návodu na obalu, hrášek přidej do vody poslední 2 minuty. Sceď.",
+        "Na másle krátce osmahni česnek, přilij smetanu a nech chvíli probublat.",
+        "Vmíchej sýr a citronovou kůru, osol a opepři.",
+        "Přidej noky s hráškem a promíchej."
+      ]
+    }
+  ]
+}

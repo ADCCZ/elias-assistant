@@ -9,7 +9,7 @@ data class DayTimes(val morning: LocalTime?, val evening: LocalTime?)
 /**
  * When Elias works, set separately for each day of the week. Both times are clock times on that calendar day.
  *
- * - The morning time is when the morning briefing is due: data is prefetched before it, and from M6 the alarm rings.
+ * - The morning time is when the morning briefing is due: data is prefetched before it, and from M7 the alarm rings.
  * - The evening time is when the evening briefing plays on its own.
  *
  * The sabbath rules apply on top of this (see [ScheduleCalculator]), whatever is set for Friday and Saturday.

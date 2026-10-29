@@ -7,19 +7,25 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -40,10 +46,17 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.adccz.elias.R
 import io.github.adccz.elias.core.android.canPostNotifications
+import io.github.adccz.elias.domain.bible.BibleBooks
+import io.github.adccz.elias.domain.bible.Chapter
 import io.github.adccz.elias.domain.briefing.BriefingKind
+import io.github.adccz.elias.domain.reading.ReadMark
 import io.github.adccz.elias.domain.voice.SpeakResult
 import io.github.adccz.elias.domain.voice.VoiceStatus
 import io.github.adccz.elias.ui.common.CzechFormat
+import io.github.adccz.elias.ui.reading.ReadingMessage
+import io.github.adccz.elias.ui.reading.ReadingMessageEffect
+import io.github.adccz.elias.ui.reading.TodayReading
+import io.github.adccz.elias.ui.reading.TodayReadingCard
 import io.github.adccz.elias.ui.theme.EliasTheme
 import io.github.adccz.elias.ui.voice.SpeechStatusText
 import io.github.adccz.elias.ui.voice.SpeechUiState
@@ -62,6 +75,9 @@ fun HomeRoute(
     onOpenStatus: () -> Unit,
     onOpenPlans: () -> Unit,
     onOpenJournal: () -> Unit,
+    onOpenReading: () -> Unit,
+    onOpenExercises: () -> Unit,
+    onOpenRecipe: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -109,6 +125,12 @@ fun HomeRoute(
         onOpenStatus = onOpenStatus,
         onOpenPlans = onOpenPlans,
         onOpenJournal = onOpenJournal,
+        onOpenReading = onOpenReading,
+        onOpenExercises = onOpenExercises,
+        onOpenRecipe = onOpenRecipe,
+        onMarkRead = viewModel::markRead,
+        onUndoRead = viewModel::undoRead,
+        onReadingMessageShown = viewModel::readingMessageShown,
     )
 }
 
@@ -131,71 +153,97 @@ fun HomeScreen(
     onOpenStatus: () -> Unit,
     onOpenPlans: () -> Unit,
     onOpenJournal: () -> Unit,
+    onOpenReading: () -> Unit,
+    onOpenExercises: () -> Unit,
+    onOpenRecipe: () -> Unit,
+    onMarkRead: () -> Unit,
+    onUndoRead: (ReadMark) -> Unit,
+    onReadingMessageShown: (ReadingMessage) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val speech = uiState.speech
-    Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.displayMedium,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.home_tagline),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-            Text(
-                text = stringResource(R.string.home_today, uiState.today.format(CzechFormat.fullDate)),
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-            val isPreparing = speech is SpeechUiState.Preparing
-            Button(onClick = { onPlay(BriefingKind.MORNING) }, enabled = !isPreparing) {
-                Text(stringResource(R.string.home_play_morning))
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Button(onClick = { onPlay(BriefingKind.EVENING) }, enabled = !isPreparing) {
-                Text(stringResource(R.string.home_play_evening))
-            }
-            SpeechControls(speech = speech, onStop = onStop, onFixVoice = onFixVoice)
-            Spacer(modifier = Modifier.height(32.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                FilledTonalButton(onClick = onOpenPlans) {
-                    Text(stringResource(R.string.home_open_plans))
+    val snackbarHostState = remember { SnackbarHostState() }
+    ReadingMessageEffect(uiState.readingMessage, snackbarHostState, onUndoRead, onReadingMessageShown)
+    Scaffold(modifier = modifier.fillMaxSize(), snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
+        // Centered while everything fits, scrollable when it does not (a small screen or large text).
+        BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .heightIn(min = maxHeight)
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.displayMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.home_tagline),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                Text(
+                    text = stringResource(R.string.home_today, uiState.today.format(CzechFormat.fullDate)),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                val isPreparing = speech is SpeechUiState.Preparing
+                Button(onClick = { onPlay(BriefingKind.MORNING) }, enabled = !isPreparing) {
+                    Text(stringResource(R.string.home_play_morning))
                 }
-                FilledTonalButton(onClick = onOpenJournal) {
-                    Text(stringResource(R.string.home_open_journal))
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(onClick = { onPlay(BriefingKind.EVENING) }, enabled = !isPreparing) {
+                    Text(stringResource(R.string.home_play_evening))
                 }
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            FilledTonalButton(onClick = onOpenData) {
-                Text(stringResource(R.string.home_open_data))
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            FilledTonalButton(onClick = onOpenPreview) {
-                Text(stringResource(R.string.home_open_preview))
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                FilledTonalButton(onClick = onOpenSchedule) {
-                    Text(stringResource(R.string.home_open_schedule))
+                SpeechControls(speech = speech, onStop = onStop, onFixVoice = onFixVoice)
+                Spacer(modifier = Modifier.height(24.dp))
+                TodayReadingCard(uiState.reading, onMarkRead)
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilledTonalButton(onClick = onOpenReading) {
+                        Text(stringResource(R.string.home_open_reading))
+                    }
+                    FilledTonalButton(onClick = onOpenExercises) {
+                        Text(stringResource(R.string.home_open_exercises))
+                    }
+                    FilledTonalButton(onClick = onOpenRecipe) {
+                        Text(stringResource(R.string.home_open_recipe))
+                    }
                 }
-                FilledTonalButton(onClick = onOpenStatus) {
-                    Text(stringResource(R.string.home_open_status))
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    FilledTonalButton(onClick = onOpenPlans) {
+                        Text(stringResource(R.string.home_open_plans))
+                    }
+                    FilledTonalButton(onClick = onOpenJournal) {
+                        Text(stringResource(R.string.home_open_journal))
+                    }
                 }
+                Spacer(modifier = Modifier.height(12.dp))
+                FilledTonalButton(onClick = onOpenData) {
+                    Text(stringResource(R.string.home_open_data))
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                FilledTonalButton(onClick = onOpenPreview) {
+                    Text(stringResource(R.string.home_open_preview))
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    FilledTonalButton(onClick = onOpenSchedule) {
+                        Text(stringResource(R.string.home_open_schedule))
+                    }
+                    FilledTonalButton(onClick = onOpenStatus) {
+                        Text(stringResource(R.string.home_open_status))
+                    }
+                }
+                NotificationPermissionCard(notificationCard, onAllowNotifications, onDismissNotifications)
             }
-            NotificationPermissionCard(notificationCard, onAllowNotifications, onDismissNotifications)
         }
     }
 }
@@ -249,6 +297,7 @@ private fun HomeScreenPreview() {
             uiState = HomeUiState(
                 today = LocalDate.of(2026, 10, 27),
                 speech = SpeechUiState.Speaking(BriefingKind.MORNING, isPaused = false),
+                reading = TodayReading(next = Chapter(BibleBooks.byAbbreviation("Mk")!!, 3)),
             ),
             notificationCard = NotificationCard.ASK,
             onPlay = {},
@@ -262,6 +311,12 @@ private fun HomeScreenPreview() {
             onOpenStatus = {},
             onOpenPlans = {},
             onOpenJournal = {},
+            onOpenReading = {},
+            onOpenExercises = {},
+            onOpenRecipe = {},
+            onMarkRead = {},
+            onUndoRead = {},
+            onReadingMessageShown = {},
         )
     }
 }

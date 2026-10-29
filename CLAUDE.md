@@ -7,7 +7,7 @@ The name is **written E.L.I.A.S.** on screens and in docs, **spoken "Elias"**, a
 ## How we work
 
 - **Plan first, then code.** Propose a milestone plan and wait for approval.
-- **One milestone at a time** (M0–M7 and M4.5 in the spec). After each one, stop and report to the user **in Czech**:
+- **One milestone at a time** (M0–M8 and M4.5 in the spec). After each one, stop and report to the user **in Czech**:
   what was done and why (short, the user is learning Kotlin/Android), what to test on the phone and how,
   known limitations and debt. Do not start the next milestone until the user confirms it works.
 - **Commit after each logical step.** English messages, Conventional Commits style
@@ -73,6 +73,14 @@ io/github/adccz/elias/
   calendar around it. The journal (`Journal`, Room table `journal_entries`)
   stays on the phone: briefing prompts never contain it, `BriefingService` adds the journal sections after the AI
   answer, and only "na čem se zlepšit" with the weekly theme goes to the AI on a tap (`SuggestStep`).
+- **Morning routine (M5):** `BibleReading` (`domain/reading`) holds the Bible reading queue (`ReadingQueue`: only what
+  is left, one JSON value in DataStore) and the chapters marked as read (Room table `read_chapters`). Book names,
+  abbreviations and chapter counts are in `BibleBooks` (ČEP, checked against the source; never from memory).
+  `MorningRoutine` picks the day's exercises and recipe from `assets/exercises.json` and `assets/recipes.json` by
+  date. The reading, exercises and recipe use the routine day that starts at 4:00 (`JournalDay`). The `ROUTINE` and
+  `READING_REMINDER` sections are template sections added in `BriefingService` after the AI answer; the AI never gets
+  the morning reading. "Cvič se mnou" is `BriefingRequest.Exercises` (`BriefingKind.EXERCISES`) through
+  `PlaybackService` and `BriefingRunner`, on the media stream, never in the run log.
 - **Room 3:** package `androidx.room3`, platform SQLite driver, schemas in `app/schemas/` (commit them). DAOs stay thin
   and are not tested on the JVM; test the logic around them with fakes (`InMemorySourceCache`, `FakeRunLog`).
 - **Claude API:** `POST /v1/messages` via Ktor, header `anthropic-version: 2026-10-21`. Never send `temperature`,
@@ -117,6 +125,8 @@ io/github/adccz/elias/
 - Never call real services from committed tests. A one-off manual check is fine, but delete it afterwards.
 - Code with a real-time timeout around a `MockEngine` call (like `ClaudeBriefingBuilder`) is tested with
   `runBlocking`: in `runTest` virtual time the timeout would fire instantly.
+- The routine content is checked by tests that read the real assets (`ExerciseFileTest`, `RecipeFileTest`: no
+  digits or health claims in exercises, no pork, seafood or other forbidden food in recipes). Keep them passing.
 - CI (GitHub Actions) runs build, unit tests, lint and ktlint on every push.
 
 ## Commands
