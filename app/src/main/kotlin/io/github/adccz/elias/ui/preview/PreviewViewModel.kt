@@ -7,8 +7,10 @@ import io.github.adccz.elias.domain.briefing.BriefingKind
 import io.github.adccz.elias.domain.briefing.BriefingResult
 import io.github.adccz.elias.domain.briefing.BriefingService
 import io.github.adccz.elias.domain.overview.TodayOverviewLoader
+import io.github.adccz.elias.domain.voice.BuiltInVoice
 import io.github.adccz.elias.domain.voice.SpeechRate
 import io.github.adccz.elias.domain.voice.VoiceChecker
+import io.github.adccz.elias.domain.voice.VoiceChoice
 import io.github.adccz.elias.domain.voice.VoiceSettingsRepository
 import io.github.adccz.elias.domain.voice.VoiceStatus
 import io.github.adccz.elias.ui.voice.SpeechController
@@ -30,6 +32,9 @@ data class PreviewUiState(
     val evening: BriefingResult? = null,
     val speech: SpeechUiState = SpeechUiState.Idle,
     val speechRate: SpeechRate = SpeechRate.NORMAL,
+    val voiceChoice: VoiceChoice = VoiceChoice.BUILT_IN,
+    /** The app's own voice crashed before and is off until the next app update. */
+    val builtInVoiceCrashed: Boolean = false,
     /** The Czech voice check. Null until the first check is done. */
     val voice: VoiceStatus? = null,
 ) {
@@ -48,8 +53,9 @@ class PreviewViewModel @Inject constructor(
     private val speech: SpeechController,
     private val voiceChecker: VoiceChecker,
     private val voiceSettings: VoiceSettingsRepository,
+    private val builtInVoice: BuiltInVoice,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(PreviewUiState())
+    private val _uiState = MutableStateFlow(PreviewUiState(builtInVoiceCrashed = builtInVoice.crashedBefore))
     val uiState: StateFlow<PreviewUiState> = _uiState.asStateFlow()
 
     private var generateJob: Job? = null
@@ -63,6 +69,9 @@ class PreviewViewModel @Inject constructor(
         }
         viewModelScope.launch {
             voiceSettings.speechRate.collect { rate -> _uiState.update { it.copy(speechRate = rate) } }
+        }
+        viewModelScope.launch {
+            voiceSettings.voice.collect { choice -> _uiState.update { it.copy(voiceChoice = choice) } }
         }
     }
 
@@ -104,13 +113,24 @@ class PreviewViewModel @Inject constructor(
         viewModelScope.launch { voiceSettings.setSpeechRate(rate) }
     }
 
+    /** Switches between the app's own voice and the phone's voice, and checks the voice now in use. */
+    fun setVoice(choice: VoiceChoice) {
+        _uiState.update { it.copy(voiceChoice = choice) }
+        viewModelScope.launch {
+            voiceSettings.setVoice(choice)
+            checkVoiceNow()
+        }
+    }
+
     /** Checks the Czech voice. The last result stays on the screen until the new one is known. */
     fun checkVoice() {
         voiceJob?.cancel()
-        voiceJob = viewModelScope.launch {
-            val status = voiceChecker.check()
-            _uiState.update { it.copy(voice = status) }
-        }
+        voiceJob = viewModelScope.launch { checkVoiceNow() }
+    }
+
+    private suspend fun checkVoiceNow() {
+        val status = voiceChecker.check()
+        _uiState.update { it.copy(voice = status) }
     }
 
     /** Back from the voice settings: check again if the voice was not ready. */

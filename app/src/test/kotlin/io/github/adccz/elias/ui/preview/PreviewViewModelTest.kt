@@ -11,8 +11,11 @@ import io.github.adccz.elias.domain.briefing.EveningInput
 import io.github.adccz.elias.domain.briefing.MorningInput
 import io.github.adccz.elias.domain.briefing.TemplateBriefingBuilder
 import io.github.adccz.elias.domain.voice.BriefingRequest
+import io.github.adccz.elias.domain.voice.BuiltInVoice
 import io.github.adccz.elias.domain.voice.SpeechRate
+import io.github.adccz.elias.domain.voice.SpeechSynthesizer
 import io.github.adccz.elias.domain.voice.VoiceStatus
+import io.github.adccz.elias.testing.FakeSpeechSynthesizer
 import io.github.adccz.elias.testing.FakeVoiceChecker
 import io.github.adccz.elias.testing.FakeVoicePlayer
 import io.github.adccz.elias.testing.FakeVoiceSettings
@@ -66,6 +69,10 @@ class PreviewViewModelTest {
         speech = SpeechController(player),
         voiceChecker = checker,
         voiceSettings = settings,
+        builtInVoice = object : BuiltInVoice, SpeechSynthesizer by FakeSpeechSynthesizer() {
+            override val status: VoiceStatus? = null
+            override val crashedBefore = false
+        },
     )
 
     @Test

@@ -54,7 +54,9 @@ io/github/adccz/elias/
 - **Voice:** a tap or an alarm starts `PlaybackService` (Media3 `MediaSessionService`, ExoPlayer) with
   `PlaybackService.speakIntent(request)`. It goes into the foreground at once, plays a silent "Připravuji…" loop and
   runs `BriefingRunner` (domain): write the briefing when needed, speak one WAV clip per section with
-  `AndroidTextToSpeech` (offline Czech voice only), swap the loop for the clips, record the run. Screens follow the
+  `SelectedVoice` (the app's voice `PiperTextToSpeech`, "Oldřich 3.0" with sherpa-onnx, or the phone's
+  `AndroidTextToSpeech` as the fallback, offline voices only), swap the loop for the clips, record the run.
+  sherpa-onnx stays on 1.13.8 (D37); the voice model is a generated asset, never in git (D38). Screens follow the
   shared `SpeechStatus`; the app has no `MediaController`. Only intents with the process token are obeyed.
   Audio focus is our own (`AudioFocusPolicy`), never ExoPlayer's (`handleAudioFocus = false`). User-started playback
   uses `PlaybackStream.MEDIA`, scheduled playback `PlaybackStream.ALARM`. Media3 APIs marked `@UnstableApi` need
@@ -122,5 +124,8 @@ Windows: use `.\gradlew.bat` instead of `./gradlew`. The Gradle daemon needs Jav
 ./gradlew testDebugUnitTest      # run unit tests
 ./gradlew lintDebug              # Android lint
 ./gradlew ktlintCheck            # code style check (ktlintFormat to fix)
-./gradlew installDebug           # install on a connected phone (USB debugging on)
+./gradlew installDebug           # install on a connected phone (USB debugging on), the APK for its processor
 ```
+
+The first build downloads the voice model (about 67 MB, SHA-256 checked) into the Gradle user home.
+`-Pelias.voiceModel=skip` builds without it (CI does); the app then speaks with the phone's voice.

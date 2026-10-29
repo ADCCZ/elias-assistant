@@ -4,6 +4,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import io.github.adccz.elias.domain.voice.SpeechRate
+import io.github.adccz.elias.domain.voice.VoiceChoice
 import java.io.File
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -50,5 +51,19 @@ class DataStoreVoiceSettingsRepositoryTest {
         dataStore.edit { it[floatPreferencesKey("speech_rate")] = 9f }
 
         assertEquals(SpeechRate.FASTEST, DataStoreVoiceSettingsRepository(dataStore).speechRate.first())
+    }
+
+    @Test
+    fun `speaks with the app's own voice when nothing is stored`() = runTest {
+        assertEquals(VoiceChoice.BUILT_IN, DataStoreVoiceSettingsRepository(dataStore).voice.first())
+    }
+
+    @Test
+    fun `remembers the voice choice`() = runTest {
+        val repository = DataStoreVoiceSettingsRepository(dataStore)
+
+        repository.setVoice(VoiceChoice.PHONE)
+
+        assertEquals(VoiceChoice.PHONE, repository.voice.first())
     }
 }

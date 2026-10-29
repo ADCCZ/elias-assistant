@@ -201,3 +201,5 @@ Ke každému milníku: testy, aktualizace README a shrnutí pro mě.
   souhrnu, nikdy před západem slunce, a nahrazuje v něm pozdrav s checklistem.
 - **2026-10-29 (M4):** Titulky „od posledního souhrnu“ znamenají od posledního přehraného souhrnu, nejméně 6 a nejvýš
   24 hodin zpět.
+- **2026-10-29 (hlas):** Výchozí hlas je vlastní mužský offline hlas „Oldřich 3.0“ (Piper „Jirka“ přes sherpa-onnx,
+  model přibalený v APK). Vestavěný Android `TextToSpeech` zůstává jako záloha a jde zvolit v Náhledu textu.

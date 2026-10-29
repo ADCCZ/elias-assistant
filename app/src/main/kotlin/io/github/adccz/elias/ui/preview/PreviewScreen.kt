@@ -54,6 +54,7 @@ import io.github.adccz.elias.domain.briefing.BriefingText
 import io.github.adccz.elias.domain.briefing.SectionKind
 import io.github.adccz.elias.domain.voice.SpeechRate
 import io.github.adccz.elias.domain.voice.TtsEngine
+import io.github.adccz.elias.domain.voice.VoiceChoice
 import io.github.adccz.elias.domain.voice.VoiceStatus
 import io.github.adccz.elias.ui.common.CzechFormat
 import io.github.adccz.elias.ui.theme.EliasTheme
@@ -81,6 +82,7 @@ fun PreviewRoute(onBack: () -> Unit, viewModel: PreviewViewModel = hiltViewModel
             onPlay = viewModel::play,
             onStop = viewModel::stop,
             onSpeechRateChange = viewModel::onSpeechRateChange,
+            onVoiceChange = viewModel::setVoice,
             onSpeechRateChangeFinished = viewModel::onSpeechRateChangeFinished,
             onFixVoice = { status -> context.openVoiceFix(status) },
         ),
@@ -92,6 +94,7 @@ class VoiceActions(
     val onPlay: () -> Unit,
     val onStop: () -> Unit,
     val onSpeechRateChange: (Float) -> Unit,
+    val onVoiceChange: (VoiceChoice) -> Unit,
     val onSpeechRateChangeFinished: () -> Unit,
     val onFixVoice: (VoiceStatus) -> Unit,
 )
@@ -154,7 +157,13 @@ fun PreviewScreen(
             } else {
                 BriefingCard(result, uiState.speechRate)
             }
-            VoiceSettings(uiState.speechRate, uiState.voice, voiceActions)
+            VoiceSettings(
+                uiState.speechRate,
+                uiState.voiceChoice,
+                uiState.builtInVoiceCrashed,
+                uiState.voice,
+                voiceActions,
+            )
         }
     }
 }
@@ -179,7 +188,29 @@ private fun PlayRow(uiState: PreviewUiState, actions: VoiceActions) {
 
 /** The speech rate (saved when the slider is let go) and the result of the Czech voice check. */
 @Composable
-private fun VoiceSettings(rate: SpeechRate, voice: VoiceStatus?, actions: VoiceActions) {
+private fun VoiceSettings(
+    rate: SpeechRate,
+    choice: VoiceChoice,
+    builtInCrashed: Boolean,
+    voice: VoiceStatus?,
+    actions: VoiceActions,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(stringResource(R.string.voice_builtin_switch), modifier = Modifier.weight(1f))
+        Switch(
+            checked = choice == VoiceChoice.BUILT_IN,
+            onCheckedChange = { builtIn ->
+                actions.onVoiceChange(if (builtIn) VoiceChoice.BUILT_IN else VoiceChoice.PHONE)
+            },
+        )
+    }
+    if (builtInCrashed) {
+        Text(
+            stringResource(R.string.voice_builtin_crashed),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+        )
+    }
     Text(
         text = stringResource(R.string.speech_rate, CzechFormat.oneDecimal(rate.multiplier.toDouble())),
         style = MaterialTheme.typography.titleSmall,
@@ -308,7 +339,7 @@ private fun PreviewScreenPreview() {
             onSelect = {},
             onUseAiChange = {},
             onRegenerate = {},
-            voiceActions = VoiceActions({}, {}, {}, {}, {}),
+            voiceActions = VoiceActions({}, {}, {}, {}, {}, {}),
         )
     }
 }
